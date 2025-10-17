@@ -1,0 +1,648 @@
+import axios from "axios";
+import { LocalStorage } from "../helpers/localstorage";
+// const STAGING_API_URL = "https://www.markupdesigns.net/def-dwarg/api/";
+export const Image_url = "https://www.markupdesigns.net/whitepeony/storage/"
+const STAGING_API_URL = "https://www.markupdesigns.net/whitepeony/api/";
+export const API_URL = STAGING_API_URL;
+let APIKit = axios.create({
+  baseURL: STAGING_API_URL,
+  timeout: 60000,
+});
+
+APIKit.interceptors.request.use(
+  async (config) => {
+    //console.log(config)
+    const token = await LocalStorage.read('@token');
+    if (token) {
+      config.headers['authorization'] = `Bearer ${token}`;
+    }
+    return config;
+  },
+  (error) => {
+    console.log('Request error:', error);
+    return Promise.reject(error);
+  }
+);
+
+export const UserService = {
+  requestotp: async (payload: object) => {
+    const apiHeaders = {
+      headers: {
+        "Content-Type": "application/json",
+        Accept: "application/json",
+      },
+    };
+    return APIKit.post("login/request-otp", payload, apiHeaders);
+  },
+
+  verifyotp: async (payload: object) => {
+    const apiHeaders = {
+      headers: {
+        "Content-Type": "application/json",
+        Accept: "application/json",
+      },
+    };
+    return APIKit.post("login/verify-otp", payload, apiHeaders);
+  },
+
+  UpdateProfile: async (payload: object) => {
+    const token = await LocalStorage.read("@token");
+    const apiHeaders = {
+      headers: {
+        "Content-Type": "multipart/form-data",
+        Authorization: `Bearer ${token}`,
+      },
+    };
+    return APIKit.post("update/profile", payload, apiHeaders);
+  },
+
+  events: async () => {
+    const token = await LocalStorage.read("@token");
+    const apiHeaders = {
+      headers: {
+        "Content-Type": "application/json",
+        Accept: "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+    };
+    return APIKit.get("events", apiHeaders);
+  },
+
+  nearbyevents: async (payload: any) => {
+    const token = await LocalStorage.read("@token");
+    const apiHeaders = {
+      headers: {
+        "Content-Type": "application/json",
+        Accept: "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+    };
+    return APIKit.post("nearbyevents", payload, apiHeaders);
+  },
+
+  GetCategoryByID: async (id: string) => {
+    const token = await LocalStorage.read("@token");
+    const apiHeaders = {
+      headers: {
+        "Content-Type": "application/json",
+        Accept: "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+    };
+    return APIKit.get(`products/category/${id}`, apiHeaders);
+  },
+
+  Shiping: async () => {
+    const token = await LocalStorage.read("@token");
+    const apiHeaders = {
+      headers: {
+        "Content-Type": "application/json",
+        Accept: "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+    };
+    return APIKit.get(`shiping`, apiHeaders);
+  },
+
+  eventsRegister: async (payload: any, id: string) => {
+    const token = await LocalStorage.read("@token");
+    const apiHeaders = {
+      headers: {
+        "Content-Type": "application/json",
+        Accept: "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+    };
+    return APIKit.post(`events/${id}/register`, payload, apiHeaders);
+  },
+
+  eventsListing: async () => {
+    const token = await LocalStorage.read("@token");
+    const apiHeaders = {
+      headers: {
+        "Content-Type": "application/json",
+        Accept: "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+    };
+    return APIKit.get(`reigsteredevents`, apiHeaders);
+  },
+
+  eventscancel: async (id: any) => {
+    const token = await LocalStorage.read("@token");
+    const apiHeaders = {
+      headers: {
+        "Content-Type": "application/json",
+        Accept: "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+    };
+    return APIKit.post(`events/${id}/cancel`, apiHeaders);
+  },
+
+  order: async () => {
+    const token = await LocalStorage.read("@token");
+    const apiHeaders = {
+      headers: {
+        "Content-Type": "application/json",
+        Accept: "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+    };
+    return APIKit.get("order", apiHeaders);
+  },
+
+  eventupdate: async (id: any,) => {
+    const token = await LocalStorage.read("@token");
+    const apiHeaders = {
+      headers: {
+        "Content-Type": "application/json",
+        Accept: "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+    };
+    return APIKit.get(`events/${id}`, apiHeaders);
+  },
+
+  articles: async () => {
+    const token = await LocalStorage.read("@token");
+    const apiHeaders = {
+      headers: {
+        "Content-Type": "application/json",
+        Accept: "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+    };
+    return APIKit.get("articles", apiHeaders);
+  },
+
+  articleDetail: async (id: string) => {
+    const token = await LocalStorage.read("@token");
+    const apiHeaders = {
+      headers: {
+        "Content-Type": "application/json",
+        Accept: "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+    };
+    return APIKit.get(`article/${id}`, apiHeaders);
+  },
+
+  address: async () => {
+    const token = await LocalStorage.read("@token");
+    const apiHeaders = {
+      headers: {
+        "Content-Type": "application/json",
+        Accept: "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+    };
+    return APIKit.get("addaddress", apiHeaders);
+  },
+
+  addaddress: async (payload: object) => {
+    const token = await LocalStorage.read("@token");
+    const apiHeaders = {
+      headers: {
+        "Content-Type": "application/json",
+        Accept: "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+    };
+    return APIKit.post("addaddress", payload, apiHeaders);
+  },
+  addressdupdate: async (id: any, payload: any) => {
+    const token = await LocalStorage.read("@token");
+    const apiHeaders = {
+      headers: {
+        "Content-Type": "application/json",
+        Accept: "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+    };
+    return APIKit.put(`updateaddress/${id}`, payload, apiHeaders);
+  },
+
+  ContactUs: async (payload: object) => {
+    const token = await LocalStorage.read("@token");
+    const apiHeaders = {
+      headers: {
+        "Content-Type": "application/json",
+        Accept: "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+    };
+    console.log("payload", apiHeaders);
+    return APIKit.post("add-contact", payload, apiHeaders);
+  },
+
+  OtpVerify: async (payload: object) => {
+    const apiHeaders = {
+      headers: {
+        "Content-Type": "application/json",
+        Accept: "application/json",
+      },
+    };
+    return APIKit.post("mobile-verify", payload, apiHeaders);
+  },
+
+  verifyidentity: async () => {
+    const token = await LocalStorage.read('@token');
+    const apiHeaders = {
+      headers: {
+        "Content-Type": "application/json",
+        Accept: "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+    };
+    return APIKit.post("verify-identity", apiHeaders);
+  },
+
+  header: async () => {
+    const token = await LocalStorage.read("@token");
+    const apiHeaders = {
+      headers: {
+        "Content-Type": "application/json",
+        Accept: "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+    };
+    return APIKit.get("banners", apiHeaders);
+  },
+
+  GetCategory: async () => {
+    // const token = await LocalStorage.read("@token");
+    const apiHeaders = {
+      headers: {
+        "Content-Type": "application/json",
+        Accept: "application/json",
+        // Authorization: `Bearer ${token}`,
+      },
+    };
+    return APIKit.get('category', apiHeaders);
+  },
+
+  product: async () => {
+    const token = await LocalStorage.read("@token");
+    const apiHeaders = {
+      headers: {
+        "Content-Type": "application/json",
+        Accept: "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+    };
+    return APIKit.get('products', apiHeaders);
+  },
+
+  productDetail: async (id) => {
+    const token = await LocalStorage.read("@token");
+    const apiHeaders = {
+      headers: {
+        "Content-Type": "application/json",
+        Accept: "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+    };
+    return APIKit.get(`products/${id}`, apiHeaders);
+  },
+
+  AddToCart: async (payload: object) => {
+    const token = await LocalStorage.read("@token");
+    const apiHeaders = {
+      headers: {
+        "Content-Type": "application/json",
+        Accept: "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+    };
+    return APIKit.post("addtocart", payload, apiHeaders);
+  },
+
+  viewCart: async () => {
+    const token = await LocalStorage.read("@token");
+    console.log("token", token);
+    const apiHeaders = {
+      headers: {
+        "Content-Type": "application/json",
+        Accept: "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+    };
+    return APIKit.get("cart", apiHeaders);
+  },
+
+  RemoveCart: async (removeid: number) => {
+    const token = await LocalStorage.read("@token");
+    const apiHeaders = {
+      headers: {
+        "Content-Type": "application/json",
+        Accept: "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+    };
+    return APIKit.delete(`cart/product/${removeid}`, apiHeaders);
+  },
+
+  deleteaddresses: async (removeid: number) => {
+    const token = await LocalStorage.read("@token");
+    const apiHeaders = {
+      headers: {
+        "Content-Type": "application/json",
+        Accept: "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+    };
+    return APIKit.delete(`deleteaddresses/${removeid}`, apiHeaders);
+  },
+
+  UpdateCart: async (payload: object) => {
+    const token = await LocalStorage.read("@token");
+    const apiHeaders = {
+      headers: {
+        "Content-Type": "application/json",
+        Accept: "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+    };
+    console.log("payload", payload, apiHeaders);
+    return APIKit.post('updatecart', payload, apiHeaders);
+  },
+
+  recommended: async () => {
+    const token = await LocalStorage.read("@token");
+    const apiHeaders = {
+      headers: {
+        "Content-Type": "application/json",
+        Accept: "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+    };
+    return APIKit.get('products/recommended', apiHeaders);
+  },
+
+  SlugAPI: async (slug: any) => {
+    const token = await LocalStorage.read("@token");
+    const apiHeaders = {
+      headers: {
+        "Content-Type": "application/json",
+        Accept: "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+    };
+    return APIKit.get(`pages/${slug}`, apiHeaders);
+  },
+
+  Placeorder: async (payload: object) => {
+    const token = await LocalStorage.read("@token");
+    const apiHeaders = {
+      headers: {
+        "Content-Type": "application/json",
+        Accept: "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+    };
+    console.log("payload", payload)
+    return APIKit.post("placeorder", payload, apiHeaders);
+  },
+
+  deleteAccount: async () => {
+    const token = await LocalStorage.read("@token");
+    const apiHeaders = {
+      headers: {
+        "Content-Type": "application/json",
+        Accept: "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+    };
+    return APIKit.delete(`account/delete`, apiHeaders);
+  },
+
+
+  verifyOTP: async (payload: object) => {
+    const apiHeaders = {
+      headers: {
+        "Content-Type": "application/json",
+        Accept: "application/json",
+      },
+    };
+    return APIKit.post("user/verify_otp", payload, apiHeaders);
+  },
+
+  savedevicetoken: async (payload: any,) => {
+    const token = await LocalStorage.read("@token");
+    const apiHeaders = {
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+    };
+    return APIKit.post("user/fcm-token", payload, apiHeaders);
+  },
+
+  ReturnedForm: async (formData: any) => {
+    const token = await LocalStorage.read("@token");
+    const apiHeaders = {
+      headers: {
+        "Content-Type": "multipart/form-data",
+        Authorization: `Bearer ${token}`,
+      },
+    };
+    console.log("formData", formData);
+    return APIKit.post("returned-form", formData, apiHeaders);
+  },
+
+  notifications: async () => {
+    const token = await LocalStorage.read("@token");
+    const apiHeaders = {
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+    };
+    return APIKit.get(`notifications`, apiHeaders);
+  },
+
+  notificationsreadID: async (id) => {
+    const token = await LocalStorage.read("@token");
+    const apiHeaders = {
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+    };
+    return APIKit.post(`notifications/${id}/read`, apiHeaders);
+  },
+
+  notificationsunread: async () => {
+    const token = await LocalStorage.read("@token");
+    const apiHeaders = {
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+    };
+    return APIKit.get(`notifications/unread`, apiHeaders);
+  },
+
+  notificationsread: async () => {
+    const token = await LocalStorage.read("@token");
+    const apiHeaders = {
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+    };
+    return APIKit.get(`notifications/read`, apiHeaders);
+  },
+
+  deleteaccount: async () => {
+    const token = await LocalStorage.read("@token");
+    const apiHeaders = {
+      headers: {
+        "Content-Type": "application/json",
+        Accept: "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+    };
+    return APIKit.delete(`delete-account`, apiHeaders);
+  },
+
+
+  socialregister: async (payload: object) => {
+    const apiHeaders = {
+      headers: {
+        "Content-Type": "application/json",
+        Accept: "application/json",
+      },
+    };
+    return APIKit.post("social-register", payload, apiHeaders);
+  },
+
+  profile: async () => {
+    const token = await LocalStorage.read("@token");
+    const apiHeaders = {
+      headers: {
+        "Content-Type": "multipart/form-data",
+        Accept: "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+    };
+    return APIKit.get("profile", apiHeaders);
+  },
+
+
+
+  verifyPanCard: async (body: object) => {
+    const apiHeaders = {
+      headers: {
+        "Content-Type": "application/json",
+        Accept: "application/json",
+      },
+    };
+    return APIKit.post("http://ec2-52-66-69-212.ap-south-1.compute.amazonaws.com/api/panverify", body, apiHeaders);
+  },
+
+  checkAvailability: async (productId: number, month: number, year: number) => {
+    const token = await LocalStorage.read("@token");
+    const apiHeaders = {
+      headers: {
+        "Content-Type": "application/json",
+        Accept: "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+    };
+    const params = {
+      product_id: productId,
+      month,
+      year,
+    };
+    console.log("params", params);
+    return APIKit.get("check-availability", { ...apiHeaders, params });
+  },
+
+  PromoCode: async (payload: any) => {
+    const token = await LocalStorage.read("@token");
+    const apiHeaders = {
+      headers: {
+        "Content-Type": "application/json",
+        Accept: "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+    };
+    return APIKit.post("promo-code", payload, apiHeaders);
+  },
+
+  GetPromo_Code: async () => {
+    const token = await LocalStorage.read("@token");
+    const apiHeaders = {
+      headers: {
+        "Content-Type": "application/json",
+        Accept: "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+    };
+    return APIKit.get("promocode", apiHeaders);
+  },
+  search: async (word: string) => {
+    const token = await LocalStorage.read("@token");
+    const apiHeaders = {
+      headers: {
+        "Content-Type": "application/json",
+        Accept: "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+    };
+    console.log("token", token)
+    return APIKit.get(`search?q=${word}`, apiHeaders);
+  },
+
+
+  checkSlots: async (productId: number, date: string) => {
+    const token = await LocalStorage.read("@token");
+    const apiHeaders = {
+      headers: {
+        "Content-Type": "application/json",
+        Accept: "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+    };
+    const params = {
+      product_id: productId,
+      date,
+    };
+    return APIKit.get("check-slots", { ...apiHeaders, params });
+  },
+
+  wishlistadd: async (payload: any) => {
+    const token = await LocalStorage.read("@token");
+    const apiHeaders = {
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+    };
+    return APIKit.post(`wishlist/add`, payload, apiHeaders);
+  },
+
+  wishlist: async () => {
+    const token = await LocalStorage.read("@token");
+    const apiHeaders = {
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+    };
+    return APIKit.get(`wishlist`, apiHeaders);
+  },
+
+  wishlistDelete: async (wishlistId: string | number, productId: string | number) => {
+    const token = await LocalStorage.read("@token");
+    const apiHeaders = {
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+    };
+    return APIKit.delete(`wishlist/${wishlistId}/product/${productId}`, apiHeaders);
+  },
+};
