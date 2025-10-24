@@ -56,6 +56,28 @@ export const UserService = {
     return APIKit.post("update/profile", payload, apiHeaders);
   },
 
+  Review: async (payload: object, id: any) => {
+    const token = await LocalStorage.read("@token");
+    const apiHeaders = {
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+    };
+    return APIKit.post(`products/${id}/review`, payload, apiHeaders);
+  },
+
+  Reviewlist: async ( id: any) => {
+    const token = await LocalStorage.read("@token");
+    const apiHeaders = {
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+    };
+    return APIKit.get(`products/${id}/reviews`, apiHeaders);
+  },
+
   events: async () => {
     const token = await LocalStorage.read("@token");
     const apiHeaders = {
@@ -211,6 +233,7 @@ export const UserService = {
     };
     return APIKit.post("addaddress", payload, apiHeaders);
   },
+
   addressdupdate: async (id: any, payload: any) => {
     const token = await LocalStorage.read("@token");
     const apiHeaders = {
@@ -223,18 +246,6 @@ export const UserService = {
     return APIKit.put(`updateaddress/${id}`, payload, apiHeaders);
   },
 
-  ContactUs: async (payload: object) => {
-    const token = await LocalStorage.read("@token");
-    const apiHeaders = {
-      headers: {
-        "Content-Type": "application/json",
-        Accept: "application/json",
-        Authorization: `Bearer ${token}`,
-      },
-    };
-    console.log("payload", apiHeaders);
-    return APIKit.post("add-contact", payload, apiHeaders);
-  },
 
   OtpVerify: async (payload: object) => {
     const apiHeaders = {
@@ -244,18 +255,6 @@ export const UserService = {
       },
     };
     return APIKit.post("mobile-verify", payload, apiHeaders);
-  },
-
-  verifyidentity: async () => {
-    const token = await LocalStorage.read('@token');
-    const apiHeaders = {
-      headers: {
-        "Content-Type": "application/json",
-        Accept: "application/json",
-        Authorization: `Bearer ${token}`,
-      },
-    };
-    return APIKit.post("verify-identity", apiHeaders);
   },
 
   header: async () => {
@@ -417,40 +416,6 @@ export const UserService = {
     return APIKit.delete(`account/delete`, apiHeaders);
   },
 
-
-  verifyOTP: async (payload: object) => {
-    const apiHeaders = {
-      headers: {
-        "Content-Type": "application/json",
-        Accept: "application/json",
-      },
-    };
-    return APIKit.post("user/verify_otp", payload, apiHeaders);
-  },
-
-  savedevicetoken: async (payload: any,) => {
-    const token = await LocalStorage.read("@token");
-    const apiHeaders = {
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${token}`,
-      },
-    };
-    return APIKit.post("user/fcm-token", payload, apiHeaders);
-  },
-
-  ReturnedForm: async (formData: any) => {
-    const token = await LocalStorage.read("@token");
-    const apiHeaders = {
-      headers: {
-        "Content-Type": "multipart/form-data",
-        Authorization: `Bearer ${token}`,
-      },
-    };
-    console.log("formData", formData);
-    return APIKit.post("returned-form", formData, apiHeaders);
-  },
-
   notifications: async () => {
     const token = await LocalStorage.read("@token");
     const apiHeaders = {
@@ -507,17 +472,6 @@ export const UserService = {
     return APIKit.delete(`delete-account`, apiHeaders);
   },
 
-
-  socialregister: async (payload: object) => {
-    const apiHeaders = {
-      headers: {
-        "Content-Type": "application/json",
-        Accept: "application/json",
-      },
-    };
-    return APIKit.post("social-register", payload, apiHeaders);
-  },
-
   profile: async () => {
     const token = await LocalStorage.read("@token");
     const apiHeaders = {
@@ -528,36 +482,6 @@ export const UserService = {
       },
     };
     return APIKit.get("profile", apiHeaders);
-  },
-
-
-
-  verifyPanCard: async (body: object) => {
-    const apiHeaders = {
-      headers: {
-        "Content-Type": "application/json",
-        Accept: "application/json",
-      },
-    };
-    return APIKit.post("http://ec2-52-66-69-212.ap-south-1.compute.amazonaws.com/api/panverify", body, apiHeaders);
-  },
-
-  checkAvailability: async (productId: number, month: number, year: number) => {
-    const token = await LocalStorage.read("@token");
-    const apiHeaders = {
-      headers: {
-        "Content-Type": "application/json",
-        Accept: "application/json",
-        Authorization: `Bearer ${token}`,
-      },
-    };
-    const params = {
-      product_id: productId,
-      month,
-      year,
-    };
-    console.log("params", params);
-    return APIKit.get("check-availability", { ...apiHeaders, params });
   },
 
   PromoCode: async (payload: any) => {
@@ -583,6 +507,7 @@ export const UserService = {
     };
     return APIKit.get("promocode", apiHeaders);
   },
+
   search: async (word: string) => {
     const token = await LocalStorage.read("@token");
     const apiHeaders = {
@@ -592,25 +517,7 @@ export const UserService = {
         Authorization: `Bearer ${token}`,
       },
     };
-    console.log("token", token)
     return APIKit.get(`search?q=${word}`, apiHeaders);
-  },
-
-
-  checkSlots: async (productId: number, date: string) => {
-    const token = await LocalStorage.read("@token");
-    const apiHeaders = {
-      headers: {
-        "Content-Type": "application/json",
-        Accept: "application/json",
-        Authorization: `Bearer ${token}`,
-      },
-    };
-    const params = {
-      product_id: productId,
-      date,
-    };
-    return APIKit.get("check-slots", { ...apiHeaders, params });
   },
 
   wishlistadd: async (payload: any) => {

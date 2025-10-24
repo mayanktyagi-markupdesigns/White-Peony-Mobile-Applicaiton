@@ -18,6 +18,52 @@ const AddressDetailModal = ({ isVisible, onClose, addresses, onAddressUpdated })
         zip: '',
     });
 
+    // validation errors
+    const [errors, setErrors] = useState({
+        name: '',
+        email: '',
+        phone: '',
+        address: '',
+        city: '',
+        zip: '',
+    });
+
+    const validate = () => {
+        const e: any = {};
+
+        if (!formData.name || !formData.name.trim()) e.name = 'Full name is required';
+
+        if (!formData.email || !formData.email.trim()) {
+            e.email = 'Email is required';
+        } else {
+            // simple email regex
+            const re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+            if (!re.test(formData.email.trim())) e.email = 'Invalid email';
+        }
+
+        if (!formData.phone || !formData.phone.trim()) {
+            e.phone = 'Contact number is required';
+        } else {
+            const digits = formData.phone.replace(/\D/g, '');
+            if (digits.length < 6) e.phone = 'Enter a valid contact number';
+        }
+
+        if (!formData.address || !formData.address.trim()) e.address = 'Full address is required';
+        if (!formData.city || !formData.city.trim()) e.city = 'City is required';
+        if (!formData.zip || !formData.zip.trim()) e.zip = 'ZIP code is required';
+
+        setErrors({
+            name: e.name || '',
+            email: e.email || '',
+            phone: e.phone || '',
+            address: e.address || '',
+            city: e.city || '',
+            zip: e.zip || '',
+        });
+
+        return Object.keys(e).length === 0;
+    };
+
     const addressTypes = [
         { key: 'home', label: 'Home', icon: '🏠' },
         { key: 'office', label: 'Office', icon: '💼' },
@@ -49,6 +95,7 @@ const AddressDetailModal = ({ isVisible, onClose, addresses, onAddressUpdated })
                 zip: "",
             });
             setSelectedType("home");
+            setErrors({ name: '', email: '', phone: '', address: '', city: '', zip: '' });
         }
     }, [addresses]);
 
@@ -56,10 +103,15 @@ const AddressDetailModal = ({ isVisible, onClose, addresses, onAddressUpdated })
 
     const handleChange = (name, value) => {
         setFormData((prev) => ({ ...prev, [name]: value }));
+        setErrors((p: any) => ({ ...p, [name]: '' }));
     };
 
     // ✅ Submit handler — decides Add or Update
     const handleSubmit = async () => {
+        if (!validate()) {
+            Toast.show({ type: 'error', text1: 'Please fix validation errors' });
+            return;
+        }
         try {
             showLoader();
 
@@ -154,36 +206,47 @@ const AddressDetailModal = ({ isVisible, onClose, addresses, onAddressUpdated })
                             value={formData.name}
                             onChangeText={(text) => handleChange("name", text)}
                         />
+                        {errors.name ? <Text style={styles.errorText}>{errors.name}</Text> : null}
                         <TextInput
                             style={styles.input}
                             placeholder="Email ID*"
                             value={formData.email}
                             onChangeText={(text) => handleChange("email", text)}
                         />
+                        {errors.email ? <Text style={styles.errorText}>{errors.email}</Text> : null}
+
                         <TextInput
                             style={styles.input}
                             placeholder="Contact Number*"
                             value={formData.phone}
                             onChangeText={(text) => handleChange("phone", text)}
                         />
+                        {errors.phone ? <Text style={styles.errorText}>{errors.phone}</Text> : null}
+
                         <TextInput
                             style={styles.input}
                             placeholder="Full Address*"
                             value={formData.address}
                             onChangeText={(text) => handleChange("address", text)}
                         />
+                        {errors.address ? <Text style={styles.errorText}>{errors.address}</Text> : null}
+
                         <TextInput
                             style={styles.input}
                             placeholder="City*"
                             value={formData.city}
                             onChangeText={(text) => handleChange("city", text)}
                         />
+                        {errors.city ? <Text style={styles.errorText}>{errors.city}</Text> : null}
+
                         <TextInput
                             style={styles.input}
                             placeholder="ZIP Code*"
                             value={formData.zip}
                             onChangeText={(text) => handleChange("zip", text)}
                         />
+                        {errors.zip ? <Text style={styles.errorText}>{errors.zip}</Text> : null}
+
 
                         {/* Submit */}
                         <TouchableOpacity style={styles.confirmButton} onPress={handleSubmit}>
@@ -201,6 +264,12 @@ const AddressDetailModal = ({ isVisible, onClose, addresses, onAddressUpdated })
 export default AddressDetailModal;
 
 const styles = StyleSheet.create({
+    errorText: {
+        color: 'red',
+        fontSize: 12,
+        marginBottom: 8,
+        marginLeft: 4,
+    },
     overlay: {
         flex: 1,
         justifyContent: "flex-end",

@@ -1,4 +1,4 @@
-import React, { useContext, useEffect, useRef, useState } from "react";
+import React, { useCallback, useContext, useEffect, useRef, useState } from "react";
 import {
   Modal,
   View,
@@ -9,6 +9,8 @@ import {
   TouchableWithoutFeedback,
   Image,
   Alert,
+  BackHandler,
+  Platform,
 } from "react-native";
 import { CommonLoader } from "./CommonLoader/commonLoader";
 import { UserService } from "../service/ApiService";
@@ -46,6 +48,32 @@ const LoginModal: React.FC<AuthModalProps> = ({
   const [error, setError] = useState('');
   const [step, setStep] = useState<"login" | "otp">("login");
   const { setUserData, setIsLoggedIn } = useContext<UserData>(UserDataContext);
+
+  // Add useCallback to handle back action
+  const handleBackPress = useCallback(() => {
+    if (step === "otp") {
+      setStep("login");
+      return true; // Prevent modal from closing
+    }
+    onClose(); // Close modal if on login step
+    return true;
+  }, [step, onClose]);
+
+  // Add effect to handle hardware back press
+  useEffect(() => {
+    // Only add listener when modal is visible
+    if (visible) {
+      const backHandler = BackHandler.addEventListener(
+        'hardwareBackPress',
+        handleBackPress
+      );
+
+      // Cleanup function
+      return () => {
+        backHandler.remove(); // Correct way to remove listener
+      };
+    }
+  }, [visible, handleBackPress]);
 
   const validateEmailOrPhone = () => {
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -199,7 +227,7 @@ const LoginModal: React.FC<AuthModalProps> = ({
       visible={visible}
       transparent
       animationType="slide"
-      onRequestClose={onClose}
+      onRequestClose={handleBackPress}
     >
       <TouchableWithoutFeedback onPress={onClose}>
         <View style={styles.overlay}>

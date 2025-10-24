@@ -25,10 +25,13 @@ import { UserService } from '../../service/ApiService';
 import { HttpStatusCode } from 'axios';
 import { CommonLoader } from '../../components/CommonLoader/commonLoader';
 import Toast from 'react-native-toast-message';
+import { formatDate } from '../../helpers/helpers';
+import { WishlistContext } from '../../context';
 
 // Lightweight skeleton placeholder (no external deps) - pulsing blocks
 const SkeletonPlaceholderFull: React.FC = () => {
   const opacity = useRef(new Animated.Value(0.6)).current;
+
   useEffect(() => {
     const loop = Animated.loop(
       Animated.sequence([
@@ -102,7 +105,7 @@ const ProductDetails = ({ route }: ProductDetailsProps) => {
   const { productId: proDuctID } = route.params;
   const navigation = useNavigation<any>();
   const [isLoadingProduct, setIsLoadingProduct] = useState(true);
-  // product data fetched from API (single product expected)
+  const { toggleWishlist, isWishlisted } = React.useContext(WishlistContext);
   const [productData, setProductData] = useState<any>(null);
   //console.log('productData-------->', productData);
   const [baseUrl, setBaseUrl] = useState<string>(
@@ -111,117 +114,150 @@ const ProductDetails = ({ route }: ProductDetailsProps) => {
   const [displayPrice, setDisplayPrice] = useState<any>('0');
   const [displayUnit, setDisplayUnit] = useState<string>('');
   const [selectedVariant, setSelectedVariant] = useState(null);
-  // const GetProducts = async () => {
 
-  //   try {
-  //     setIsLoadingProduct(true);
-  //     const res = await UserService.productDetail(proDuctID);
-  //     if (res && res.data && res.status === HttpStatusCode.Ok) {
-  //       const fetchedProducts = res.data?.data || [];
-  //       const resolvedBase = res.data?.base_url || baseUrl;
-  //       setBaseUrl(resolvedBase);
-  //       // pick first product from returned data (product detail endpoint often returns single item in array)
-  //       const first = Array.isArray(fetchedProducts)
-  //         ? fetchedProducts[0]
-  //         : fetchedProducts;
-  //       if (first) {
-  //         // normalize images and variant defaults
-  //         const images = [first.front_image, first.back_image, first.side_image]
-  //           .filter(Boolean)
-  //           .map((img: string) =>
-  //             img.startsWith('http') ? img : `${resolvedBase}${img}`,
-  //           );
-  //         // also allow an images[] field from API
-  //         const extraImgs = (first.images || []).map((img: string) =>
-  //           img.startsWith('http') ? img : `${resolvedBase}${img}`,
-  //         );
-  //         const allImages = extraImgs.length ? extraImgs : images;
-  //         const variant0 =
-  //           first.variants && first.variants.length ? first.variants[0] : null;
-  //         const price = variant0?.price || first.main_price || '0';
-  //         const unit = variant0?.unit || '';
-  //         const normalized = { ...first, images: allImages, price, unit };
-  //         setProductData(normalized);
-  //         setDisplayPrice(price);
-  //         setDisplayUnit(unit);
-  //       } else {
-  //         setProductData(null);
-  //       }
-  //     } else {
-  //       // handle non-OK response if needed
-  //     }
-  //   } catch (err) {
-  //     // handle network/error
-  //   } finally {
-  //     setIsLoadingProduct(false);
-  //   }
-  // };
-  // fetch product detail on mount
   const GetProducts = async () => {
-  try {
-    setIsLoadingProduct(true);
-    const res = await UserService.productDetail(proDuctID);
-    if (res && res.data && res.status === HttpStatusCode.Ok) {
-      const fetchedProducts = res.data?.data || [];
-      const resolvedBase = res.data?.base_url || baseUrl;
-      setBaseUrl(resolvedBase);
+    try {
+      setIsLoadingProduct(true);
+      const res = await UserService.productDetail(proDuctID);
+      if (res && res.data && res.status === HttpStatusCode.Ok) {
+        const fetchedProducts = res.data?.data || [];
+        const resolvedBase = res.data?.base_url || baseUrl;
+        setBaseUrl(resolvedBase);
 
-      const first = Array.isArray(fetchedProducts)
-        ? fetchedProducts[0]
-        : fetchedProducts;
+        const first = Array.isArray(fetchedProducts)
+          ? fetchedProducts[0]
+          : fetchedProducts;
 
-      if (first) {
-        // ✅ Normalize images
-        const images = [first.front_image, first.back_image, first.side_image]
-          .filter(Boolean)
-          .map((img) => (img.startsWith('http') ? img : `${resolvedBase}${img}`));
+        if (first) {
+          // ✅ Normalize images
+          const images = [first.front_image, first.back_image, first.side_image]
+            .filter(Boolean)
+            .map((img) => (img.startsWith('http') ? img : `${resolvedBase}${img}`));
 
-        const extraImgs = (first.images || []).map((img) =>
-          img.startsWith('http') ? img : `${resolvedBase}${img}`,
-        );
+          const extraImgs = (first.images || []).map((img) =>
+            img.startsWith('http') ? img : `${resolvedBase}${img}`,
+          );
 
-        const allImages = extraImgs.length ? extraImgs : images;
+          const allImages = extraImgs.length ? extraImgs : images;
 
-        // ✅ Handle variants
-        const allVariants = first.variants || [];
-        setVariants(allVariants);
+          // ✅ Handle variants
+          const allVariants = first.variants || [];
+          setVariants(allVariants);
 
-        // prepare dropdown items (for DropDownPicker)
-        const variantItems = allVariants.map((v, index) => ({
-          label: `${v.weight || v.unit || v.name} - ₹${v.price}`,
-          value: v.id, // using variant id as value
-        }));
+          // prepare dropdown items (for DropDownPicker)
+          const variantItems = allVariants.map((v, index) => ({
+            label: `${v.weight || v.unit || v.name} - ₹${v.price}`,
+            value: v.id, // using variant id as value
+          }));
 
-        setWeightItems(variantItems);
+          setWeightItems(variantItems);
 
-        // default variant (first one)
-        const variant0 = allVariants.length ? allVariants[0] : null;
-        const price = variant0?.price || first.main_price || '0';
-        const unit = variant0?.unit || '';
-        const normalized = { ...first, images: allImages, price, unit };
+          // default variant (first one)
+          const variant0 = allVariants.length ? allVariants[0] : null;
+          const price = variant0?.price || first.main_price || '0';
+          const unit = variant0?.unit || '';
+          const normalized = { ...first, images: allImages, price, unit };
 
-        setProductData(normalized);
-        setDisplayPrice(price);
-        setDisplayUnit(unit);
+          setProductData(normalized);
+          setDisplayPrice(price);
+          setDisplayUnit(unit);
 
-        if (variant0) {
-          setSelectedVariant(variant0);
-          setWeightValue(variant0.id);
+          console.log('product', productData)
+
+          if (variant0) {
+            setSelectedVariant(variant0);
+            setWeightValue(variant0.id);
+          }
+        } else {
+          setProductData(null);
         }
-      } else {
-        setProductData(null);
       }
+    } catch (err) {
+      console.log('Product fetch error:', err);
+    } finally {
+      setIsLoadingProduct(false);
     }
-  } catch (err) {
-    console.log('Product fetch error:', err);
-  } finally {
-    setIsLoadingProduct(false);
-  }
-};
+  };
+
+  const ShowReview = async () => {
+    try {
+      showLoader();
+      const res = await UserService.Reviewlist(proDuctID);
+      hideLoader();
+
+      if (res?.status === HttpStatusCode.Ok && res?.data) {
+        const { data } = res.data;
+        setReviews(data || []);
+        // console.log("review data", res?.data?.data[0]?.customer)
+      } else {
+        Toast.show({
+          type: 'error',
+          text1: res?.data?.message || 'Something went wrong!',
+        });
+      }
+    } catch (err: any) {
+      hideLoader();
+      console.log('Error in ShowReview:', JSON.stringify(err));
+      Toast.show({
+        type: 'error',
+        text1: err?.response?.data?.message || 'Something went wrong! Please try again.',
+      });
+    }
+  };
 
   useEffect(() => {
     GetProducts();
+    ShowReview();
   }, []);
+
+  const PostReview = async () => {
+    try {
+      const payload = {
+        rating: newRating,
+        review: newComment || 'No comment',
+
+      };
+
+      showLoader();
+      await UserService.Review(payload, proDuctID)
+        .then(async res => {
+          hideLoader();
+          if (res && res?.data && res?.status === HttpStatusCode.Ok) {
+            Toast.show({
+              type: 'success',
+              text1: res?.data?.message,
+            });
+            console.log("Review", res.data)
+            Toast.show({ type: 'success', text1: res?.data?.message });
+            // setReviews(prev => [r, ...prev]);
+            setNewComment('');
+            setNewRating(5);
+            setWriteModalVisible(false);
+            // navigation.goBack();
+          } else {
+            Toast.show({
+              type: 'error',
+              text1: 'Something went wrong!',
+            });
+          }
+        })
+        .catch(err => {
+          hideLoader();
+          console.log('Error in Review:', err);
+          Toast.show({
+            type: 'error',
+            text1: err.response?.data?.message,
+          });
+        });
+    } catch (error) {
+      hideLoader();
+      Toast.show({
+        type: 'error',
+        text1: 'Something went wrong! Please try again.',
+      });
+    }
+  };
+
   const products = new Array(6).fill(0).map((_, i) => ({
     id: String(i + 1),
     title: `Magic Queen Oolong ${i + 1}`,
@@ -257,29 +293,7 @@ const ProductDetails = ({ route }: ProductDetailsProps) => {
   // Reviews modal state
   const [writeModalVisible, setWriteModalVisible] = useState(false);
   const [showModalVisible, setShowModalVisible] = useState(false);
-  const [reviews, setReviews] = useState<Array<any>>([
-    {
-      id: 'r1',
-      rating: 5,
-      author: 'Alice',
-      comment: 'Lovely flavor',
-      date: '2025-10-01',
-    },
-    {
-      id: 'r2',
-      rating: 5,
-      author: 'Bob',
-      comment: 'Very refreshing',
-      date: '2025-09-28',
-    },
-    {
-      id: 'r3',
-      rating: 4,
-      author: 'Cara',
-      comment: 'Nice but a bit strong',
-      date: '2025-09-20',
-    },
-  ]);
+  const [reviews, setReviews] = useState<Array<any>>([]);
   const [newRating, setNewRating] = useState<number>(5);
   const [newComment, setNewComment] = useState<string>('');
   const [newQty, setNewQty] = useState<number>(0);
@@ -315,7 +329,7 @@ const ProductDetails = ({ route }: ProductDetailsProps) => {
   const animOpacity = useRef(new Animated.Value(1)).current;
   const autoplayRef = useRef<number | null>(null);
   const [isInteracting, setIsInteracting] = useState(false);
- const { showLoader, hideLoader } = CommonLoader();
+  const { showLoader, hideLoader } = CommonLoader();
   useEffect(() => {
     startAutoplay();
     return () => stopAutoplay();
@@ -352,7 +366,7 @@ const ProductDetails = ({ route }: ProductDetailsProps) => {
         });
 
         // Update local cart state
-       
+
       } else {
         Toast.show({ type: 'error', text1: 'Failed to add to cart' });
       }
@@ -432,11 +446,9 @@ const ProductDetails = ({ route }: ProductDetailsProps) => {
       comment: newComment || 'No comment',
       date: new Date().toISOString().slice(0, 10),
     };
-    setReviews(prev => [r, ...prev]);
-    setNewComment('');
-    setNewRating(5);
-    setWriteModalVisible(false);
+
   };
+
   const renderProduct = ({ item }: { item: any }) => {
     const qty = cart[item.id] || 0;
 
@@ -491,6 +503,7 @@ const ProductDetails = ({ route }: ProductDetailsProps) => {
       </TouchableOpacity>
     );
   };
+
   return isLoadingProduct ? (
     <SkeletonPlaceholderFull />
   ) : (
@@ -504,18 +517,24 @@ const ProductDetails = ({ route }: ProductDetailsProps) => {
         </TouchableOpacity>
 
         <View style={styles.headerRightVideo}>
-          <Video
-            source={videoSource}
-            style={styles.sideVideoInner}
-            repeat
-            muted
-            resizeMode="cover"
-          />
-          <View style={{ position: 'absolute', right: 6, bottom: 6 }}>
-            <View style={styles.playOverlay}>
-              <Text style={{ fontSize: 14 }}>▸</Text>
-            </View>
-          </View>
+
+          <TouchableOpacity
+            onPress={() => toggleWishlist(productData.id)}
+            activeOpacity={0.7}
+            style={{ width: 30, height: 30, borderRadius: 15, backgroundColor: '#E2E689', justifyContent: 'center', alignItems: 'center', position: 'absolute', top: 10, right: 10 }}
+          >
+            {productData?.is_wishlist ? <Image
+              source={require('../../assets/Png/heart1.png')}
+              style={{ position: 'absolute', width: 15, height: 15, alignSelf: 'center' }}
+            /> :
+              <Video
+                source={videoSource}
+                style={styles.sideVideoInner}
+                repeat
+                muted
+                resizeMode="cover"
+              />}
+          </TouchableOpacity>
         </View>
       </View>
       {/* Image carousel with dots. Tap an image to open zoom modal */}
@@ -665,7 +684,7 @@ const ProductDetails = ({ route }: ProductDetailsProps) => {
                   setSelectedVariant(v);
                 }
               }}
-               
+
               containerStyle={{ height: 40 }}
               style={{
                 backgroundColor: '#FFF',
@@ -681,62 +700,18 @@ const ProductDetails = ({ route }: ProductDetailsProps) => {
           </View>
         </View>
 
-        {/* <View style={styles.actionsRow}>
-          <TouchableOpacity style={styles.addBtn}>
-            <Text style={{ color: '#fff' }}>Add To Bag</Text>
-          </TouchableOpacity>
-          <TouchableOpacity style={styles.checkoutBtn}>
-            <Text>Check-Out</Text>
-          </TouchableOpacity>
-        </View> */}
         <View style={styles.headerRight}>
-          {/* {newQty === 0 ? (
+          {productData.stock_quantity === 0 ? (
+            <Text style={styles.outOfStock}>Out of Stock</Text>
+          ) : (
             <TouchableOpacity
               style={styles.filterBtn}
-              onPress={() => increaseQty(productData.id)}
+              onPress={() => { productData?.is_cart === "true" ? navigation.navigate('CheckoutScreen') : AddToCart(productData) }}
+              activeOpacity={0.8}
             >
-              <Text style={styles.filterText}>Add To Bag</Text>
+              <Text style={styles.filterText}>{productData?.is_cart === "true" ? 'Go to Cart' : 'Add to Bag'}</Text>
             </TouchableOpacity>
-          ) : (
-            //  {productData.stock_quantity === 0 ? (
-            //   <Text style={styles.outOfStock}>Out of Stock</Text>
-            // ) : newQty === 0 ? (
-            //   <TouchableOpacity
-            //     style={styles.addBtn}
-            //     onPress={() => increaseQty(productData.id)}
-            //     activeOpacity={0.8}
-            //   >
-            //     <Text style={styles.addBtnText}>+ Add</Text>
-            //   </TouchableOpacity>
-
-            // )
-            <View style={styles.qtyRow}>
-              <TouchableOpacity
-                style={styles.qtyBtn}
-                onPress={() => decreaseQty(productData.id)}
-              >
-                <Text style={styles.qtyText}>-</Text>
-              </TouchableOpacity>
-              <Text style={styles.qtyCount}>{newQty}</Text>
-              <TouchableOpacity
-                style={styles.qtyBtn}
-                onPress={() => increaseQty(productData.id)}
-              >
-                <Text style={styles.qtyText}>+</Text>
-              </TouchableOpacity>
-            </View>
-          )} */}
-           {productData.stock_quantity === 0 ? (
-                      <Text style={styles.outOfStock}>Out of Stock</Text>
-                    ) :  (
-                      <TouchableOpacity
-                         style={styles.filterBtn}
-                        onPress={() =>{productData?.is_cart === "true" ? navigation.navigate('CheckoutScreen') : AddToCart(productData)}}
-                        activeOpacity={0.8}
-                      >
-                        <Text style={styles.filterText}>{productData?.is_cart === "true" ? 'Go to Cart' : 'Add to Bag'}</Text>
-                      </TouchableOpacity>
-                    )}
+          )}
           {/* <TouchableOpacity
             style={styles.sortBtn}
             onPress={() => navigation.navigate('CheckoutScreen')}
@@ -772,10 +747,10 @@ const ProductDetails = ({ route }: ProductDetailsProps) => {
           renderItem={renderProduct}
           horizontal={true}
           showsHorizontalScrollIndicator={false}
-          //   style={{ width: '100%' }}
-          //   numColumns={2}
-          //   columnWrapperStyle={styles.row}
-          //   scrollEnabled={false}
+        //   style={{ width: '100%' }}
+        //   numColumns={2}
+        //   columnWrapperStyle={styles.row}
+        //   scrollEnabled={false}
         />
 
         {/* Customer Reviews Section */}
@@ -801,12 +776,12 @@ const ProductDetails = ({ route }: ProductDetailsProps) => {
                   star === 5
                     ? 0.95
                     : star === 4
-                    ? 0.6
-                    : star === 3
-                    ? 0.2
-                    : star === 2
-                    ? 0.12
-                    : 0.05;
+                      ? 0.6
+                      : star === 3
+                        ? 0.2
+                        : star === 2
+                          ? 0.12
+                          : 0.05;
                 return (
                   <View key={star} style={styles.ratingRow}>
                     <Text style={styles.ratingLabel}>{star}</Text>
@@ -904,7 +879,7 @@ const ProductDetails = ({ route }: ProductDetailsProps) => {
                 >
                   <Text>Cancel</Text>
                 </TouchableOpacity>
-                <TouchableOpacity onPress={submitReview}>
+                <TouchableOpacity onPress={PostReview}>
                   <Text style={{ color: '#007AFF' }}>Submit</Text>
                 </TouchableOpacity>
               </View>
@@ -941,14 +916,17 @@ const ProductDetails = ({ route }: ProductDetailsProps) => {
                       borderBottomColor: '#eee',
                     }}
                   >
-                    <Text style={{ fontWeight: '700' }}>
-                      {r.author}{' '}
-                      <Text style={{ fontWeight: '400' }}>{r.date}</Text>
-                    </Text>
+                    <View style={{ flexDirection: "row", justifyContent: "space-between", flex: 1, }}>
+                      <Text style={{ fontWeight: '700' }}>
+                        {r.customer?.name}{' '}
+                      </Text>
+                      <Text style={{ fontWeight: '400', }}>{formatDate(r.updated_at)}</Text>
+
+                    </View>
                     <Text style={{ color: '#F0C419' }}>
                       {'★'.repeat(r.rating)}
                     </Text>
-                    <Text style={{ marginTop: 4 }}>{r.comment}</Text>
+                    <Text style={{ marginTop: 4 }}>{r.review}</Text>
                   </View>
                 ))}
               </ScrollView>
@@ -1001,7 +979,7 @@ const styles = StyleSheet.create({
     overflow: 'hidden',
   },
   sideVideo: { width: '100%', height: '100%' },
-  sideVideoInner: { width: '100%', height: '100%' },
+  sideVideoInner: { width: '100%', height: '100%', },
   playOverlay: {
     position: 'absolute',
     width: 24,
@@ -1026,7 +1004,6 @@ const styles = StyleSheet.create({
     height: 48,
     borderRadius: 8,
     overflow: 'hidden',
-    backgroundColor: '#000',
     alignItems: 'center',
     justifyContent: 'center',
   },
