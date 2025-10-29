@@ -19,6 +19,7 @@ import SkeletonPlaceholder from 'react-native-skeleton-placeholder';
 import { CommonLoader } from '../../components/CommonLoader/commonLoader';
 import Toast from 'react-native-toast-message';
 import { heightPercentageToDP, widthPercentageToDP } from '../../constant/dimentions';
+import { useCart } from '../../context/CartContext';
 
 const { width } = Dimensions.get('window');
 const ITEM_WIDTH = (width - 48) / 2;
@@ -31,6 +32,7 @@ const sampleData = new Array(8).fill(null).map((_, i) => ({
 }));
 
 const CategoryDetailsList = ({ navigation, route }: any) => {
+  const { addToCart, removeFromCart, getCartDetails, syncCartAfterLogin } = useCart();
   const { categoryId, categoryTitle } = route.params;
   const [filterVisible, setFilterVisible] = useState(false);
   const [sortVisible, setSortVisible] = useState(false);
@@ -74,41 +76,7 @@ const CategoryDetailsList = ({ navigation, route }: any) => {
       </Animated.View>
     );
   };
-  const AddToCart = async (item: any) => {
-    try {
-      const payload = {
-        product_id: item?.id,
-        variant_id: item?.variants?.[0]?.id || null,
-        quantity: 1,
-      };
-      console.log('AddToCart payload:', payload);
-      showLoader();
-      const res = await UserService.AddToCart(payload);
-      hideLoader();
 
-      if (res && res.data && res.status === HttpStatusCode.Ok) {
-        GetCateProducts(categoryId);
-        Toast.show({
-          type: 'success',
-          text1: res.data?.message || 'Added to cart!',
-        });
-
-        // Update local cart state
-
-      } else {
-        hideLoader()
-        Toast.show({ type: 'error', text1: 'Failed to add to cart' });
-      }
-    } catch (err: any) {
-      hideLoader();
-      Toast.show({
-        type: 'error',
-        text1:
-          err?.response?.data?.message ||
-          'Something went wrong! Please try again.',
-      });
-    }
-  };
   const renderProduct = ({ item }: { item: any }) => {
     //console.log("cartitem", item)
     //  const qty = cart[item.id] || 0;
@@ -143,12 +111,33 @@ const CategoryDetailsList = ({ navigation, route }: any) => {
             <Text style={styles.outOfStock}>Out of Stock</Text>
           ) : (
             <TouchableOpacity
-              style={styles.addBtn}
-              onPress={() => { item?.is_cart === "true" ? navigation.navigate('CheckoutScreen') : AddToCart(item) }}
+              style={styles.filterBtn}
+              onPress={async () => {
+                if (item?.is_cart === "true") {
+                  navigation.navigate('CheckoutScreen');
+                  return;
+                }
+                try {
+                  showLoader();
+                  // wait for addToCart to complete (assumes it returns a promise)
+                  const res = await addToCart(item?.id, item?.variants?.[0]?.id);
+                  // call GetProducts to refresh product state after successful add
+                  // optionally check res for success status if addToCart returns it
+                  await GetCateProducts(categoryId);
+                  // optional success toast if addToCart doesn't already show one
+                  // Toast.show({ type: 'success', text1: 'Added to cart' });
+                } catch (err) {
+                  console.log('Add to cart error:', err);
+                  Toast.show({ type: 'error', text1: 'Failed to add to cart' });
+                } finally {
+                  hideLoader();
+                }
+              }}
               activeOpacity={0.8}
             >
-              <Text style={styles.addBtnText}>{item?.is_cart === "true" ? 'Go to Cart' : 'Add'}</Text>
+              <Text style={styles.filterText}>{item?.is_cart === "true" ? 'Go to Cart' : 'Add to Bag'}</Text>
             </TouchableOpacity>
+
           )}
         </View>
       </TouchableOpacity>

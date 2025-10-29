@@ -27,6 +27,8 @@ import AddressModal from '../../components/AddressModal';
 import { useFocusEffect } from '@react-navigation/native';
 import { watchPosition } from 'react-native-geolocation-service';
 import { widthPercentageToDP } from '../../constant/dimentions';
+import { useCart } from '../../context/CartContext';
+import { LocalStorage } from '../../helpers/localstorage';
 
 const SCREEN_WIDTH = Dimensions.get('window').width;
 
@@ -75,6 +77,7 @@ type Address = {
 };
 
 const CheckoutScreen = ({ navigation }: { navigation: any }) => {
+  const { addToCart, removeFromCart, getCartDetails, syncCartAfterLogin } = useCart();
   const { userData, setIsLoggedIn, isLoggedIn } = useContext<UserData>(UserDataContext);
   const [modalVisible, setModalVisible] = useState(false);
   const [modalAddress, setModalAddress] = useState(false);
@@ -181,38 +184,28 @@ const CheckoutScreen = ({ navigation }: { navigation: any }) => {
     }
   };
 
-  const RemoveFromCart = async (id: number) => {
-    try {
-      showLoader();
-      const res = await UserService.RemoveCart(id);
-      hideLoader();
-
-      if (res && res.data && res.status === HttpStatusCode.Ok) {
-        Toast.show({
-          type: 'success',
-          text1: res.data?.message || 'Cart updated!',
-        });
-        GetCartDetails();
-      } else {
-        Toast.show({ type: 'error', text1: 'Failed to update cart' });
-      }
-    } catch (err: any) {
-      hideLoader();
-      Toast.show({
-        type: 'error',
-        text1:
-          err?.response?.data?.message ||
-          'Something went wrong! Please try again.',
-      });
-    }
-  };
-
   const taxes = 4;
   const deliveryCharges = 0;
 
   const renderShipmentItem = ({ item }: { item: CartItem }) => (
     <View style={styles.shipmentItemCard}>
-      <TouchableOpacity style={{ position: 'absolute', top: 6, right: 6 }} onPress={() => RemoveFromCart(Number(item.product_id))}>
+      <TouchableOpacity
+        style={{ position: 'absolute', top: 6, right: 6 }}
+        onPress={async () => {
+          try {
+            showLoader();
+            // await removal from cart (handles both guest/local and server flows)
+            await removeFromCart(Number(item.product_id));
+            // refresh cart after successful removal
+            await GetCartDetails();
+          } catch (err) {
+            console.log('removeFromCart error', err);
+            Toast.show({ type: 'error', text1: 'Failed to remove item' });
+          } finally {
+            hideLoader();
+          }
+        }}
+      >
         <Image
           source={require('../../assets/Png/delete.png')}
           style={{ width: 30, height: 30 }}

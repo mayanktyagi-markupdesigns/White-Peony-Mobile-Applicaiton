@@ -19,6 +19,8 @@ import Toast from "react-native-toast-message";
 import { useNavigation } from "@react-navigation/native";
 import { LocalStorage } from "../helpers/localstorage";
 import { UserData, UserDataContext } from "../context/userDataContext";
+import { useCart } from '../context/CartContext';
+
 
 interface AuthModalProps {
   visible: boolean;
@@ -48,6 +50,8 @@ const LoginModal: React.FC<AuthModalProps> = ({
   const [error, setError] = useState('');
   const [step, setStep] = useState<"login" | "otp">("login");
   const { setUserData, setIsLoggedIn } = useContext<UserData>(UserDataContext);
+  const { syncCartAfterLogin } = useCart();
+
 
   // Add useCallback to handle back action
   const handleBackPress = useCallback(() => {
@@ -184,12 +188,25 @@ const LoginModal: React.FC<AuthModalProps> = ({
               type: 'success',
               text1: res?.data?.message,
             });
+            console.log("otp verified sucess", res.data)
             Toast.show({ type: 'success', text1: res?.data?.message });
             await LocalStorage.save('@user', res.data?.user);
             await LocalStorage.save('@token', res.data?.access_token);
             setUserData(res.data?.user);
             setStep("login");
             HomeTab();
+            // Add try-catch specifically for syncCartAfterLogin
+            try {
+              await syncCartAfterLogin(res.data?.user?.id || '');
+            } catch (syncError: any) {
+              console.log('Error syncing cart:', syncError);
+              // Optional: Show toast for sync error but don't block login flow
+              Toast.show({
+                type: 'info',
+                text1: 'Cart sync failed, please try refreshing',
+              });
+            }
+
             onClose();
             navigation.navigate("EditProfile" as never);
           } else {
@@ -201,7 +218,7 @@ const LoginModal: React.FC<AuthModalProps> = ({
         })
         .catch(err => {
           hideLoader();
-          console.log('Error in verify:', JSON.stringify(err?.message));
+          console.log('Error in verify:', err);
           Toast.show({
             type: 'error',
             text1: err.response?.data?.message,

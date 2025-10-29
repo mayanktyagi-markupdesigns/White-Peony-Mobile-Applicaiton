@@ -67,7 +67,7 @@ export const UserService = {
     return APIKit.post(`products/${id}/review`, payload, apiHeaders);
   },
 
-  Reviewlist: async ( id: any) => {
+  Reviewlist: async (id: any) => {
     const token = await LocalStorage.read("@token");
     const apiHeaders = {
       headers: {
@@ -314,6 +314,7 @@ export const UserService = {
         Authorization: `Bearer ${token}`,
       },
     };
+    console.log("payload", payload)
     return APIKit.post("addtocart", payload, apiHeaders);
   },
 
@@ -330,7 +331,7 @@ export const UserService = {
     return APIKit.get("cart", apiHeaders);
   },
 
-  RemoveCart: async (removeid: number) => {
+  RemoveCart: async (removeid: number,) => {
     const token = await LocalStorage.read("@token");
     const apiHeaders = {
       headers: {
@@ -528,6 +529,7 @@ export const UserService = {
         Authorization: `Bearer ${token}`,
       },
     };
+    console.log('payload', payload)
     return APIKit.post(`wishlist/add`, payload, apiHeaders);
   },
 
@@ -542,7 +544,7 @@ export const UserService = {
     return APIKit.get(`wishlist`, apiHeaders);
   },
 
-  wishlistDelete: async (wishlistId: string | number, productId: string | number) => {
+  wishlistDelete: async (wishlistId: string | number, productId: string | number, ) => {
     const token = await LocalStorage.read("@token");
     const apiHeaders = {
       headers: {

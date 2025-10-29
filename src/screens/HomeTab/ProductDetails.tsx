@@ -12,6 +12,7 @@ import {
   Modal,
   TextInput,
   Animated,
+  ActivityIndicator,
 } from 'react-native';
 import Video from 'react-native-video';
 import DropDownPicker from 'react-native-dropdown-picker';
@@ -27,6 +28,7 @@ import { CommonLoader } from '../../components/CommonLoader/commonLoader';
 import Toast from 'react-native-toast-message';
 import { formatDate } from '../../helpers/helpers';
 import { WishlistContext } from '../../context';
+import { useCart } from '../../context/CartContext';
 
 // Lightweight skeleton placeholder (no external deps) - pulsing blocks
 const SkeletonPlaceholderFull: React.FC = () => {
@@ -102,6 +104,7 @@ type ProductDetailsProps = {
 };
 
 const ProductDetails = ({ route }: ProductDetailsProps) => {
+  const { addToCart, removeFromCart, isLoggedIn } = useCart();
   const { productId: proDuctID } = route.params;
   const navigation = useNavigation<any>();
   const [isLoadingProduct, setIsLoadingProduct] = useState(true);
@@ -114,6 +117,8 @@ const ProductDetails = ({ route }: ProductDetailsProps) => {
   const [displayPrice, setDisplayPrice] = useState<any>('0');
   const [displayUnit, setDisplayUnit] = useState<string>('');
   const [selectedVariant, setSelectedVariant] = useState(null);
+  const [isInCart, setIsInCart] = useState(false);
+  const [cartLoading, setCartLoading] = useState(false);
 
   const GetProducts = async () => {
     try {
@@ -162,7 +167,7 @@ const ProductDetails = ({ route }: ProductDetailsProps) => {
           setDisplayPrice(price);
           setDisplayUnit(unit);
 
-          console.log('product', productData)
+          //console.log('product', productData)
 
           if (variant0) {
             setSelectedVariant(variant0);
@@ -344,43 +349,6 @@ const ProductDetails = ({ route }: ProductDetailsProps) => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [productImages.length]);
 
-
-  const AddToCart = async (item: any) => {
-    console.log("addtocart", selectedVariant?.id)
-    try {
-      const payload = {
-        product_id: item?.id,
-        variant_id: selectedVariant?.id || null,
-        quantity: 1,
-      };
-      console.log('AddToCart payload:', payload);
-      showLoader();
-      const res = await UserService.AddToCart(payload);
-      hideLoader();
-
-      if (res && res.data && res.status === HttpStatusCode.Ok) {
-        GetProducts()
-        Toast.show({
-          type: 'success',
-          text1: res.data?.message || 'Added to cart!',
-        });
-
-        // Update local cart state
-
-      } else {
-        Toast.show({ type: 'error', text1: 'Failed to add to cart' });
-      }
-    } catch (err: any) {
-      hideLoader();
-      Toast.show({
-        type: 'error',
-        text1:
-          err?.response?.data?.message ||
-          'Something went wrong! Please try again.',
-      });
-    }
-  };
-
   const startAutoplay = () => {
     if (autoplayRef.current != null) return;
     if (isInteracting) return;
@@ -500,6 +468,72 @@ const ProductDetails = ({ route }: ProductDetailsProps) => {
             </View>
           )}
         </View>
+      </TouchableOpacity>
+    );
+  };
+
+  // Unified cart action handler
+  const handleCartAction = async () => {
+    if (!productData) return;
+
+    if (productData?.is_cart) {
+      navigation.navigate('CheckoutScreen');
+      return;
+    }
+
+    try {
+      setCartLoading(true);
+      await addToCart(productData.id, selectedVariant?.id);
+
+      // Refresh product details to get updated cart status
+      await GetProducts();
+
+      // Show success message
+      Toast.show({
+        type: 'success',
+        text1: 'Added to cart successfully!'
+      });
+    } catch (err) {
+      console.log('Cart action error:', err);
+      Toast.show({
+        type: 'error',
+        text1: 'Failed to update cart'
+      });
+    } finally {
+      setCartLoading(false);
+    }
+  };
+
+  // Replace existing cart button with new component
+  const CartButton = () => {
+    if (productData?.stock_quantity === 0) {
+      return <Text style={styles.outOfStock}>Out of Stock</Text>;
+    }
+
+    return (
+      <TouchableOpacity
+        style={[
+          styles.cartButton,
+          isInCart && styles.cartButtonActive,
+          cartLoading && styles.cartButtonDisabled
+        ]}
+        onPress={handleCartAction}
+        disabled={cartLoading}
+      >
+        {cartLoading ? (
+          <ActivityIndicator size="small" color="#fff" />
+        ) : (
+          <>
+            <Text style={styles.cartButtonText}>
+              {productData?.is_cart ? 'Go to Cart' : 'Add to Bag'}
+            </Text>
+            {!productData?.is_cart && (
+              <Text style={styles.cartPrice}>
+                {displayPrice}€ {displayUnit}
+              </Text>
+            )}
+          </>
+        )}
       </TouchableOpacity>
     );
   };
@@ -661,7 +695,7 @@ const ProductDetails = ({ route }: ProductDetailsProps) => {
         contentContainerStyle={{ padding: 16 }}
       >
         <Text style={styles.title}>
-          {productData.name != null ? productData.name : ''}
+          {productData.name !== null ? productData?.name : ''}
         </Text>
         <View style={styles.priceRow}>
           <Text style={styles.price}>{displayPrice}€ </Text>
@@ -701,23 +735,7 @@ const ProductDetails = ({ route }: ProductDetailsProps) => {
         </View>
 
         <View style={styles.headerRight}>
-          {productData.stock_quantity === 0 ? (
-            <Text style={styles.outOfStock}>Out of Stock</Text>
-          ) : (
-            <TouchableOpacity
-              style={styles.filterBtn}
-              onPress={() => { productData?.is_cart === "true" ? navigation.navigate('CheckoutScreen') : AddToCart(productData) }}
-              activeOpacity={0.8}
-            >
-              <Text style={styles.filterText}>{productData?.is_cart === "true" ? 'Go to Cart' : 'Add to Bag'}</Text>
-            </TouchableOpacity>
-          )}
-          {/* <TouchableOpacity
-            style={styles.sortBtn}
-            onPress={() => navigation.navigate('CheckoutScreen')}
-          >
-            <Text style={styles.sortText}>Check-Out</Text>
-          </TouchableOpacity> */}
+          <CartButton />
         </View>
         <Text style={{ marginTop: 12, color: '#666' }}>
           Product Description
@@ -1284,5 +1302,33 @@ const styles = StyleSheet.create({
     backgroundColor: '#eee',
     marginTop: 8,
     borderRadius: 6,
+  },
+  cartButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: '#E2E689',
+    paddingVertical: 12,
+    paddingHorizontal: 24,
+    borderRadius: 24,
+    width: '90%',
+    marginTop: 16,
+  },
+  cartButtonActive: {
+    backgroundColor: '#2DA3C7',
+  },
+  cartButtonDisabled: {
+    opacity: 0.7,
+  },
+  cartButtonText: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#000',
+    marginRight: 8,
+  },
+  cartPrice: {
+    fontSize: 14,
+    fontWeight: '500',
+    color: '#666',
   },
 });

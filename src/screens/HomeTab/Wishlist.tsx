@@ -42,6 +42,7 @@ const WishlistScreen = ({ navigation }: { navigation: any }) => {
 
     useEffect(() => {
         const fetchWishlist = async () => {
+
             try {
                 setIsLoading(true);
                 const res = await UserService.wishlist();
@@ -89,13 +90,13 @@ const WishlistScreen = ({ navigation }: { navigation: any }) => {
             )}
             <View style={styles.details}>
                 <Text style={styles.productName}>{item.name}</Text>
-                 <View style={{ flexDirection: 'row', marginTop: 8 }}>
-                            {[1, 2, 3, 4, 5].map(r => (
-                              <View key={r}>
-                                <Text style={{ color: '#F0C419', fontSize: 24 }}>★</Text>
-                              </View>
-                            ))}
-                          </View>
+                <View style={{ flexDirection: 'row', marginTop: 8 }}>
+                    {[1, 2, 3, 4, 5].map(r => (
+                        <View key={r}>
+                            <Text style={{ color: '#F0C419', fontSize: 24 }}>★</Text>
+                        </View>
+                    ))}
+                </View>
                 <Text style={styles.price}>{item.price}</Text>
                 <View style={styles.actionsRow}>
                     <TouchableOpacity style={styles.addToBagBtn} activeOpacity={0.7}>
@@ -153,7 +154,7 @@ const styles = StyleSheet.create({
         height: 50,
         alignItems: 'center',
         paddingHorizontal: 20,
-        justifyContent: 'space-between',marginTop:50
+        justifyContent: 'space-between', marginTop: 50
     },
     headerButton: {
         padding: 4,

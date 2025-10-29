@@ -6,5 +6,5 @@ export {
     UserDataContext,
     UserDataContextProvider,
     WishlistContext,
-    WishlistProvider
+    WishlistProvider,
 }

@@ -17,10 +17,10 @@ export interface WishlistContextValue {
 const defaultValue: WishlistContextValue = {
   wishlistIds: [],
   isWishlisted: () => false,
-  addToWishlist: () => {},
-  removeFromWishlist: () => {},
-  toggleWishlist: () => {},
-  clearWishlist: () => {},
+  addToWishlist: () => { },
+  removeFromWishlist: () => { },
+  toggleWishlist: () => { },
+  clearWishlist: () => { },
 };
 
 export const WishlistContext = createContext<WishlistContextValue>(defaultValue);
@@ -41,6 +41,7 @@ export const WishlistProvider: React.FC<Props> = ({ children }) => {
       if (Array.isArray(stored)) {
         setWishlistIds(stored.map(String));
       }
+
       // Seed from API as source of truth
       try {
         const res = await UserService.wishlist();
@@ -81,6 +82,7 @@ export const WishlistProvider: React.FC<Props> = ({ children }) => {
       // rollback
       setWishlistIds(prev => prev.filter(x => x !== key));
       Toast.show({ type: 'error', text1: 'Failed to add to wishlist' });
+      console.log("errorwish", e)
     }
   }, []);
 
@@ -90,20 +92,21 @@ export const WishlistProvider: React.FC<Props> = ({ children }) => {
     setWishlistIds(prev => prev.filter(x => x !== key));
     try {
       if (wishlistId) {
-        await UserService.wishlistDelete(wishlistId, key);
+        await UserService.wishlistDelete(wishlistId, key,);
       } else {
         // If wishlistId missing, re-fetch once and retry
         const res = await UserService.wishlist();
         const apiWishlist = res?.data?.wishlist;
         if (apiWishlist?.id) {
           setWishlistId(String(apiWishlist.id));
-          await UserService.wishlistDelete(apiWishlist.id, key);
+          await UserService.wishlistDelete(apiWishlist.id, key,);
         }
       }
     } catch (e) {
       // rollback
       setWishlistIds(prev => (prev.includes(key) ? prev : [...prev, key]));
       Toast.show({ type: 'error', text1: 'Failed to remove from wishlist' });
+      console.log("errorwish", e)
     }
   }, []);
 

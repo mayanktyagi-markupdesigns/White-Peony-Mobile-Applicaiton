@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
     View,
     Text,
@@ -9,6 +9,10 @@ import {
 } from 'react-native';
 import LinearGradient from 'react-native-linear-gradient';
 import Icon from 'react-native-vector-icons/Ionicons'; // for back arrow icon, install if needed
+import { UserService } from '../service/ApiService';
+import { CommonLoader } from '../components/CommonLoader/commonLoader';
+import { HttpStatusCode } from 'axios';
+import Toast from 'react-native-toast-message';
 
 const notificationsData = [
     {
@@ -59,8 +63,10 @@ const tabs = [
     { key: 'earlier', label: 'Earlier' },
 ];
 
-const NotificationScreen = ({navigation}) => {
+const NotificationScreen = ({ navigation }) => {
     const [activeTab, setActiveTab] = useState('today');
+    const { showLoader, hideLoader } = CommonLoader();
+
 
     // Filter notifications based on activeTab
     // For demo, we'll just display all items for "today" tab, adjust as needed
@@ -108,7 +114,6 @@ const NotificationScreen = ({navigation}) => {
     const renderNotification = ({ item }) => (
         <>
             <View style={[styles.notificationCard, item.read ? styles.readCard : {}]}>
-
                 <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
                     <Image source={require('../assets/Png/cropped-white_peony.png')} style={{ width: 100, height: 12 }} />
                     <View style={styles.notificationRight}>
@@ -132,6 +137,62 @@ const NotificationScreen = ({navigation}) => {
             </View>
         </>
     );
+
+    useEffect(() => {
+        NotoficationList();
+    }, [])
+
+    const NotoficationList = async () => {
+        try {
+            showLoader();
+            const res = await UserService.notifications();
+            hideLoader();
+            if (res?.status === HttpStatusCode.Ok && res?.data) {
+                const { message, data } = res.data;
+                console.log("NotoficationList data:", res.data);
+                Toast.show({ type: "success", text1: message });
+
+            } else {
+                Toast.show({
+                    type: "error",
+                    text1: res?.data?.message || "Something went wrong!",
+                });
+            }
+        } catch (err: any) {
+            hideLoader();
+            console.log("Error in DeleteAcc:", JSON.stringify(err));
+            Toast.show({
+                type: "error",
+                text1: err?.response?.data?.message || "Something went wrong! Please try again.",
+            });
+        }
+    };
+
+    const NotoficationRead = async (id: any) => {
+        try {
+            showLoader();
+            const res = await UserService.notificationsreadID(id);
+            hideLoader();
+            if (res?.status === HttpStatusCode.Ok && res?.data) {
+                const { message, data } = res.data;
+                console.log("NotoficationRead data:", res.data);
+                Toast.show({ type: "success", text1: message });
+
+            } else {
+                Toast.show({
+                    type: "error",
+                    text1: res?.data?.message || "Something went wrong!",
+                });
+            }
+        } catch (err: any) {
+            hideLoader();
+            console.log("Error in NotoficationRead:", JSON.stringify(err));
+            Toast.show({
+                type: "error",
+                text1: err?.response?.data?.message || "Something went wrong! Please try again.",
+            });
+        }
+    };
 
     return (
         <View style={styles.safeArea}>
@@ -202,7 +263,7 @@ const styles = StyleSheet.create({
         alignItems: 'center',
         flex: 1,
         marginHorizontal: 4,
-        justifyContent:'center'
+        justifyContent: 'center'
     },
     tabLabel: {
         fontSize: 14,
@@ -219,7 +280,7 @@ const styles = StyleSheet.create({
         paddingHorizontal: 10,
         paddingVertical: 6,
         alignSelf: 'center',
-        width: 100, 
+        width: 100,
 
     },
     activeTabUnderline: {
