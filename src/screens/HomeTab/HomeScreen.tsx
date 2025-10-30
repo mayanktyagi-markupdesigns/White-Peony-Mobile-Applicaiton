@@ -26,7 +26,14 @@ import LoginModal from '../../components/LoginModal';
 import { useCart } from '../../context/CartContext';
 const { width } = Dimensions.get('window');
 
-const banners = [require('../../assets/Png/banner.png')];
+
+type DisplayWishlistItem = {
+  id: string; // product id
+  wishlistItemId: string;
+  name: string;
+  price: string;
+  image: string | null;
+};
 
 const products = new Array(6).fill(0).map((_, i) => ({
   id: String(i + 1),
@@ -39,10 +46,6 @@ const products = new Array(6).fill(0).map((_, i) => ({
     require('../../assets/Png/product.png'),
   ],
 }));
-
-const productscate = new Array(4)
-  .fill(0)
-  .map((_, i) => ({ id: String(i + 1), title: 'All Around Matcha' }));
 
 // Small product image carousel used inside product cards
 const ProductImageCarousel = ({ images }: { images: any[] }) => {
@@ -96,8 +99,8 @@ const HomeScreen = ({ navigation }: any) => {
   const { showLoader, hideLoader } = CommonLoader();
   const { setUserData, isLoggedIn } = useContext<UserData>(UserDataContext);
   const [modalVisible, setModalVisible] = useState(false);
-  const [headerSimple, setheaderSimple] = useState([]);
-  const [Promotional, setPromotional] = useState([]);
+  const [headerSimple, setheaderSimple] = useState<any[]>([]);
+  const [Promotional, setPromotional] = useState<any[]>([]);
 
   // Search state
   const [searchQuery, setSearchQuery] = useState('');
@@ -107,18 +110,21 @@ const HomeScreen = ({ navigation }: any) => {
 
   const smallItems = [
     {
-      id: 's1',
+      id: 9,
       title: 'Gifts & Presents',
+      slug: 'Gifts and Presents',
       image: require('../../assets/Png/banner.png'),
     },
     {
-      id: 's2',
+      id: 11,
       title: 'Tea Sets',
+      slug: 'Organic and Bio tea',
       image: require('../../assets/Png/product.png'),
     },
     {
-      id: 's3',
+      id: 10,
       title: 'Accessories',
+      slug: 'Accessories',
       image: require('../../assets/Png/product.png'),
     },
   ];
@@ -144,7 +150,7 @@ const HomeScreen = ({ navigation }: any) => {
       const res = await UserService.profile();
       const GetProfile = res?.data?.user || {};
       setUserData(GetProfile);
-      console.log("userprofile", GetProfile)
+      //console.log("userprofile", GetProfile)
     } catch (e) {
       console.error('Wishlist fetch error:', e);
       Toast.show({ type: 'error', text1: 'Failed to load wishlist' });
@@ -255,15 +261,15 @@ const HomeScreen = ({ navigation }: any) => {
       if (res && res.data && res.status === HttpStatusCode.Ok) {
         const banners = res.data?.banners || [];
 
-        const simpleBanners = banners.filter((item) => item.type === 'simple');
-        const promotionalBanners = banners.filter((item) => item.type === 'promotional');
+        const simpleBanners = banners.filter((item: any) => item.type === 'simple');
+        const promotionalBanners = banners.filter((item: any) => item.type === 'promotional');
 
-        const mappedSimple = simpleBanners.map((item) => ({
+        const mappedSimple = simpleBanners.map((item: any) => ({
           ...item,
           image_url: Image_url + item.image_url,
         }));
 
-        const mappedPromotional = promotionalBanners.map((item) => ({
+        const mappedPromotional = promotionalBanners.map((item: any) => ({
           ...item,
           image_url: Image_url + item.image_url,
         }));
@@ -349,7 +355,9 @@ const HomeScreen = ({ navigation }: any) => {
     if (searchDebounceRef.current) clearTimeout(searchDebounceRef.current);
   };
 
-  const { toggleWishlist, isWishlisted } = React.useContext(WishlistContext);
+  const { toggleWishlist, isWishlisted, removeFromWishlist } = React.useContext(WishlistContext);
+  const [items, setItems] = useState<DisplayWishlistItem[]>([]);
+
 
   const renderProduct = ({ item }: { item: any }) => {
     const qty = cart[item.id] || 0;
@@ -368,9 +376,85 @@ const HomeScreen = ({ navigation }: any) => {
             images={item.images || [require('../../assets/Png/product.png')]}
           />
           <TouchableOpacity
-            onPress={() => toggleWishlist(item.id)}
+            onPress={async () => {
+              if (wished) {
+                // Remove from wishlist
+                try {
+                  if (isLoggedIn) {
+                    // Logged in user - remove from server first
+                    showLoader();
+                    const res = await UserService.wishlistDelete(item.id);
+                    if (res?.status === HttpStatusCode.Ok) {
+                      await removeFromWishlist(item.id); // Update local state
+                      Toast.show({
+                        type: 'success',
+                        text1: 'Removed from wishlist'
+                      });
+                    } else {
+                      Toast.show({
+                        type: 'error',
+                        text1: 'Failed to remove from wishlist'
+                      });
+                    }
+                    hideLoader();
+                  } else {
+                    // Guest user - just update local state
+                    removeFromWishlist(item.id);
+                    Toast.show({
+                      type: 'success',
+                      text1: 'Removed from wishlist'
+                    });
+                  }
+                } catch (err) {
+                  hideLoader();
+                  console.log('Wishlist remove error:', err);
+                  Toast.show({
+                    type: 'error',
+                    text1: 'Failed to remove from wishlist'
+                  });
+                }
+              } else {
+                // Add to wishlist
+                try {
+                  if (!isLoggedIn) {
+                    // Guest user - just update local state
+                    toggleWishlist(item.id);
+                    Toast.show({
+                      type: 'success',
+                      text1: 'Added to wishlist'
+                    });
+                    return;
+                  }
+                  // Logged in user - add to server
+                  // showLoader();
+                  // await toggleWishlist(item.id);
+                  // Toast.show({
+                  //   type: 'success',
+                  //   text1: 'Added to wishlist'
+                  // });
+                } catch (err) {
+                  console.log('Wishlist add error:', err);
+                  Toast.show({
+                    type: 'error',
+                    text1: 'Failed to add to wishlist'
+                  });
+                } finally {
+                  hideLoader();
+                }
+              }
+            }}
             activeOpacity={0.7}
-            style={{ width: 30, height: 30, borderRadius: 15, backgroundColor: '#E2E689', justifyContent: 'center', alignItems: 'center', position: 'absolute', top: 10, right: 10 }}
+            style={{
+              width: 30,
+              height: 30,
+              borderRadius: 15,
+              backgroundColor: '#E2E689',
+              justifyContent: 'center',
+              alignItems: 'center',
+              position: 'absolute',
+              top: 10,
+              right: 10
+            }}
           >
             <Image
               source={wished ? require('../../assets/Png/heart1.png') : require('../../assets/Png/heart-1.png')}
@@ -431,7 +515,7 @@ const HomeScreen = ({ navigation }: any) => {
   };
 
   const renderProductCate = ({ item, index }: { item: any; index: number }) => (
-    <TouchableOpacity
+    <TouchableOpacity onPress={() => navigation.navigate('CategoryDetailsList', { categoryId: item.id, categoryTitle: item.name })}
       style={{
         width: 'auto',
         height: 32,
@@ -443,7 +527,7 @@ const HomeScreen = ({ navigation }: any) => {
         paddingHorizontal: 10,
         margin: 5,
       }}
-      onPress={() => setIndex(index)}
+    // onPress={() => setIndex(index)}
     >
       <View>
         <Text style={{ color: indexs === index ? '#000' : '#B4B4B4' }}>
@@ -453,7 +537,7 @@ const HomeScreen = ({ navigation }: any) => {
     </TouchableOpacity>
   );
 
-  const PromotionalBanner = ({ promotional = [], }) => {
+  const PromotionalBanner: React.FC<{ promotional: any[] }> = ({ promotional = [] as any[] }) => {
     if (!promotional.length) return null;
 
     return (
@@ -463,7 +547,7 @@ const HomeScreen = ({ navigation }: any) => {
           pagingEnabled
           showsHorizontalScrollIndicator={false}
         >
-          {promotional.map((item, index) => (
+          {promotional.map((item: any, index: number) => (
             <View key={String(index)} style={styles.page}>
               <ImageBackground
                 source={{ uri: item.image_url }}
@@ -484,6 +568,15 @@ const HomeScreen = ({ navigation }: any) => {
         </ScrollView>
       </View>
     );
+  };
+
+  const handleRemove = async (productId: string) => {
+    try {
+      await removeFromWishlist(productId);
+      setItems(prev => prev.filter(i => i.id !== productId));
+    } catch (e) {
+      // removeFromWishlist already toasts on failure
+    }
   };
 
   return (
@@ -545,7 +638,7 @@ const HomeScreen = ({ navigation }: any) => {
           ref={bannerRef}
           contentContainerStyle={{ paddingHorizontal: 10 }}
         >
-          {headerSimple.map((item, index) => (
+          {headerSimple.map((item: any, index: number) => (
             <Image
               key={String(index)}
               source={{ uri: item.image_url }}
@@ -565,7 +658,9 @@ const HomeScreen = ({ navigation }: any) => {
           }}
         >
           <Text style={styles.sectionTitle}>Best Sale Products</Text>
-          <Text style={{ color: '#AEB254', fontSize: 15 }}>See More</Text>
+          <TouchableOpacity onPress={() => navigation.navigate('CategoryDetailsList', { mode: 'all', categoryTitle: 'Best Sale Products' })}>
+            <Text style={{ color: '#AEB254', fontSize: 15 }}>See More</Text>
+          </TouchableOpacity>
         </View>
 
         {isLoadingProduct ? (
@@ -641,22 +736,24 @@ const HomeScreen = ({ navigation }: any) => {
                 outputRange: [0, 1],
               });
               return (
-                <Animated.View
-                  style={{
-                    width: widthAnim,
-                    height: 82,
-                    marginRight: 12,
-                    borderRadius: 8,
-                    overflow: 'hidden',
-                    zIndex: index === activeSmallIndex ? 2 : 1,
-                    elevation: index === activeSmallIndex ? 4 : 0,
-                  }}
-                >
-                  <Image source={item.image} style={styles.smallImage} />
-                  <Animated.View style={[styles.smallOverlay, { opacity }]}>
-                    <Text style={styles.smallOverlayText}>{item.title}</Text>
+                <TouchableOpacity onPress={() => navigation.navigate('CategoryDetailsList', { categoryId: item.id, categoryTitle: item.slug })} >
+                  <Animated.View
+                    style={{
+                      width: widthAnim,
+                      height: 82,
+                      marginRight: 12,
+                      borderRadius: 8,
+                      overflow: 'hidden',
+                      zIndex: index === activeSmallIndex ? 2 : 1,
+                      elevation: index === activeSmallIndex ? 4 : 0,
+                    }}
+                  >
+                    <Image source={item.image} style={styles.smallImage} />
+                    <Animated.View style={[styles.smallOverlay, { opacity }]}>
+                      <Text style={styles.smallOverlayText}>{item.title}</Text>
+                    </Animated.View>
                   </Animated.View>
-                </Animated.View>
+                </TouchableOpacity>
               );
             }}
           />
@@ -680,7 +777,9 @@ const HomeScreen = ({ navigation }: any) => {
             }}
           >
             <Text style={styles.sectionTitle}>Recomended For You</Text>
-            <Text style={{ color: '#AEB254', fontSize: 15 }}>See More</Text>
+            <TouchableOpacity onPress={() => navigation.navigate('CategoryDetailsList', { mode: 'recommended', categoryTitle: 'Recommended For You' })}>
+              <Text style={{ color: '#AEB254', fontSize: 15 }}>See More</Text>
+            </TouchableOpacity>
           </View>
 
           {isLoadingProduct ? (
@@ -869,6 +968,15 @@ const styles = StyleSheet.create({
   addBtn: {
     marginTop: 10,
     backgroundColor: '#2DA3C7',
+    paddingVertical: 6,
+    paddingHorizontal: 18,
+    borderRadius: 20,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  filterBtn: {
+    marginTop: 10,
+    backgroundColor: '#AEB254',
     paddingVertical: 6,
     paddingHorizontal: 18,
     borderRadius: 20,

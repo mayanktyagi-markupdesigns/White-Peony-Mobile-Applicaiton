@@ -11,6 +11,8 @@ import {
   Alert,
   Platform,
   ActivityIndicator,
+  StatusBar,
+  Modal,
 } from 'react-native';
 import { CommonLoader } from '../../components/CommonLoader/commonLoader';
 import { Image_url, UserService } from '../../service/ApiService';
@@ -22,7 +24,7 @@ import Geolocation from 'react-native-geolocation-service';
 import { check, request, RESULTS, PERMISSIONS } from 'react-native-permissions';
 const { width } = Dimensions.get('window');
 
-const EventScreen = ({ navigation }) => {
+const EventScreen = ({ navigation }: any) => {
   const { showLoader, hideLoader } = CommonLoader();
   const [location, setLocation] = useState<any>(null);
   const [sampleEvents, setsampleEvents] = React.useState<any[]>([]);
@@ -33,6 +35,8 @@ const EventScreen = ({ navigation }) => {
   const [searchResults, setSearchResults] = useState<any[]>([]);
   const [isSearching, setIsSearching] = useState(false);
   const searchDebounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const [upcomingModalVisible, setUpcomingModalVisible] = useState(false);
+  const [nearbyModalVisible, setNearbyModalVisible] = useState(false);
 
   useEffect(() => {
     requestPermissionAndGetLocation();
@@ -295,9 +299,11 @@ const EventScreen = ({ navigation }) => {
               <Text style={styles.sectionTitle}>
                 {searchQuery.trim() ? 'Search Results' : 'Upcoming Events'}
               </Text>
-              <Text style={styles.seeMore}>
-                {searchQuery.trim() ? `${searchResults.length} found` : 'See more'}
-              </Text>
+              <TouchableOpacity onPress={() => setUpcomingModalVisible(true)}>
+                <Text style={styles.seeMore}>
+                  {searchQuery.trim() ? `${searchResults.length} found` : 'See more'}
+                </Text>
+              </TouchableOpacity>
             </View>
 
             {searchQuery.trim() ? (
@@ -323,7 +329,9 @@ const EventScreen = ({ navigation }) => {
 
                 <View style={[styles.sectionHeader, { marginTop: 16 }]}>
                   <Text style={styles.sectionTitle}>Events Near You</Text>
-                  <Text style={styles.seeMore}>See more</Text>
+                    <TouchableOpacity onPress={() => setNearbyModalVisible(true)}>
+                      <Text style={styles.seeMore}>See more</Text>
+                    </TouchableOpacity>
                 </View>
                 {/* spacer wrapper to keep styling consistent */}
                 <View
@@ -335,7 +343,6 @@ const EventScreen = ({ navigation }) => {
                     borderColor: '#D9D9D9',
                     borderRadius: 10,
                     marginTop: 10,
-                    paddingBottom: 12,
                   }}
                 />
               </>
@@ -350,6 +357,47 @@ const EventScreen = ({ navigation }) => {
           ) : null
         }
       />
+      {/* Upcoming events modal */}
+      <Modal visible={upcomingModalVisible} transparent animationType="slide">
+        <View style={modalStyles.overlay}>
+          <View style={modalStyles.content}>
+            <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
+              <Text style={{ fontSize: 18, fontWeight: '700' }}>Upcoming Events</Text>
+              <TouchableOpacity onPress={() => setUpcomingModalVisible(false)}>
+                <Text style={{ fontSize: 18, fontWeight: '700' }}>✕</Text>
+              </TouchableOpacity>
+            </View>
+            <FlatList
+              data={sampleEvents}
+              keyExtractor={(i) => String(i.id)}
+              renderItem={renderUpcoming}
+              showsVerticalScrollIndicator={false}
+              contentContainerStyle={{ paddingTop: 12 }}
+            />
+          </View>
+        </View>
+      </Modal>
+
+      {/* Nearby events modal */}
+      <Modal visible={nearbyModalVisible} transparent animationType="slide">
+        <View style={modalStyles.overlay}>
+          <View style={modalStyles.content}>
+            <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
+              <Text style={{ fontSize: 18, fontWeight: '700' }}>Events Near You</Text>
+              <TouchableOpacity onPress={() => setNearbyModalVisible(false)}>
+                <Text style={{ fontSize: 18, fontWeight: '700' }}>✕</Text>
+              </TouchableOpacity>
+            </View>
+            <FlatList
+              data={NearbyEvents}
+              keyExtractor={(i) => String(i.id)}
+              renderItem={renderNear}
+              showsVerticalScrollIndicator={false}
+              contentContainerStyle={{ paddingTop: 12 }}
+            />
+          </View>
+        </View>
+      </Modal>
     </View>
   );
 };
@@ -357,7 +405,7 @@ const EventScreen = ({ navigation }) => {
 export default EventScreen;
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#fff' },
+  container: { flex: 1, backgroundColor: '#fff', top: Platform.OS === 'android' ? StatusBar.currentHeight : 0, },
   header: {
     height: 90,
     justifyContent: 'center',
@@ -447,5 +495,20 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: '#EAEAEA',
     marginLeft: 8,
+  },
+});
+
+const modalStyles = StyleSheet.create({
+  overlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.4)',
+    justifyContent: 'flex-end',
+  },
+  content: {
+    backgroundColor: '#fff',
+    padding: 16,
+    borderTopLeftRadius: 12,
+    borderTopRightRadius: 12,
+    maxHeight: '80%',
   },
 });

@@ -10,6 +10,7 @@ import {
   Platform,
   ImageURISource,
   NativeModules,
+  StatusBar,
 } from 'react-native'
 import { CommonLoader } from '../../components/CommonLoader/commonLoader';
 import { Image_url, UserService } from '../../service/ApiService';
@@ -117,7 +118,7 @@ const ArticleDetails = ({ navigation, route }: any) => {
         />
         <View style={styles.headerOverlay} ><Text style={{ color: '#fff', fontSize: 18, textAlign: 'center', width: '70%' }}>The Health Benefits Of Organic Vs Regular Tea</Text></View>
         <TouchableOpacity style={styles.backBtn} onPress={() => navigation.goBack()}>
-          <Text style={{ color: '#fff', fontSize: 18 }}>←</Text>
+          <Image source={require('../../assets/Png/back.png')} style={{ width: 20, height: 20, tintColor: '#fff' }} />
         </TouchableOpacity>
         <View style={styles.titleWrap}>
           <Text style={styles.title}>{airtcleDetails?.title}</Text>
@@ -152,7 +153,7 @@ const ArticleDetails = ({ navigation, route }: any) => {
 export default ArticleDetails
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#fff' },
+  container: { flex: 1, backgroundColor: '#fff', top: Platform.OS === 'android' ? StatusBar.currentHeight : 0, },
   scroll: { paddingBottom: 120 },
   card: { borderRadius: 16, overflow: 'hidden', backgroundColor: '#fff' },
   headerImage: { width: '100%', height: 378, borderBottomLeftRadius: 20, borderBottomRightRadius: 20 },

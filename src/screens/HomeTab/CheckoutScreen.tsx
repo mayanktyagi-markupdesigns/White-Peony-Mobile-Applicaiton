@@ -798,14 +798,12 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   header: {
-    height: 50,
-    paddingHorizontal: 20,
+    padding: 20,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
     borderBottomWidth: 0.3,
     borderBottomColor: '#ccc',
-    marginTop: 40,
   },
   headerTitle: {
     fontSize: 18,

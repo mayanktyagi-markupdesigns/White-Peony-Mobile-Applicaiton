@@ -10,6 +10,7 @@ import {
   Dimensions,
   ScrollView,
   ImageBackground,
+  Modal,
 } from 'react-native';
 import Toast from 'react-native-toast-message';
 import { CommonLoader } from '../../components/CommonLoader/commonLoader';
@@ -19,11 +20,13 @@ import { formatDate } from '../../helpers/helpers';
 const { width } = Dimensions.get('window');
 
 
-const ArticleScreen = ({ navigation }) => {
+const ArticleScreen = ({ navigation }: any) => {
   const { showLoader, hideLoader } = CommonLoader();
   const [activeIndex, setActiveIndex] = useState(0);
   const viewRef = useRef<any>(null);
   const [sampleArticle, setsampleArticle] = React.useState<any[]>([]);
+  const [justForYouModalVisible, setJustForYouModalVisible] = useState(false);
+  const [trendingModalVisible, setTrendingModalVisible] = useState(false);
 
 
   useEffect(() => {
@@ -134,13 +137,56 @@ const ArticleScreen = ({ navigation }) => {
           </TouchableOpacity>
         </View>
       </View>
+      {/* Just For You modal */}
+      <Modal visible={justForYouModalVisible} transparent animationType="slide">
+        <View style={modalStyles.overlay}>
+          <View style={modalStyles.content}>
+            <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
+              <Text style={{ fontSize: 18, fontWeight: '700' }}>Just For You</Text>
+              <TouchableOpacity onPress={() => setJustForYouModalVisible(false)}>
+                <Text style={{ fontSize: 18, fontWeight: '700' }}>✕</Text>
+              </TouchableOpacity>
+            </View>
+            <FlatList
+              data={sampleArticle}
+              keyExtractor={(i) => String(i.id)}
+              renderItem={renderUpcoming}
+              showsVerticalScrollIndicator={false}
+              contentContainerStyle={{ paddingTop: 12 }}
+            />
+          </View>
+        </View>
+      </Modal>
+
+      {/* Trending modal */}
+      <Modal visible={trendingModalVisible} transparent animationType="slide">
+        <View style={modalStyles.overlay}>
+          <View style={modalStyles.content}>
+            <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
+              <Text style={{ fontSize: 18, fontWeight: '700' }}>Trending Articles</Text>
+              <TouchableOpacity onPress={() => setTrendingModalVisible(false)}>
+                <Text style={{ fontSize: 18, fontWeight: '700' }}>✕</Text>
+              </TouchableOpacity>
+            </View>
+            <FlatList
+              data={sampleArticle}
+              keyExtractor={(i) => String(i.id)}
+              renderItem={renderNear}
+              showsVerticalScrollIndicator={false}
+              contentContainerStyle={{ paddingTop: 12 }}
+            />
+          </View>
+        </View>
+      </Modal>
       <ScrollView
         contentContainerStyle={{ paddingBottom: 20 }}
         showsVerticalScrollIndicator={false}
       >
         <View style={styles.sectionHeader}>
           <Text style={styles.sectionTitle}>Just For You</Text>
-          <Text style={styles.seeMore}>View All</Text>
+          <TouchableOpacity onPress={() => setJustForYouModalVisible(true)}>
+            <Text style={styles.seeMore}>View All</Text>
+          </TouchableOpacity>
         </View>
         <View style={{ marginTop: 10 }}>
           <FlatList
@@ -175,7 +221,9 @@ const ArticleScreen = ({ navigation }) => {
 
         <View style={[styles.sectionHeader, { marginTop: 16 }]}>
           <Text style={styles.sectionTitle}>Trending Articles</Text>
-          <Text style={styles.seeMore}>View all</Text>
+          <TouchableOpacity onPress={() => setTrendingModalVisible(true)}>
+            <Text style={styles.seeMore}>View all</Text>
+          </TouchableOpacity>
         </View>
         <View
           style={{
@@ -320,5 +368,20 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: '#EAEAEA',
     marginLeft: 8,
+  },
+});
+
+const modalStyles = StyleSheet.create({
+  overlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.4)',
+    justifyContent: 'flex-end',
+  },
+  content: {
+    backgroundColor: '#fff',
+    padding: 16,
+    borderTopLeftRadius: 12,
+    borderTopRightRadius: 12,
+    maxHeight: '80%',
   },
 });

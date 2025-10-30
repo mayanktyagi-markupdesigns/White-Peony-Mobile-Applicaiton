@@ -11,10 +11,14 @@ let APIKit = axios.create({
 
 APIKit.interceptors.request.use(
   async (config) => {
-    //console.log(config)
+    // Skip attaching auth if explicitly requested
+    const skipAuthHeader = (config.headers as any)?.['X-Skip-Auth'] === 'true' || (config.headers as any)?.['x-skip-auth'] === 'true';
+    if (skipAuthHeader) {
+      return config;
+    }
     const token = await LocalStorage.read('@token');
     if (token) {
-      config.headers['authorization'] = `Bearer ${token}`;
+      (config.headers as any)['authorization'] = `Bearer ${token}`;
     }
     return config;
   },
@@ -282,6 +286,17 @@ export const UserService = {
   },
 
   product: async () => {
+    const apiHeaders = {
+      headers: {
+        "Content-Type": "application/json",
+        Accept: "application/json",
+        "X-Skip-Auth": 'true',
+      },
+    };
+    return APIKit.get('products', apiHeaders);
+  },
+
+  recommended: async () => {
     const token = await LocalStorage.read("@token");
     const apiHeaders = {
       headers: {
@@ -290,16 +305,27 @@ export const UserService = {
         Authorization: `Bearer ${token}`,
       },
     };
-    return APIKit.get('products', apiHeaders);
+    return APIKit.get('products/recommended', apiHeaders);
   },
 
-  productDetail: async (id) => {
+  CatbyProduct: async (id: any) => {
     const token = await LocalStorage.read("@token");
     const apiHeaders = {
       headers: {
         "Content-Type": "application/json",
         Accept: "application/json",
         Authorization: `Bearer ${token}`,
+      },
+    };
+    return APIKit.get(`products/category/${id}`, apiHeaders);
+  },
+
+  productDetail: async (id) => {
+    const apiHeaders = {
+      headers: {
+        "Content-Type": "application/json",
+        Accept: "application/json",
+        "X-Skip-Auth": 'true',
       },
     };
     return APIKit.get(`products/${id}`, apiHeaders);
@@ -366,18 +392,6 @@ export const UserService = {
     };
     console.log("payload", payload, apiHeaders);
     return APIKit.post('updatecart', payload, apiHeaders);
-  },
-
-  recommended: async () => {
-    const token = await LocalStorage.read("@token");
-    const apiHeaders = {
-      headers: {
-        "Content-Type": "application/json",
-        Accept: "application/json",
-        Authorization: `Bearer ${token}`,
-      },
-    };
-    return APIKit.get('products/recommended', apiHeaders);
   },
 
   SlugAPI: async (slug: any) => {
@@ -544,7 +558,7 @@ export const UserService = {
     return APIKit.get(`wishlist`, apiHeaders);
   },
 
-  wishlistDelete: async (wishlistId: string | number, productId: string | number, ) => {
+  wishlistDelete: async (productId: string | number,) => {
     const token = await LocalStorage.read("@token");
     const apiHeaders = {
       headers: {
@@ -552,6 +566,6 @@ export const UserService = {
         Authorization: `Bearer ${token}`,
       },
     };
-    return APIKit.delete(`wishlist/${wishlistId}/product/${productId}`, apiHeaders);
+    return APIKit.delete(`wishlist/product/${productId}`, apiHeaders);
   },
 };

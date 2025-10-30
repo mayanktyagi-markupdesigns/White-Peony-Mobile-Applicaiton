@@ -13,6 +13,7 @@ import {
   ActivityIndicator,
   TouchableWithoutFeedback,
   Alert,
+  StatusBar,
 } from 'react-native';
 import { CommonLoader } from '../../components/CommonLoader/commonLoader';
 import { Image_url, UserService } from '../../service/ApiService';
@@ -123,7 +124,7 @@ const EventDetails = ({ navigation, route }: any) => {
             style={styles.backBtn}
             onPress={() => navigation.goBack()}
           >
-            <Text style={{ fontSize: 18 }}>←</Text>
+            <Image source={require('../../assets/Png/back.png')} style={{ width: 20, height: 20 }} />
           </TouchableOpacity>
           <Text style={styles.screenTitle}>Tea Tasting Masterclass</Text>
           <View style={{ width: 36 }} />
@@ -400,7 +401,7 @@ const EventDetails = ({ navigation, route }: any) => {
 export default EventDetails;
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#fff' },
+  container: { flex: 1, backgroundColor: '#fff', top: Platform.OS === 'android' ? StatusBar.currentHeight : 0, },
   scroll: { padding: 16, paddingBottom: 120 },
   card: { backgroundColor: '#fff' },
   headerRow: {

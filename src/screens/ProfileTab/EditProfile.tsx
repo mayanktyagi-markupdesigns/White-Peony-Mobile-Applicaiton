@@ -1,5 +1,5 @@
 import React, { useContext, useEffect, useState } from 'react';
-import { View, Text, TextInput, TouchableOpacity, StyleSheet, Image, ScrollView, Alert, Platform } from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, StyleSheet, Image, ScrollView, Alert, Platform, StatusBar } from 'react-native';
 import { Formik } from 'formik';
 import * as Yup from 'yup';
 import LinearGradient from 'react-native-linear-gradient';
@@ -20,13 +20,13 @@ const EditProfile = ({ navigation, route }) => {
   const { userData, setUserData } = useContext<UserData>(UserDataContext);
   const [statusOpen, setStatusOpen] = useState(false);
   const { showLoader, hideLoader } = CommonLoader();
-  const [statusValue, setStatusValue] = useState(userData?.status || 'active');
+  // const [statusValue, setStatusValue] = useState(userData?.status || 'active');
   const [profileImage, setProfileImage] = useState<string | null>(null);
 
-  const [statusItems, setStatusItems] = useState([
-    { label: 'Active', value: 'active' },
-    { label: 'Inactive', value: 'inactive' },
-  ]);
+  // const [statusItems, setStatusItems] = useState([
+  //   { label: 'Active', value: 'active' },
+  //   { label: 'Inactive', value: 'inactive' },
+  // ]);
 
   useEffect(() => {
 
@@ -86,7 +86,7 @@ const EditProfile = ({ navigation, route }) => {
     zip: userData?.address?.postal_code || '',
     businessName: userData?.business_name || '',
     vatId: userData?.vat_id || '',
-    status: userData?.status || '',
+    status: userData?.status || 'active',
   };
 
 
@@ -359,7 +359,7 @@ const EditProfile = ({ navigation, route }) => {
                   onBlur={handleBlur('vatId')}
                   error={touched.vatId && errors.vatId}
                 />
-                <View style={styles.fieldContainer}>
+                {/* <View style={styles.fieldContainer}>
                   <Text style={styles.fieldLabel}>
                     Status <Text style={{ color: 'red' }}>*</Text>
                   </Text>
@@ -381,7 +381,8 @@ const EditProfile = ({ navigation, route }) => {
                   {touched.status && errors.status && (
                     <Text style={styles.errorText}>{errors.status}</Text>
                   )}
-                </View> </> : null}
+                </View> */}
+              </> : null}
               <TouchableOpacity style={styles.saveButton} onPress={handleSubmit}>
                 <Text style={styles.saveButtonText}>Save Changes</Text>
               </TouchableOpacity>
@@ -425,18 +426,17 @@ const ProfileField = ({
 
 const styles = StyleSheet.create({
   container: {
-    padding: 18,
+    top: Platform.OS === 'android' ? StatusBar.currentHeight : 0,
     backgroundColor: 'transparent',
     alignItems: 'center',
     flex: 1
   },
   header: {
-    height: 50,
     flexDirection: 'row',
-    justifyContent: 'space-between',
     alignItems: 'center',
-    paddingHorizontal: 20,
-    width: '120%',
+    padding: 20,
+    justifyContent: 'space-between',
+    width: widthPercentageToDP(100),
   },
 
   backButton: {

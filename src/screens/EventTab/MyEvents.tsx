@@ -8,6 +8,9 @@ import {
     Modal,
     Pressable,
     StyleSheet,
+    Image,
+    Platform,
+    StatusBar,
 } from 'react-native';
 import { CommonLoader } from '../../components/CommonLoader/commonLoader';
 import { UserService } from '../../service/ApiService';
@@ -137,15 +140,12 @@ const MyEventsScreen = ({ navigation }) => {
 
     return (
         <View style={styles.container}>
-            <View style={styles.headerRow}>
-                <TouchableOpacity
-                    style={styles.backBtn}
-                    onPress={() => navigation.goBack()}
-                >
-                    <Text style={{ fontSize: 18 }}>←</Text>
+            <View style={styles.header}>
+                <TouchableOpacity style={styles.backButton} onPress={() => navigation?.goBack()}>
+                    <Image source={require('../../assets/Png/back.png')} style={{ width: 20, height: 20 }} />
                 </TouchableOpacity>
-                <Text style={styles.screenTitle}>My Event</Text>
-                <View style={{ width: 36 }} />
+                <Text style={styles.headerTitle}>My Event</Text>
+                <View></View>
             </View>
 
             {events.length === 0 ? (
@@ -226,14 +226,13 @@ const styles = StyleSheet.create({
     container: {
         flex: 1,
         backgroundColor: '#F8F9FB',
-        paddingHorizontal: 16,
-        paddingTop: 20,
+        top: Platform.OS === 'android' ? StatusBar.currentHeight : 0,
     },
     header: {
-        fontSize: 22,
-        fontWeight: '700',
-        marginBottom: 20,
-        color: '#222',
+        flexDirection: 'row',
+        alignItems: 'center',
+        padding: 20,
+        justifyContent: 'space-between',
     },
     card: {
         backgroundColor: '#fff',
@@ -341,5 +340,11 @@ const styles = StyleSheet.create({
     closeText: {
         color: '#fff',
         fontWeight: '600',
+    },
+    headerTitle: { fontSize: 18, fontWeight: '600' },
+    backButton: {
+        width: 32,
+        justifyContent: 'center',
+        alignItems: 'center',
     },
 });

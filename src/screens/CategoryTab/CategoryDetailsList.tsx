@@ -33,13 +33,13 @@ const sampleData = new Array(8).fill(null).map((_, i) => ({
 
 const CategoryDetailsList = ({ navigation, route }: any) => {
   const { addToCart, removeFromCart, getCartDetails, syncCartAfterLogin } = useCart();
-  const { categoryId, categoryTitle } = route.params;
+  const { categoryId, categoryTitle, mode } = route.params || {};
   const [filterVisible, setFilterVisible] = useState(false);
   const [sortVisible, setSortVisible] = useState(false);
   const [isLoadingProduct, setIsLoadingProduct] = useState(true);
   const { showLoader, hideLoader } = CommonLoader();
   const [apiProducts, setApiProducts] = useState<any[]>([]);
-  const ProductImageCarousel = ({ images }: { images: any[] }) => {
+  const ProductImageCarousel = ({ images, width }: { images: any[], width?: number }) => {
     const [index, setIndex] = useState(0);
     const opacity = useRef(new Animated.Value(1)).current;
 
@@ -69,9 +69,9 @@ const CategoryDetailsList = ({ navigation, route }: any) => {
     return (
       <Animated.View style={{ opacity }}>
         {source ? (
-          <Image source={source} style={styles.cardImage} />
+          <Image source={source} style={[styles.cardImage, width ? { width } : {}]} />
         ) : (
-          <View style={[styles.cardImage, { backgroundColor: '#eee' }]} />
+          <View style={[styles.cardImage, width ? { width } : {}, { backgroundColor: '#eee' }]} />
         )}
       </Animated.View>
     );
@@ -91,6 +91,7 @@ const CategoryDetailsList = ({ navigation, route }: any) => {
       >
         <ProductImageCarousel
           images={item.images || [require('../../assets/Png/product.png')]}
+          width={ITEM_WIDTH}
         />
         <View style={styles.cardBody}>
           <Text numberOfLines={1} style={styles.cardTitle}>
@@ -104,7 +105,7 @@ const CategoryDetailsList = ({ navigation, route }: any) => {
             ))}
           </View>
           <Text style={styles.cardPrice}>
-            {item.price}€ {item.unit ? `- ${item.unit}` : ''}
+            {item.price}€ {item.weight ? `- ${item.weight}` : item.unit ? `- ${item.unit}` : ''}
           </Text>
 
           {item.stock_quantity === 0 ? (
@@ -144,10 +145,18 @@ const CategoryDetailsList = ({ navigation, route }: any) => {
     );
   };
   useEffect(() => {
+    if (mode === 'recommended') {
+      GetRecommendedProducts();
+      return;
+    }
+    if (mode === 'all') {
+      GetAllProducts();
+      return;
+    }
     if (categoryId) {
       GetCateProducts(categoryId);
     }
-  }, [categoryId]);
+  }, [categoryId, mode]);
   const GetCateProducts = async (categoryId: string) => {
     try {
       showLoader();
@@ -168,7 +177,8 @@ const CategoryDetailsList = ({ navigation, route }: any) => {
             p.variants && p.variants.length ? p.variants[0] : null;
           const price = variant?.price || p.main_price || '0';
           const unit = variant?.unit || '';
-          return { ...p, images, price, unit };
+          const weight = variant?.weight || p.weight || '';
+          return { ...p, images, price, unit, weight };
         });
         setApiProducts(mapped.length ? mapped : fetchedProducts);
       } else {
@@ -182,6 +192,69 @@ const CategoryDetailsList = ({ navigation, route }: any) => {
       setIsLoadingProduct(false);
     }
   };
+
+  const GetAllProducts = async () => {
+    try {
+      showLoader();
+      const res = await UserService.product();
+      if (res && res.data && res.status === HttpStatusCode.Ok) {
+        hideLoader();
+        const fetchedProducts = res.data?.data || [];
+        const baseUrl =
+          res.data?.base_url ||
+          'https://www.markupdesigns.net/whitepeony/storage/';
+        const mapped = fetchedProducts.map((p: any) => {
+          const images = [p.front_image, p.back_image, p.side_image]
+            .filter(Boolean)
+            .map((img: string) =>
+              img.startsWith('http') ? img : `${baseUrl}${img}`,
+            );
+          const variant =
+            p.variants && p.variants.length ? p.variants[0] : null;
+          const price = variant?.price || p.main_price || '0';
+          const unit = variant?.unit || '';
+          const weight = variant?.weight || p.weight || '';
+          return { ...p, images, price, unit, weight };
+        });
+        setApiProducts(mapped.length ? mapped : fetchedProducts);
+      } else {
+        hideLoader();
+      }
+    } catch (err) {
+      hideLoader();
+    }
+  };
+
+  const GetRecommendedProducts = async () => {
+    try {
+      showLoader();
+      const res = await UserService.recommended();
+      if (res && res.data && res.status === HttpStatusCode.Ok) {
+        hideLoader();
+        const fetchedProducts = res.data?.data || [];
+        const baseUrl =
+          res.data?.base_url ||
+          'https://www.markupdesigns.net/whitepeony/storage/';
+        const mapped = fetchedProducts.map((p: any) => {
+          const images = [p.front_image, p.back_image, p.side_image]
+            .filter(Boolean)
+            .map((img: string) =>
+              img.startsWith('http') ? img : `${baseUrl}${img}`,
+            );
+          const variant = p.variants && p.variants.length ? p.variants[0] : null;
+          const price = variant?.price || p.main_price || '0';
+          const unit = variant?.unit || '';
+          const weight = variant?.weight || p.weight || '';
+          return { ...p, images, price, unit, weight };
+        });
+        setApiProducts(mapped.length ? mapped : fetchedProducts);
+      } else {
+        hideLoader();
+      }
+    } catch (err) {
+      hideLoader();
+    }
+  };
   return (
     <LinearGradient colors={['#F3F3F3', '#FFFFFF']} style={styles.container}>
       <View style={styles.header}>
@@ -189,7 +262,10 @@ const CategoryDetailsList = ({ navigation, route }: any) => {
           onPress={() => navigation.goBack()}
           style={styles.backButton}
         >
-          <Text style={styles.backText}>←</Text>
+          <Image
+            source={require('../../assets/Png/back.png')}
+            style={{ width: 20, height: 20 }}
+          />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>{categoryTitle}</Text>
         <TouchableOpacity style={styles.iconBtn}>
@@ -317,15 +393,15 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     fontSize: 16,
     fontWeight: '600',
-    marginRight: '40%'
+    marginRight: '20%'
   },
   headerRight: { flexDirection: 'row', alignItems: 'center', width: '90%', alignSelf: 'center', justifyContent: 'space-around' },
   filterBtn: {
-    marginRight: 8,
     padding: 8,
     backgroundColor: '#AEB254',
     borderRadius: 20,
-    width: '45%',
+    marginVertical: 10,
+    width: widthPercentageToDP(30),
     alignItems: 'center'
   },
   filterText: { color: Colors.text[300] },
@@ -346,7 +422,7 @@ const styles = StyleSheet.create({
     paddingBottom: 24,
   },
   card: {
-    width: widthPercentageToDP(30)
+    width: widthPercentageToDP(45),
     // paddingHorizontal: 8,
   },
   CategoryView: {

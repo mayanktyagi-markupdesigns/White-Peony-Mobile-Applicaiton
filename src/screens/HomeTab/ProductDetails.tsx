@@ -104,26 +104,49 @@ type ProductDetailsProps = {
 };
 
 const ProductDetails = ({ route }: ProductDetailsProps) => {
-  const { addToCart, removeFromCart, isLoggedIn } = useCart();
+  const { addToCart, removeFromCart, isLoggedIn, cart } = useCart();
   const { productId: proDuctID } = route.params;
   const navigation = useNavigation<any>();
   const [isLoadingProduct, setIsLoadingProduct] = useState(true);
   const { toggleWishlist, isWishlisted } = React.useContext(WishlistContext);
   const [productData, setProductData] = useState<any>(null);
+  const [relatedProducts, setRelatedProducts] = useState<any[]>([]);
   //console.log('productData-------->', productData);
   const [baseUrl, setBaseUrl] = useState<string>(
     'https://www.markupdesigns.net/whitepeony/storage/',
   );
   const [displayPrice, setDisplayPrice] = useState<any>('0');
   const [displayUnit, setDisplayUnit] = useState<string>('');
-  const [selectedVariant, setSelectedVariant] = useState(null);
+  const [selectedVariant, setSelectedVariant] = useState<any>(null);
   const [isInCart, setIsInCart] = useState(false);
   const [cartLoading, setCartLoading] = useState(false);
 
+  // keep isInCart in sync with cart context and local flag
+  useEffect(() => {
+    try {
+      if (!productData) return;
+      const variantId = selectedVariant?.id ?? null;
+      const present = Array.isArray(cart)
+        ? cart.some((c: any) => (
+          (c.id ?? c.product_id) === productData.id &&
+          ((c.variant_id ?? c.variantId ?? null) === (variantId || null))
+        ))
+        : false;
+      // also respect locally set productData.is_cart to prevent flicker
+      setIsInCart(Boolean(present || productData?.is_cart));
+    } catch { }
+  }, [cart, selectedVariant, productData?.id]);
+
   const GetProducts = async () => {
+    // kept for backward compatibility; use loadProduct for flexible loading
+    await loadProduct(proDuctID);
+  };
+
+  // Load a product by id and set up state (images, variants, related products, reviews)
+  const loadProduct = async (productId: any) => {
     try {
       setIsLoadingProduct(true);
-      const res = await UserService.productDetail(proDuctID);
+      const res = await UserService.productDetail(productId);
       if (res && res.data && res.status === HttpStatusCode.Ok) {
         const fetchedProducts = res.data?.data || [];
         const resolvedBase = res.data?.base_url || baseUrl;
@@ -134,30 +157,22 @@ const ProductDetails = ({ route }: ProductDetailsProps) => {
           : fetchedProducts;
 
         if (first) {
-          // ✅ Normalize images
           const images = [first.front_image, first.back_image, first.side_image]
             .filter(Boolean)
-            .map((img) => (img.startsWith('http') ? img : `${resolvedBase}${img}`));
+            .map((img: string) => (img.startsWith('http') ? img : `${resolvedBase}${img}`));
 
-          const extraImgs = (first.images || []).map((img) =>
-            img.startsWith('http') ? img : `${resolvedBase}${img}`,
-          );
-
+          const extraImgs = (first.images || []).map((img: string) => (img.startsWith('http') ? img : `${resolvedBase}${img}`));
           const allImages = extraImgs.length ? extraImgs : images;
 
-          // ✅ Handle variants
           const allVariants = first.variants || [];
           setVariants(allVariants);
 
-          // prepare dropdown items (for DropDownPicker)
-          const variantItems = allVariants.map((v, index) => ({
+          const variantItems = allVariants.map((v: any, index: number) => ({
             label: `${v.weight || v.unit || v.name} - ₹${v.price}`,
-            value: v.id, // using variant id as value
+            value: v.id,
           }));
-
           setWeightItems(variantItems);
 
-          // default variant (first one)
           const variant0 = allVariants.length ? allVariants[0] : null;
           const price = variant0?.price || first.main_price || '0';
           const unit = variant0?.unit || '';
@@ -167,12 +182,32 @@ const ProductDetails = ({ route }: ProductDetailsProps) => {
           setDisplayPrice(price);
           setDisplayUnit(unit);
 
-          //console.log('product', productData)
+          // fetch related products using first category if available
+          try {
+            const firstCategory = Array.isArray(normalized.category_id)
+              ? normalized.category_id[0]
+              : normalized.category_id;
+            if (firstCategory) await CategorieProduct(firstCategory);
+          } catch (e) { }
+
+          try {
+            const variantId = variant0?.id ?? null;
+            const present = Array.isArray(cart)
+              ? cart.some((c: any) => (
+                (c.id ?? c.product_id) === normalized.id &&
+                ((c.variant_id ?? c.variantId ?? null) === (variantId || null))
+              ))
+              : false;
+            setIsInCart(Boolean(present || normalized?.is_cart));
+          } catch { }
 
           if (variant0) {
             setSelectedVariant(variant0);
             setWeightValue(variant0.id);
           }
+
+          // fetch reviews for this product
+          ShowReview(productId);
         } else {
           setProductData(null);
         }
@@ -184,10 +219,61 @@ const ProductDetails = ({ route }: ProductDetailsProps) => {
     }
   };
 
-  const ShowReview = async () => {
+  const CategorieProduct = async (categoryIdParam?: any) => {
+    // Accept either an array or a single id (string/number)
+    try {
+      setIsLoadingProduct(true);
+      const categoryIdRaw = categoryIdParam || productData?.category_id;
+      let categoryId: any = null;
+      if (Array.isArray(categoryIdRaw)) categoryId = categoryIdRaw[0];
+      else if (typeof categoryIdRaw === 'string') {
+        try {
+          const parsed = JSON.parse(categoryIdRaw);
+          categoryId = Array.isArray(parsed) ? parsed[0] : parsed;
+        } catch {
+          categoryId = categoryIdRaw;
+        }
+      } else categoryId = categoryIdRaw;
+
+      if (!categoryId) {
+        setRelatedProducts([]);
+        return;
+      }
+      const res = await UserService.CatbyProduct(categoryId);
+      if (res && res.data && res.status === HttpStatusCode.Ok) {
+        const fetchedProducts = res.data?.data || [];
+  console.log('Related products fetched for category:', categoryId);
+        const resolvedBase = res.data?.base_url || baseUrl;
+        setBaseUrl(resolvedBase);
+
+        const mapped = (Array.isArray(fetchedProducts) ? fetchedProducts : [fetchedProducts]).map((p: any) => {
+          const images = [p.front_image, p.back_image, p.side_image]
+            .filter(Boolean)
+            .map((img: string) => (img.startsWith('http') ? img : `${resolvedBase}${img}`));
+          const extraImgs = (p.images || []).map((img: string) => (img.startsWith('http') ? img : `${resolvedBase}${img}`));
+          const allImages = extraImgs.length ? extraImgs : images;
+          const variant = p.variants && p.variants.length ? p.variants[0] : null;
+          const price = variant?.price || p.main_price || p.price || '0';
+          const unit = variant?.unit || p.unit || '';
+          return { ...p, images: allImages, price, unit };
+        });
+        setRelatedProducts(mapped);
+      } else {
+        setRelatedProducts([]);
+      }
+    } catch (err) {
+      console.log('CategorieProduct error:', err);
+      setRelatedProducts([]);
+    } finally {
+      setIsLoadingProduct(false);
+    }
+  };
+
+  const ShowReview = async (productIdParam?: any) => {
     try {
       showLoader();
-      const res = await UserService.Reviewlist(proDuctID);
+      const idToUse = productIdParam || proDuctID;
+      const res = await UserService.Reviewlist(idToUse);
       hideLoader();
 
       if (res?.status === HttpStatusCode.Ok && res?.data) {
@@ -211,8 +297,8 @@ const ProductDetails = ({ route }: ProductDetailsProps) => {
   };
 
   useEffect(() => {
+    // load initial product using route param
     GetProducts();
-    ShowReview();
   }, []);
 
   const PostReview = async () => {
@@ -235,6 +321,7 @@ const ProductDetails = ({ route }: ProductDetailsProps) => {
             console.log("Review", res.data)
             Toast.show({ type: 'success', text1: res?.data?.message });
             // setReviews(prev => [r, ...prev]);
+            ShowReview();
             setNewComment('');
             setNewRating(5);
             setWriteModalVisible(false);
@@ -263,15 +350,17 @@ const ProductDetails = ({ route }: ProductDetailsProps) => {
     }
   };
 
-  const products = new Array(6).fill(0).map((_, i) => ({
-    id: String(i + 1),
-    title: `Magic Queen Oolong ${i + 1}`,
-    price: '24 €',
-    stock: i === 2 ? 0 : 10, // 👈 Example: product 3 is out of stock
-    image: require('../../assets/Png/product.png'),
-  }));
+  // const products = new Array(6).fill(0).map((_, i) => ({
+  //   id: String(i + 1),
+  //   title: `Magic Queen Oolong ${i + 1}`,
+  //   price: '24 €',
+  //   stock: i === 2 ? 0 : 10, // 👈 Example: product 3 is out of stock
+  //   image: require('../../assets/Png/product.png'),
+  // }));
+
+
+
   const videoSource = require('../../assets/Png/splash.mp4');
-  const productImage = require('../../assets/Png/product3.png');
   // derive carousel images from fetched productData; if none, leave empty so we can show a neutral placeholder
   const productImages: any[] =
     productData?.images && productData.images.length ? productData.images : [];
@@ -279,13 +368,13 @@ const ProductDetails = ({ route }: ProductDetailsProps) => {
   // helper to convert string URLs into image sources
   const resolveImageSource = (img: any) =>
     typeof img === 'string' ? { uri: img } : img;
-  const [cart, setCart] = useState<{ [key: string]: number }>({});
+  const [quantities, setQuantities] = useState<{ [key: string]: number }>({});
   const increaseQty = (id: string) => {
-    setCart(prev => ({ ...prev, [id]: (prev[id] || 0) + 1 }));
+    setQuantities(prev => ({ ...prev, [id]: (prev[id] || 0) + 1 }));
   };
 
   const decreaseQty = (id: string) => {
-    setCart(prev => {
+    setQuantities(prev => {
       const updated = { ...prev };
       if (updated[id] > 1) {
         updated[id] -= 1;
@@ -401,35 +490,29 @@ const ProductDetails = ({ route }: ProductDetailsProps) => {
     setZoomScale(1);
   };
 
+  // inline loader will be used to switch product details when a recommended product is tapped
+  // use loadProduct(productId) to load a new product inline without navigation/modal
+
   const increaseZoom = () =>
     setZoomScale(s => Math.min(4, +(s + 0.5).toFixed(2)));
   const decreaseZoom = () =>
     setZoomScale(s => Math.max(1, +(s - 0.5).toFixed(2)));
 
-  const submitReview = () => {
-    const r = {
-      id: `r${Date.now()}`,
-      rating: newRating,
-      author: 'You',
-      comment: newComment || 'No comment',
-      date: new Date().toISOString().slice(0, 10),
-    };
 
-  };
 
   const renderProduct = ({ item }: { item: any }) => {
-    const qty = cart[item.id] || 0;
+    const qty = quantities[item.id] || 0;
 
     return (
       <TouchableOpacity
         style={styles.card}
-        onPress={() => navigation.navigate('ProductDetails', { product: item })}
+        onPress={() => loadProduct(item.id)}
         activeOpacity={0.8}
       >
-        <Image source={item.image} style={styles.cardImage} />
+        <Image source={resolveImageSource(item.image || (item.images && item.images[0]))} style={styles.cardImage} />
         <View style={styles.cardBody}>
           <Text numberOfLines={1} style={styles.cardTitle}>
-            {item.title}
+            {item.name || item.title}
           </Text>
           <View style={{ flexDirection: 'row', marginTop: 8 }}>
             {[1, 2, 3, 4, 5].map(r => (
@@ -440,33 +523,7 @@ const ProductDetails = ({ route }: ProductDetailsProps) => {
           </View>
           <Text style={styles.cardPrice}>{item.price}</Text>
 
-          {item.stock === 0 ? (
-            <Text style={styles.outOfStock}>Out of Stock</Text>
-          ) : qty === 0 ? (
-            <TouchableOpacity
-              style={styles.addBtn}
-              onPress={() => increaseQty(item.id)}
-              activeOpacity={0.8}
-            >
-              <Text style={styles.addBtnText}>+ Add</Text>
-            </TouchableOpacity>
-          ) : (
-            <View style={styles.qtyRow}>
-              <TouchableOpacity
-                style={styles.qtyBtn}
-                onPress={() => decreaseQty(item.id)}
-              >
-                <Text style={styles.qtyText}>-</Text>
-              </TouchableOpacity>
-              <Text style={styles.qtyCount}>{qty}</Text>
-              <TouchableOpacity
-                style={styles.qtyBtn}
-                onPress={() => increaseQty(item.id)}
-              >
-                <Text style={styles.qtyText}>+</Text>
-              </TouchableOpacity>
-            </View>
-          )}
+          <CartButton />
         </View>
       </TouchableOpacity>
     );
@@ -476,7 +533,7 @@ const ProductDetails = ({ route }: ProductDetailsProps) => {
   const handleCartAction = async () => {
     if (!productData) return;
 
-    if (productData?.is_cart) {
+    if (isInCart) {
       navigation.navigate('CheckoutScreen');
       return;
     }
@@ -485,8 +542,9 @@ const ProductDetails = ({ route }: ProductDetailsProps) => {
       setCartLoading(true);
       await addToCart(productData.id, selectedVariant?.id);
 
-      // Refresh product details to get updated cart status
-      await GetProducts();
+      // mark in-cart immediately without waiting for API flag
+      setIsInCart(true);
+      setProductData((prev: any) => (prev ? { ...prev, is_cart: true } : prev));
 
       // Show success message
       Toast.show({
@@ -525,13 +583,13 @@ const ProductDetails = ({ route }: ProductDetailsProps) => {
         ) : (
           <>
             <Text style={styles.cartButtonText}>
-              {productData?.is_cart ? 'Go to Cart' : 'Add to Bag'}
+              {isInCart ? 'Go to Cart' : 'Add to Bag'}
             </Text>
-            {!productData?.is_cart && (
+            {/* {!productData?.is_cart && (
               <Text style={styles.cartPrice}>
                 {displayPrice}€ {displayUnit}
               </Text>
-            )}
+            )} */}
           </>
         )}
       </TouchableOpacity>
@@ -547,7 +605,10 @@ const ProductDetails = ({ route }: ProductDetailsProps) => {
           style={styles.backBtn}
           onPress={() => navigation.goBack()}
         >
-          <Text style={styles.backText}>←</Text>
+          <Image
+            source={require('../../assets/Png/back.png')}
+            style={{ width: 20, height: 20 }}
+          />
         </TouchableOpacity>
 
         <View style={styles.headerRightVideo}>
@@ -557,7 +618,7 @@ const ProductDetails = ({ route }: ProductDetailsProps) => {
             activeOpacity={0.7}
             style={{ width: 30, height: 30, borderRadius: 15, backgroundColor: '#E2E689', justifyContent: 'center', alignItems: 'center', position: 'absolute', top: 10, right: 10 }}
           >
-            {productData?.is_wishlist ? <Image
+            {isWishlisted(productData?.id) ? <Image
               source={require('../../assets/Png/heart1.png')}
               style={{ position: 'absolute', width: 15, height: 15, alignSelf: 'center' }}
             /> :
@@ -695,7 +756,7 @@ const ProductDetails = ({ route }: ProductDetailsProps) => {
         contentContainerStyle={{ padding: 16 }}
       >
         <Text style={styles.title}>
-          {productData.name !== null ? productData?.name : ''}
+          {productData?.name !== null ? productData?.name : ''}
         </Text>
         <View style={styles.priceRow}>
           <Text style={styles.price}>{displayPrice}€ </Text>
@@ -760,16 +821,14 @@ const ProductDetails = ({ route }: ProductDetailsProps) => {
           Recommended For You
         </Text>
         <FlatList
-          data={products}
-          keyExtractor={i => i.id}
+          data={relatedProducts}
+          keyExtractor={i => String(i.id)}
           renderItem={renderProduct}
           horizontal={true}
           showsHorizontalScrollIndicator={false}
-        //   style={{ width: '100%' }}
-        //   numColumns={2}
-        //   columnWrapperStyle={styles.row}
-        //   scrollEnabled={false}
         />
+
+        {/* tapping a recommended product now loads it inline via loadProduct(productId) */}
 
         {/* Customer Reviews Section */}
         <View style={styles.reviewsSection}>
@@ -1311,7 +1370,7 @@ const styles = StyleSheet.create({
     paddingVertical: 12,
     paddingHorizontal: 24,
     borderRadius: 24,
-    width: '90%',
+    
     marginTop: 16,
   },
   cartButtonActive: {
@@ -1330,5 +1389,18 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontWeight: '500',
     color: '#666',
+  },
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.4)',
+    justifyContent: 'flex-end',
+  },
+  modalContent: {
+    backgroundColor: '#fff',
+    padding: 16,
+    borderTopLeftRadius: 12,
+    borderTopRightRadius: 12,
+    maxHeight: '70%',
+    alignItems: 'center',
   },
 });

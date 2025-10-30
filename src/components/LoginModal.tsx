@@ -208,7 +208,7 @@ const LoginModal: React.FC<AuthModalProps> = ({
             }
 
             onClose();
-            navigation.navigate("EditProfile" as never);
+            navigation.navigate("BottomTabScreen" as never);
           } else {
             Toast.show({
               type: 'error',

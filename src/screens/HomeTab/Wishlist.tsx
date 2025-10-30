@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useContext, useEffect, useState } from 'react';
 import {
     View,
     Text,
@@ -13,6 +13,10 @@ import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 import { UserService } from '../../service/ApiService';
 import { WishlistContext } from '../../context/wishlistContext';
 import Toast from 'react-native-toast-message';
+import { CommonLoader } from '../../components/CommonLoader/commonLoader';
+import { UserData, UserDataContext } from '../../context/userDataContext';
+import { HttpStatusCode } from 'axios';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 type WishlistApiItem = {
     wishlist_item_id: string;
@@ -36,48 +40,115 @@ type DisplayWishlistItem = {
 };
 
 const WishlistScreen = ({ navigation }: { navigation: any }) => {
-    const { removeFromWishlist } = React.useContext(WishlistContext);
+    const { removeFromWishlist, wishlistIds } = React.useContext(WishlistContext);
     const [items, setItems] = useState<DisplayWishlistItem[]>([]);
-    const [isLoading, setIsLoading] = useState<boolean>(false);
+    const { isLoggedIn } = useContext<UserData>(UserDataContext);
+    const { showLoader, hideLoader } = CommonLoader();
 
     useEffect(() => {
-        const fetchWishlist = async () => {
+        loadWishlistItems();
+    }, [isLoggedIn, wishlistIds]);
 
-            try {
-                setIsLoading(true);
-                const res = await UserService.wishlist();
-                const apiWishlist = res?.data?.wishlist;
-                const baseUrl = res?.data?.base_url || 'https://www.markupdesigns.net/whitepeony/storage/';
-                const apiItems: WishlistApiItem[] = Array.isArray(apiWishlist?.items) ? apiWishlist.items : [];
-                const mapped: DisplayWishlistItem[] = apiItems.map((w) => {
-                    const firstImage = w.front_image || w.back_image || w.side_image || '';
-                    const image = firstImage
-                        ? (firstImage.startsWith('http') ? firstImage : `${baseUrl}${firstImage}`)
-                        : null;
-                    return {
-                        id: String(w.product_id),
-                        wishlistItemId: String(w.wishlist_item_id),
-                        name: w.name,
-                        price: w.product_price ? `${w.product_price} €` : '',
-                        image,
-                    };
-                });
-                setItems(mapped);
-            } catch (e) {
-                Toast.show({ type: 'error', text1: 'Failed to load wishlist' });
-            } finally {
-                setIsLoading(false);
-            }
-        };
-        fetchWishlist();
-    }, []);
+    const loadWishlistItems = async () => {
+        if (isLoggedIn) {
+            // Fetch from server for logged-in users
+            await fetchServerWishlist();
+        } else {
+            // Load from local storage for guests
+            await loadLocalWishlist();
+        }
+    };
+
+    const fetchServerWishlist = async () => {
+        try {
+            showLoader();
+            const res = await UserService.wishlist();
+            const apiWishlist = res?.data?.wishlist;
+            const baseUrl = res?.data?.base_url || 'https://www.markupdesigns.net/whitepeony/storage/';
+            const apiItems: WishlistApiItem[] = Array.isArray(apiWishlist?.items) ? apiWishlist.items : [];
+            
+            const mapped: DisplayWishlistItem[] = apiItems.map((w) => {
+                const firstImage = w.front_image || w.back_image || w.side_image || '';
+                const image = firstImage
+                    ? (firstImage.startsWith('http') ? firstImage : `${baseUrl}${firstImage}`)
+                    : null;
+                return {
+                    id: String(w.product_id),
+                    wishlistItemId: String(w.wishlist_item_id),
+                    name: w.name,
+                    price: w.product_price ? `${w.product_price} €` : '',
+                    image,
+                };
+            });
+            setItems(mapped);
+        } catch (e) {
+            Toast.show({ type: 'error', text1: 'Failed to load wishlist' });
+        } finally {
+            hideLoader();
+        }
+    };
+
+    const loadLocalWishlist = async () => {
+        try {
+            showLoader();
+            // Get local wishlist items from context or storage
+            const localItems = wishlistIds || [];
+
+            console.log("localwishlist", localItems);
+            
+            // Transform local items to match display format
+            const mapped: DisplayWishlistItem[] = localItems.map(id => ({
+                id: String(id),
+                wishlistItemId: String(id),
+                name: `Product ${id}`, // You might want to store more product details locally
+                price: '0 €',
+                image: null, // You might want to store image URLs locally too
+            }));
+            
+            setItems(mapped);
+        } catch (e) {
+            Toast.show({ type: 'error', text1: 'Failed to load local wishlist' });
+        } finally {
+            hideLoader();
+        }
+    };
 
     const handleRemove = async (productId: string) => {
         try {
-            await removeFromWishlist(productId);
-            setItems(prev => prev.filter(i => i.id !== productId));
-        } catch (e) {
-            // removeFromWishlist already toasts on failure
+            showLoader();
+            if (isLoggedIn) {
+                // Remove from server for logged-in users
+                const res = await UserService.wishlistDelete(productId);
+                if (res?.status === HttpStatusCode.Ok) {
+                    setItems(prev => prev.filter(i => i.id !== productId));
+                    await removeFromWishlist(productId);
+                    Toast.show({
+                        type: 'success',
+                        text1: 'Removed from wishlist'
+                    });
+                } else {
+                    Toast.show({
+                        type: 'error',
+                        text1: res?.data?.message || 'Failed to remove from wishlist'
+                    });
+                }
+            } else {
+                // Remove locally for guests
+                await removeFromWishlist(productId);
+                setItems(prev => prev.filter(i => i.id !== productId));
+                Toast.show({
+                    type: 'success',
+                    text1: 'Removed from wishlist'
+                });
+            }
+        } catch (err) {
+            console.log('Wishlist remove error:', JSON.stringify(err));
+            Toast.show({
+                type: 'error',
+                text1: 'Failed to remove from wishlist'
+            });
+        } finally {
+            hideLoader();
         }
     };
 
@@ -97,7 +168,7 @@ const WishlistScreen = ({ navigation }: { navigation: any }) => {
                         </View>
                     ))}
                 </View>
-                <Text style={styles.price}>{item.price}</Text>
+                {/* <Text style={styles.price}>{item.price}</Text> */}
                 <View style={styles.actionsRow}>
                     <TouchableOpacity style={styles.addToBagBtn} activeOpacity={0.7}>
                         <Image source={require('../../assets/Png/bag.png')} style={{ width: 16, height: 16, marginRight: 5 }} />
@@ -151,10 +222,9 @@ const styles = StyleSheet.create({
     },
     header: {
         flexDirection: 'row',
-        height: 50,
         alignItems: 'center',
-        paddingHorizontal: 20,
-        justifyContent: 'space-between', marginTop: 50
+        padding: 20,
+        justifyContent: 'space-between',
     },
     headerButton: {
         padding: 4,
