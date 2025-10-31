@@ -242,7 +242,7 @@ const ProductDetails = ({ route }: ProductDetailsProps) => {
       const res = await UserService.CatbyProduct(categoryId);
       if (res && res.data && res.status === HttpStatusCode.Ok) {
         const fetchedProducts = res.data?.data || [];
-  console.log('Related products fetched for category:', categoryId);
+        console.log('Related products fetched for category:', categoryId);
         const resolvedBase = res.data?.base_url || baseUrl;
         setBaseUrl(resolvedBase);
 
@@ -614,21 +614,22 @@ const ProductDetails = ({ route }: ProductDetailsProps) => {
         <View style={styles.headerRightVideo}>
 
           <TouchableOpacity
-            onPress={() => toggleWishlist(productData.id)}
+            onPress={() => toggleWishlist(productData?.id)}
             activeOpacity={0.7}
             style={{ width: 30, height: 30, borderRadius: 15, backgroundColor: '#E2E689', justifyContent: 'center', alignItems: 'center', position: 'absolute', top: 10, right: 10 }}
           >
-            {isWishlisted(productData?.id) ? <Image
-              source={require('../../assets/Png/heart1.png')}
-              style={{ position: 'absolute', width: 15, height: 15, alignSelf: 'center' }}
-            /> :
-              <Video
-                source={videoSource}
-                style={styles.sideVideoInner}
-                repeat
-                muted
-                resizeMode="cover"
-              />}
+            {isWishlisted(productData?.id) ? (
+              <Image
+                source={require('../../assets/Png/heart1.png')}
+                style={{ position: 'absolute', width: 15, height: 15, alignSelf: 'center' }}
+              />
+            ) : (
+              // Use the outline heart image for non-wishlisted state so touch events are not intercepted
+              <Image
+                source={require('../../assets/Png/heart-1.png')}
+                style={{ position: 'absolute', width: 15, height: 15, alignSelf: 'center' }}
+              />
+            )}
           </TouchableOpacity>
         </View>
       </View>
@@ -1370,7 +1371,7 @@ const styles = StyleSheet.create({
     paddingVertical: 12,
     paddingHorizontal: 24,
     borderRadius: 24,
-    
+
     marginTop: 16,
   },
   cartButtonActive: {

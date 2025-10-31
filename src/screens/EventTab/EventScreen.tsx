@@ -22,6 +22,7 @@ import { LocalStorage } from '../../helpers/localstorage';
 import { formatDate } from '../../helpers/helpers';
 import Geolocation from 'react-native-geolocation-service';
 import { check, request, RESULTS, PERMISSIONS } from 'react-native-permissions';
+import { widthPercentageToDP } from '../../constant/dimentions';
 const { width } = Dimensions.get('window');
 
 const EventScreen = ({ navigation }: any) => {
@@ -329,9 +330,9 @@ const EventScreen = ({ navigation }: any) => {
 
                 <View style={[styles.sectionHeader, { marginTop: 16 }]}>
                   <Text style={styles.sectionTitle}>Events Near You</Text>
-                    <TouchableOpacity onPress={() => setNearbyModalVisible(true)}>
-                      <Text style={styles.seeMore}>See more</Text>
-                    </TouchableOpacity>
+                  <TouchableOpacity onPress={() => setNearbyModalVisible(true)}>
+                    <Text style={styles.seeMore}>See more</Text>
+                  </TouchableOpacity>
                 </View>
                 {/* spacer wrapper to keep styling consistent */}
                 <View
@@ -469,7 +470,7 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     padding: 10,
     marginTop: 12,
-    borderBottomWidth: 1, borderBottomColor: '#D9D9D9'
+    borderBottomWidth: 1, borderBottomColor: '#D9D9D9', width: widthPercentageToDP(95)
   },
   microphone: {
     marginLeft: 8,
@@ -482,7 +483,7 @@ const styles = StyleSheet.create({
   },
   nearImage: { width: 70, height: 70, borderRadius: 8, marginRight: 12 },
   nearBody: { flex: 1 },
-  nearTitle: { fontSize: 14, fontWeight: '700' },
+  nearTitle: { fontSize: 14, fontWeight: '700', width: widthPercentageToDP(60),  },
   nearMeta: { fontSize: 12, color: '#6B6B6B', marginTop: 6 },
   nearDate: { fontSize: 12, color: '#6B6B6B', marginTop: 4 },
   iconSmall: { width: 14, height: 14 },

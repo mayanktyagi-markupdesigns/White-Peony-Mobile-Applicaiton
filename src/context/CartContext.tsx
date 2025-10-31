@@ -55,7 +55,7 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
     // save guest cart when cart changes and user not logged in
     useEffect(() => {
         if (!token) {
-            AsyncStorage.setItem('guest_cart', JSON.stringify(cart)).catch(() => {});
+            AsyncStorage.setItem('guest_cart', JSON.stringify(cart)).catch(() => { });
         }
     }, [cart, token]);
 
@@ -97,6 +97,7 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
             // Logged-in: call API
             showLoader();
+            console.log('addToCart payload', payload);
             const res = await UserService.AddToCart(payload);
             hideLoader();
 
@@ -106,7 +107,9 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
                     type: 'success',
                     text1: res.data?.message || 'Added to cart!',
                 });
+                console.log("addtocart responce", res?.data)
             } else {
+                console.log('errorlist,', res?.data)
                 Toast.show({ type: 'error', text1: res?.data?.message || 'Failed to add to cart' });
             }
         } catch (err: any) {

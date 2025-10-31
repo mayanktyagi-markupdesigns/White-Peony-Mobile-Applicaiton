@@ -1,25 +1,10 @@
-import React, { useEffect, useRef, useState } from 'react';
-import {
-  StyleSheet,
-  Text,
-  View,
-  TouchableOpacity,
-  Modal,
-  FlatList,
-  Image,
-  Dimensions,
-  Animated,
-} from 'react-native';
-import Colors from '../../constant/colors';
-import Images from '../../constant/images';
-import LinearGradient from 'react-native-linear-gradient';
-import { UserService } from '../../service/ApiService';
-import { HttpStatusCode } from 'axios';
-import SkeletonPlaceholder from 'react-native-skeleton-placeholder';
-import { CommonLoader } from '../../components/CommonLoader/commonLoader';
-import Toast from 'react-native-toast-message';
+import React, { useEffect, useState, useContext, useRef } from 'react';
+import { View, Text, FlatList, TouchableOpacity, Image, StyleSheet, Modal, Dimensions, Animated } from 'react-native';
+import { useCart } from '../../context/CartContext'; // adjust import path if needed
+import { Image_url, UserService } from '../../service/ApiService'; // replace with your actual functions
 import { heightPercentageToDP, widthPercentageToDP } from '../../constant/dimentions';
-import { useCart } from '../../context/CartContext';
+import { Colors } from '../../constant';
+import LinearGradient from 'react-native-linear-gradient';
 
 const { width } = Dimensions.get('window');
 const ITEM_WIDTH = (width - 48) / 2;
@@ -32,13 +17,13 @@ const sampleData = new Array(8).fill(null).map((_, i) => ({
 }));
 
 const CategoryDetailsList = ({ navigation, route }: any) => {
-  const { addToCart, removeFromCart, getCartDetails, syncCartAfterLogin } = useCart();
+  const { addToCart, removeFromCart, isLoggedIn, cart } = useCart();
+  const [apiProducts, setApiProducts] = useState<any[]>([]);
+  const [loading, setLoading] = useState(false);
   const { categoryId, categoryTitle, mode } = route.params || {};
   const [filterVisible, setFilterVisible] = useState(false);
   const [sortVisible, setSortVisible] = useState(false);
-  const [isLoadingProduct, setIsLoadingProduct] = useState(true);
-  const { showLoader, hideLoader } = CommonLoader();
-  const [apiProducts, setApiProducts] = useState<any[]>([]);
+
   const ProductImageCarousel = ({ images, width }: { images: any[], width?: number }) => {
     const [index, setIndex] = useState(0);
     const opacity = useRef(new Animated.Value(1)).current;
@@ -77,9 +62,79 @@ const CategoryDetailsList = ({ navigation, route }: any) => {
     );
   };
 
-  const renderProduct = ({ item }: { item: any }) => {
-    //console.log("cartitem", item)
-    //  const qty = cart[item.id] || 0;
+
+  // 🧩 Fetch products based on mode
+  const fetchProducts = async () => {
+    console.log(mode)
+    setLoading(true);
+    try {
+      let response: any = [];
+      if (mode === 'recommended') response = await UserService.recommended();
+      else if (mode === 'Best Sale') response = await UserService.mostsellingproduct();
+      else if (mode === 'all') response = await UserService.product();
+      else if (categoryId) response = await UserService.GetCategoryByID(categoryId);
+
+      // normalize possible response shapes: some endpoints return { data: [...] } and
+      // others return { data: { data: [...] } } or similar. Try both.
+      const payload = response?.data?.data ?? response?.data ?? response ?? [];
+      //console.log('Fetched products payload:', response);
+      const productsArray = Array.isArray(payload) ? payload : (payload?.data ?? []);
+
+      if (productsArray && productsArray.length) {
+        const cartIds = new Set(cart.map((c: any) => String(c.id || c.product_id)));
+        const updatedProducts = productsArray.map((p: any) => ({
+          ...p,
+          is_cart: cartIds.has(String(p.id)) ? 'true' : 'false',
+        }));
+        setApiProducts(updatedProducts);
+        console.log("upadteddd", updatedProducts)
+      } else {
+        console.log('No products found in the response.', response);
+        setApiProducts([]);
+      }
+    } catch (err) {
+      console.log('Error fetching products:', err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // 🧠 Fetch products initially (once when page loads)
+  useEffect(() => {
+    fetchProducts();
+  }, [categoryId, mode]);
+
+  // 🔁 Recalculate `is_cart` whenever cart changes (no refetch needed)
+  useEffect(() => {
+    if (apiProducts.length) {
+      const cartIds = new Set(cart.map((c: any) => String(c.id || c.product_id)));
+      setApiProducts((prev) =>
+        prev.map((p) => ({
+          ...p,
+          is_cart: cartIds.has(String(p.id)) ? 'true' : 'false',
+        }))
+      );
+    }
+  }, [cart]);
+
+  const handleAddToCart = async (item: any) => {
+    // CartContext.addToCart expects (productId, selectedVariant?)
+    const productId = item?.id ?? item?.product_id;
+    const variantId = item?.variants?.[0]?.id ?? item?.variant_id ?? null;
+    if (!productId) {
+      console.log('handleAddToCart: missing product id', item);
+      return;
+    }
+    try {
+      await addToCart(Number(productId), variantId);
+      // no optimistic update here; cart effect will re-run and update is_cart
+    } catch (e) {
+      console.log('addToCart failed', e);
+    }
+  };
+
+
+  const renderItem = ({ item }: { item: any }) => {
 
     return (
       <TouchableOpacity
@@ -105,252 +160,102 @@ const CategoryDetailsList = ({ navigation, route }: any) => {
             ))}
           </View>
           <Text style={styles.cardPrice}>
-            {item.price}€ {item.weight ? `- ${item.weight}` : item.unit ? `- ${item.unit}` : ''}
+            {item?.variants[0]?.price}€ {item?.variants[0]?.weight ? `- ${item?.variants[0]?.weight}` : item?.variants[0]?.unit ? `- ${item?.variants[0]?.unit}` : ''}
           </Text>
 
           {item.stock_quantity === 0 ? (
             <Text style={styles.outOfStock}>Out of Stock</Text>
           ) : (
             <TouchableOpacity
+              onPress={() => (item.is_cart === 'true' ? console.log('Navigate to Cart') : handleAddToCart(item))}
               style={styles.filterBtn}
-              onPress={async () => {
-                if (item?.is_cart === "true") {
-                  navigation.navigate('CheckoutScreen');
-                  return;
-                }
-                try {
-                  showLoader();
-                  // wait for addToCart to complete (assumes it returns a promise)
-                  const res = await addToCart(item?.id, item?.variants?.[0]?.id);
-                  // call GetProducts to refresh product state after successful add
-                  // optionally check res for success status if addToCart returns it
-                  await GetCateProducts(categoryId);
-                  // optional success toast if addToCart doesn't already show one
-                  // Toast.show({ type: 'success', text1: 'Added to cart' });
-                } catch (err) {
-                  console.log('Add to cart error:', err);
-                  Toast.show({ type: 'error', text1: 'Failed to add to cart' });
-                } finally {
-                  hideLoader();
-                }
-              }}
-              activeOpacity={0.8}
             >
-              <Text style={styles.filterText}>{item?.is_cart === "true" ? 'Go to Cart' : 'Add to Bag'}</Text>
+              <Text style={styles.filterText}>
+                {item.is_cart === 'true' ? 'Go to Cart' : 'Add to Bag'}
+              </Text>
             </TouchableOpacity>
-
           )}
         </View>
       </TouchableOpacity>
+
     );
   };
-  useEffect(() => {
-    if (mode === 'recommended') {
-      GetRecommendedProducts();
-      return;
-    }
-    if (mode === 'all') {
-      GetAllProducts();
-      return;
-    }
-    if (categoryId) {
-      GetCateProducts(categoryId);
-    }
-  }, [categoryId, mode]);
-  const GetCateProducts = async (categoryId: string) => {
-    try {
-      showLoader();
-      const res = await UserService.GetCategoryByID(categoryId);
-      if (res && res.data && res.status === HttpStatusCode.Ok) {
-        hideLoader();
-        const fetchedProducts = res.data?.data || [];
-        const baseUrl =
-          res.data?.base_url ||
-          'https://www.markupdesigns.net/whitepeony/storage/';
-        const mapped = fetchedProducts.map((p: any) => {
-          const images = [p.front_image, p.back_image, p.side_image]
-            .filter(Boolean)
-            .map((img: string) =>
-              img.startsWith('http') ? img : `${baseUrl}${img}`,
-            );
-          const variant =
-            p.variants && p.variants.length ? p.variants[0] : null;
-          const price = variant?.price || p.main_price || '0';
-          const unit = variant?.unit || '';
-          const weight = variant?.weight || p.weight || '';
-          return { ...p, images, price, unit, weight };
-        });
-        setApiProducts(mapped.length ? mapped : fetchedProducts);
-      } else {
-        hideLoader();
-        // handle non-OK response if needed
-      }
-    } catch (err) {
-      hideLoader()
-      // handle network/error
-    } finally {
-      setIsLoadingProduct(false);
-    }
-  };
 
-  const GetAllProducts = async () => {
-    try {
-      showLoader();
-      const res = await UserService.product();
-      if (res && res.data && res.status === HttpStatusCode.Ok) {
-        hideLoader();
-        const fetchedProducts = res.data?.data || [];
-        const baseUrl =
-          res.data?.base_url ||
-          'https://www.markupdesigns.net/whitepeony/storage/';
-        const mapped = fetchedProducts.map((p: any) => {
-          const images = [p.front_image, p.back_image, p.side_image]
-            .filter(Boolean)
-            .map((img: string) =>
-              img.startsWith('http') ? img : `${baseUrl}${img}`,
-            );
-          const variant =
-            p.variants && p.variants.length ? p.variants[0] : null;
-          const price = variant?.price || p.main_price || '0';
-          const unit = variant?.unit || '';
-          const weight = variant?.weight || p.weight || '';
-          return { ...p, images, price, unit, weight };
-        });
-        setApiProducts(mapped.length ? mapped : fetchedProducts);
-      } else {
-        hideLoader();
-      }
-    } catch (err) {
-      hideLoader();
-    }
-  };
 
-  const GetRecommendedProducts = async () => {
-    try {
-      showLoader();
-      const res = await UserService.recommended();
-      if (res && res.data && res.status === HttpStatusCode.Ok) {
-        hideLoader();
-        const fetchedProducts = res.data?.data || [];
-        const baseUrl =
-          res.data?.base_url ||
-          'https://www.markupdesigns.net/whitepeony/storage/';
-        const mapped = fetchedProducts.map((p: any) => {
-          const images = [p.front_image, p.back_image, p.side_image]
-            .filter(Boolean)
-            .map((img: string) =>
-              img.startsWith('http') ? img : `${baseUrl}${img}`,
-            );
-          const variant = p.variants && p.variants.length ? p.variants[0] : null;
-          const price = variant?.price || p.main_price || '0';
-          const unit = variant?.unit || '';
-          const weight = variant?.weight || p.weight || '';
-          return { ...p, images, price, unit, weight };
-        });
-        setApiProducts(mapped.length ? mapped : fetchedProducts);
-      } else {
-        hideLoader();
-      }
-    } catch (err) {
-      hideLoader();
-    }
-  };
   return (
-    <LinearGradient colors={['#F3F3F3', '#FFFFFF']} style={styles.container}>
-      <View style={styles.header}>
-        <TouchableOpacity
-          onPress={() => navigation.goBack()}
-          style={styles.backButton}
-        >
-          <Image
-            source={require('../../assets/Png/back.png')}
-            style={{ width: 20, height: 20 }}
-          />
-        </TouchableOpacity>
-        <Text style={styles.headerTitle}>{categoryTitle}</Text>
-        <TouchableOpacity style={styles.iconBtn}>
+    <LinearGradient colors={['#F3F3F3', '#FFFFFF']}
+      style={styles.container}> <View style={styles.header}>
+        <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton} >
+          <Image source={require('../../assets/Png/back.png')} style={{ width: 20, height: 20 }} />
+        </TouchableOpacity> <Text style={styles.headerTitle}>{categoryTitle}</Text>
+        <TouchableOpacity style={styles.iconBtn} onPress={() => navigation.navigate('CheckoutScreen')}>
           <Image source={require('../../assets/Png/order.png')} style={styles.icon} />
-        </TouchableOpacity>
-      </View>
-      <View style={styles.headerRight}>
-        <TouchableOpacity
-          style={styles.filterBtn}
-          onPress={() => setFilterVisible(true)}
-        >
-          <Text style={styles.filterText}>Filters ▾</Text>
-        </TouchableOpacity>
-        <TouchableOpacity
-          style={styles.sortBtn}
-          onPress={() => setSortVisible(true)}
-        >
-          <Text style={styles.sortText}>Sort ▾</Text>
-        </TouchableOpacity>
-      </View>
+        </TouchableOpacity> </View> <View style={styles.headerRight}>
+        <TouchableOpacity style={styles.filterBtn} onPress={() => setFilterVisible(true)} >
+          <Text style={styles.filterText}>Filters ▾</Text> </TouchableOpacity>
+        <TouchableOpacity style={styles.sortBtn} onPress={() => setSortVisible(true)} >
+          <Text style={styles.sortText}>Sort ▾</Text> </TouchableOpacity> </View>
 
-      <FlatList
-        data={apiProducts}
-        keyExtractor={i => i.id}
-        numColumns={2}
+      <FlatList data={apiProducts}
+        keyExtractor={i => i.id} numColumns={2}
         contentContainerStyle={styles.list}
-        renderItem={renderProduct}
+        renderItem={renderItem}
         ListEmptyComponent={() => {
           return (
             <View style={{ flex: 1, justifyContent: 'center', alignSelf: 'center', marginTop: heightPercentageToDP(40) }}>
               <Text style={{ fontSize: 14, fontWeight: '700' }}>No Data Found</Text>
-            </View>
-
-          )
+            </View>)
         }}
-        columnWrapperStyle={{ justifyContent: 'space-between' }}
-      />
+        columnWrapperStyle={{ justifyContent: 'space-between' }} /> {/* Filter Modal */}
 
-
-      {/* Filter Modal */}
       <Modal visible={filterVisible} animationType="slide" transparent>
         <View style={styles.modalOverlay}>
           <View style={styles.modalContent}>
             <Text style={styles.modalTitle}>Filters</Text>
-            <Text style={styles.modalNote}>
-              (Add your filter controls here)
-            </Text>
-            <TouchableOpacity
-              style={styles.modalClose}
-              onPress={() => setFilterVisible(false)}
-            >
+            <Text style={styles.modalNote}> (Add your filter controls here) </Text>
+            <TouchableOpacity style={styles.modalClose} onPress={() => setFilterVisible(false)} >
               <Text style={styles.modalCloseText}>Apply</Text>
             </TouchableOpacity>
           </View>
         </View>
-      </Modal>
+      </Modal> {/* Sort Modal */}
 
-      {/* Sort Modal */}
       <Modal visible={sortVisible} animationType="slide" transparent>
         <View style={styles.modalOverlay}>
           <View style={styles.modalContent}>
             <Text style={styles.modalTitle}>Sort</Text>
-            <TouchableOpacity style={styles.sortOption}>
-              <Text>Popular</Text>
-            </TouchableOpacity>
-            <TouchableOpacity style={styles.sortOption}>
-              <Text>Price: Low to High</Text>
-            </TouchableOpacity>
-            <TouchableOpacity style={styles.sortOption}>
-              <Text>Price: High to Low</Text>
-            </TouchableOpacity>
-            <TouchableOpacity
-              style={styles.modalClose}
-              onPress={() => setSortVisible(false)}
-            >
+            <TouchableOpacity style={styles.sortOption}> <Text>Popular</Text> </TouchableOpacity>
+            <TouchableOpacity style={styles.sortOption}> <Text>Price: Low to High</Text> </TouchableOpacity>
+            <TouchableOpacity style={styles.sortOption}> <Text>Price: High to Low</Text> </TouchableOpacity>
+            <TouchableOpacity style={styles.modalClose} onPress={() => setSortVisible(false)} >
               <Text style={styles.modalCloseText}>Done</Text>
             </TouchableOpacity>
           </View>
         </View>
       </Modal>
-    </LinearGradient>
-  );
+    </LinearGradient>);
 };
 
+//   return (
+//     <View style={{ flex: 1, backgroundColor: '#fff' }}>
+//       {loading ? (
+//         <Text style={{ textAlign: 'center', marginTop: 20 }}>Loading...</Text>
+//       ) : apiProducts.length > 0 ? (
+//         <FlatList
+//           data={apiProducts}
+//           keyExtractor={(item) => item.id.toString()}
+//           renderItem={renderItem}
+//         />
+//       ) : (
+//         <Text style={{ textAlign: 'center', marginTop: 20 }}>No Products Found</Text>
+//       )}
+//     </View>
+//   );
+// };
+
 export default CategoryDetailsList;
+
+
 
 const styles = StyleSheet.create({
   container: {
@@ -404,7 +309,7 @@ const styles = StyleSheet.create({
     width: widthPercentageToDP(30),
     alignItems: 'center'
   },
-  filterText: { color: Colors.text[300] },
+  filterText: { color: Colors.text[100] },
   sortBtn: {
     padding: 8,
     backgroundColor: '#FFF',
@@ -463,4 +368,29 @@ const styles = StyleSheet.create({
   modalClose: { marginTop: 12, alignSelf: 'flex-end', padding: 10 },
   modalCloseText: { color: Colors.button[300], fontWeight: '600' },
   sortOption: { paddingVertical: 12 },
+
+  cartButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: '#E2E689',
+    paddingVertical: 12,
+    paddingHorizontal: 24,
+    borderRadius: 24,
+
+    marginTop: 16,
+  },
+  cartButtonActive: {
+    backgroundColor: '#2DA3C7',
+  },
+  cartButtonDisabled: {
+    opacity: 0.7,
+  },
+  cartButtonText: {
+    fontSize: 12,
+    fontWeight: '500',
+    color: '#000',
+    marginRight: 8,
+  },
+
 });

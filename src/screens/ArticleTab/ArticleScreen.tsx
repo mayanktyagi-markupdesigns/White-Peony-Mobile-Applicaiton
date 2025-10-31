@@ -17,6 +17,7 @@ import { CommonLoader } from '../../components/CommonLoader/commonLoader';
 import { Image_url, UserService } from '../../service/ApiService';
 import { HttpStatusCode } from 'axios';
 import { formatDate } from '../../helpers/helpers';
+import { widthPercentageToDP } from '../../constant/dimentions';
 const { width } = Dimensions.get('window');
 
 
@@ -41,7 +42,7 @@ const ArticleScreen = ({ navigation }: any) => {
       hideLoader();
       if (res?.status === HttpStatusCode.Ok && res?.data) {
         const { message, data } = res.data;
-        console.log("aitcle response data:", res.data);
+       // console.log("aitcle response data:", res.data);
         Toast.show({ type: "success", text1: message });
         setsampleArticle(data || []);
 
@@ -93,10 +94,10 @@ const ArticleScreen = ({ navigation }: any) => {
           <Image source={{ uri: Image_url + item.image }} style={styles.nearImage} />
           <View style={{ flex: 1 }}>
             <View style={styles.nearBody}>
-              <Text numberOfLines={1} style={styles.nearTitle}> {item.content} </Text>
-              <View style={{ backgroundColor: '#E2E689', width: 25, height: 25, borderRadius: 10, alignSelf: "center", justifyContent: 'center' }}>
+              <Text numberOfLines={2} style={styles.nearTitle}> {item.content} </Text>
+              {/* <View style={{ backgroundColor: '#E2E689', width: 25, height: 25, borderRadius: 10, alignSelf: "center", justifyContent: 'center' }}>
                 <Image source={require('../../assets/Png/bookmark.png')} style={{ width: 15, height: 15, alignSelf: 'center' }} />
-              </View>
+              </View> */}
             </View>
             <View style={{ flexDirection: 'row', alignItems: 'center' }}>
               <Image source={require('../../assets/Png/clock.png')} style={{ width: 15, height: 15, }} />
@@ -355,7 +356,7 @@ const styles = StyleSheet.create({
   },
   nearImage: { width: 70, height: 70, borderRadius: 8, marginRight: 12 },
   nearBody: { flex: 1, flexDirection: 'row', justifyContent: 'space-between' },
-  nearTitle: { fontSize: 14, fontWeight: '700' },
+  nearTitle: { fontSize: 14, fontWeight: '700', width: widthPercentageToDP(55), },
   nearMeta: { fontSize: 12, color: '#6B6B6B', marginTop: 6 },
   nearDate: { fontSize: 12, color: '#6B6B6B', marginTop: 0, marginLeft: 10 },
   iconSmall: { width: 14, height: 14 },

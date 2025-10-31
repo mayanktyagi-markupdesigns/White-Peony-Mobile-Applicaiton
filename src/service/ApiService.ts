@@ -331,6 +331,18 @@ export const UserService = {
     return APIKit.get(`products/${id}`, apiHeaders);
   },
 
+  mostsellingproduct: async () => {
+    const token = await LocalStorage.read("@token");
+    const apiHeaders = {
+      headers: {
+        "Content-Type": "application/json",
+        Accept: "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+    };
+    return APIKit.get('mostsellingproduct', apiHeaders);
+  },
+
   AddToCart: async (payload: object) => {
     const token = await LocalStorage.read("@token");
     const apiHeaders = {

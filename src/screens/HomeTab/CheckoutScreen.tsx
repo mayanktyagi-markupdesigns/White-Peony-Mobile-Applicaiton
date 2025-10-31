@@ -125,7 +125,7 @@ const CheckoutScreen = ({ navigation }: { navigation: any }) => {
           };
         });
         setItems(mapped);
-        console.log('mapped', res?.data?.wishlist?.items[0]?.variants[0]);
+        // console.log('mapped', res?.data?.wishlist?.items[0]?.variants[0]);
       } catch (e) {
         hideLoader();
         Toast.show({ type: 'error', text1: 'Failed to load wishlist' });
@@ -183,9 +183,6 @@ const CheckoutScreen = ({ navigation }: { navigation: any }) => {
       });
     }
   };
-
-  const taxes = 4;
-  const deliveryCharges = 0;
 
   const renderShipmentItem = ({ item }: { item: CartItem }) => (
     <View style={styles.shipmentItemCard}>
@@ -279,7 +276,7 @@ const CheckoutScreen = ({ navigation }: { navigation: any }) => {
     React.useCallback(() => {
       GetCartDetails();
       return () => {
-        console.log('Screen is unfocused!');
+        //console.log('Screen is unfocused!');
       };
     }, [])
   );
@@ -289,10 +286,10 @@ const CheckoutScreen = ({ navigation }: { navigation: any }) => {
       setIsLoadingProduct(true);
       const res = await UserService.viewCart();
       if (res && res.data && res.status === HttpStatusCode.Ok) {
-        const fetchedProducts = res.data?.cart?.items || [];
+        const fetchedProducts = res.data?.cart || [];
         setcartid(res.data?.cart?.id);
         setApiCartData(fetchedProducts);
-        //console.log('cart detaillss', fetchedProducts);
+        console.log('cart detaillss', cartData?.length);
       }
     } catch (err) {
       console.log("carterror", JSON.stringify(err))
@@ -325,7 +322,7 @@ const CheckoutScreen = ({ navigation }: { navigation: any }) => {
   };
 
   const SetPromo = async (promoCode?: string) => {
-    const code = promoCode ?? selectedPromoCode;
+    const code = (promoCode ?? selectedPromoCode)?.replace(/\s+/g, '');
     if (!code) {
       Toast.show({ type: 'info', text1: 'Please select a coupon' });
       return;
@@ -362,6 +359,7 @@ const CheckoutScreen = ({ navigation }: { navigation: any }) => {
       setIsLoadingProduct(true);
       const res = await UserService.Shiping();
       if (res && (res.status === HttpStatusCode.Ok || res.status === 200)) {
+
         const data = Array.isArray(res.data) ? res.data : (res.data?.data ?? res.data?.error ?? res.data);
         const options = Array.isArray(data) ? data : [];
         setShippingOptions(options);
@@ -424,7 +422,7 @@ const CheckoutScreen = ({ navigation }: { navigation: any }) => {
           <View style={{ width: 24 }} />
         </View>
 
-        {cartData.length !== 0 ? <ScrollView
+        {cartData?.items?.length !== 0 && cartData?.length !== 0 ? <ScrollView
           contentContainerStyle={{ paddingBottom: 0 }}
           showsVerticalScrollIndicator={false}
           style={{ flex: 1 }}
@@ -444,7 +442,7 @@ const CheckoutScreen = ({ navigation }: { navigation: any }) => {
             </Text>
 
             <FlatList
-              data={cartData}
+              data={cartData?.items || []}
               keyExtractor={(item, index) => (item.id ?? `${item.product_id}-${index}`).toString()}
               renderItem={renderShipmentItem}
               scrollEnabled={false}
@@ -453,7 +451,7 @@ const CheckoutScreen = ({ navigation }: { navigation: any }) => {
           </View>
 
           {/* You Might Also Like */}
-          <View
+          {items.length !== 0 ? <View
             style={{
               borderWidth: 1,
               borderColor: '#D9D9D9',
@@ -506,7 +504,7 @@ const CheckoutScreen = ({ navigation }: { navigation: any }) => {
                 style={{ width: 12, height: 12, alignSelf: 'center', left: 10 }}
               />
             </View>
-          </View>
+          </View> : null}
 
           {/* Use Coupons */}
           <TouchableOpacity style={styles.couponBtn} activeOpacity={0.8} onPress={async () => { await GetPromo(); }}>
@@ -605,11 +603,7 @@ const CheckoutScreen = ({ navigation }: { navigation: any }) => {
               <Text style={styles.billTitle}>Bill details</Text>
               <View style={styles.billRow}>
                 <Text style={styles.billLabel}>Total</Text>
-                <Text style={styles.billValue}>{cartData[0]?.total_price ?? 0} €</Text>
-              </View>
-              <View style={styles.billRow}>
-                <Text style={styles.billLabel}>Taxes</Text>
-                <Text style={styles.billValue}>{taxes} €</Text>
+                <Text style={styles.billValue}>{cartData?.total_amount ?? 0} €</Text>
               </View>
               <View style={styles.billRow}>
                 <Text style={[styles.billLabel, { fontWeight: '600' }]}>
@@ -638,7 +632,7 @@ const CheckoutScreen = ({ navigation }: { navigation: any }) => {
                     { fontWeight: '700', fontSize: 18 },
                   ]}
                 >
-                  {(((cartData[0]?.total_price ?? 0) + (taxes || 0) + (deliveryCharges || 0)).toFixed(2))} €
+                  {cartData?.total_amount}€
                 </Text>
               </View>
             </View>
