@@ -10,13 +10,14 @@ import {
     StatusBar,
 } from 'react-native';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
-import { UserService } from '../../service/ApiService';
+import { Image_url, UserService } from '../../service/ApiService';
 import { WishlistContext } from '../../context/wishlistContext';
 import Toast from 'react-native-toast-message';
 import { CommonLoader } from '../../components/CommonLoader/commonLoader';
 import { UserData, UserDataContext } from '../../context/userDataContext';
 import { HttpStatusCode } from 'axios';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { useCart } from '../../context/CartContext';
 
 type WishlistApiItem = {
     wishlist_item_id: string;
@@ -29,6 +30,7 @@ type WishlistApiItem = {
     is_cart?: string;
     stock_quantity?: string;
     product_price?: string;
+    isInCart?: boolean;
 };
 
 type DisplayWishlistItem = {
@@ -37,6 +39,8 @@ type DisplayWishlistItem = {
     name: string;
     price: string;
     image: string | null;
+    isInCart?: boolean;
+    price_numeric?: number;
 };
 
 const WishlistScreen = ({ navigation }: { navigation: any }) => {
@@ -44,10 +48,28 @@ const WishlistScreen = ({ navigation }: { navigation: any }) => {
     const [items, setItems] = useState<DisplayWishlistItem[]>([]);
     const { isLoggedIn } = useContext<UserData>(UserDataContext);
     const { showLoader, hideLoader } = CommonLoader();
+    const { cart, addToCart } = useCart();
 
     useEffect(() => {
         loadWishlistItems();
     }, [isLoggedIn, wishlistIds]);
+
+    // Update items' cart status when cart changes
+    useEffect(() => {
+        console.log('Cart updated:', cart);
+        if (!cart) return;
+
+        setItems(currentItems =>
+            currentItems.map(item => {
+                const isInCart = cart.some(cartItem => String(cartItem.id) === item.id);
+                console.log(`Item ${item.id} in cart: ${isInCart}`);
+                return {
+                    ...item,
+                    isInCart
+                };
+            })
+        );
+    }, [cart]);
 
     const loadWishlistItems = async () => {
         if (isLoggedIn) {
@@ -63,24 +85,10 @@ const WishlistScreen = ({ navigation }: { navigation: any }) => {
         try {
             showLoader();
             const res = await UserService.wishlist();
-            const apiWishlist = res?.data?.wishlist;
-            const baseUrl = res?.data?.base_url || 'https://www.markupdesigns.net/whitepeony/storage/';
-            const apiItems: WishlistApiItem[] = Array.isArray(apiWishlist?.items) ? apiWishlist.items : [];
-            
-            const mapped: DisplayWishlistItem[] = apiItems.map((w) => {
-                const firstImage = w.front_image || w.back_image || w.side_image || '';
-                const image = firstImage
-                    ? (firstImage.startsWith('http') ? firstImage : `${baseUrl}${firstImage}`)
-                    : null;
-                return {
-                    id: String(w.product_id),
-                    wishlistItemId: String(w.wishlist_item_id),
-                    name: w.name,
-                    price: w.product_price ? `${w.product_price} €` : '',
-                    image,
-                };
-            });
-            setItems(mapped);
+            const apiWishlist = res?.data?.items;
+             console.log('apiWishlist', apiWishlist);
+
+            setItems(apiWishlist || []);
         } catch (e) {
             Toast.show({ type: 'error', text1: 'Failed to load wishlist' });
         } finally {
@@ -95,19 +103,54 @@ const WishlistScreen = ({ navigation }: { navigation: any }) => {
             const localItems = wishlistIds || [];
 
             console.log("localwishlist", localItems);
-            
+
             // Transform local items to match display format
             const mapped: DisplayWishlistItem[] = localItems.map(id => ({
                 id: String(id),
                 wishlistItemId: String(id),
-                name: `Product ${id}`, // You might want to store more product details locally
+                name: `Product ${id}`,
                 price: '0 €',
-                image: null, // You might want to store image URLs locally too
+                image: null,
+                isInCart: cart.some(cartItem => String(cartItem.id) === String(id))
             }));
-            
+
             setItems(mapped);
         } catch (e) {
             Toast.show({ type: 'error', text1: 'Failed to load local wishlist' });
+        } finally {
+            hideLoader();
+        }
+    };
+
+    const handleAddToBag = async (item: DisplayWishlistItem) => {
+        console.log('Adding to cart:', item);
+        try {
+            showLoader();
+            await addToCart(item?.product_id, item?.variants?.[0]?.variant_id ?? null);
+
+            // Force refresh the items to ensure we have the latest cart state
+            if (isLoggedIn) {
+                await fetchServerWishlist();
+            } else {
+                setItems(currentItems =>
+                    currentItems.map(i =>
+                        i.id === item.id
+                            ? { ...i, isInCart: true }
+                            : i
+                    )
+                );
+            }
+
+            Toast.show({
+                type: 'success',
+                text1: 'Added to cart successfully'
+            });
+        } catch (error) {
+            console.error('Failed to add to cart:', error);
+            Toast.show({
+                type: 'error',
+                text1: 'Failed to add to cart'
+            });
         } finally {
             hideLoader();
         }
@@ -155,7 +198,7 @@ const WishlistScreen = ({ navigation }: { navigation: any }) => {
     const renderItem = ({ item }: { item: DisplayWishlistItem }) => (
         <View style={styles.card}>
             {item.image ? (
-                <Image source={{ uri: item.image }} style={styles.productImage} />
+                <Image source={{ uri: Image_url + item.image }} style={styles.productImage} />
             ) : (
                 <View style={[styles.productImage, { backgroundColor: '#eee' }]} />
             )}
@@ -170,9 +213,15 @@ const WishlistScreen = ({ navigation }: { navigation: any }) => {
                 </View>
                 {/* <Text style={styles.price}>{item.price}</Text> */}
                 <View style={styles.actionsRow}>
-                    <TouchableOpacity style={styles.addToBagBtn} activeOpacity={0.7}>
+                    <TouchableOpacity
+                        style={[styles.addToBagBtn, item.isInCart && styles.goToCartBtn]}
+                        activeOpacity={0.7}
+                        onPress={() => item.isInCart ? navigation.navigate('CheckoutScreen') : handleAddToBag(item)}
+                    >
                         <Image source={require('../../assets/Png/bag.png')} style={{ width: 16, height: 16, marginRight: 5 }} />
-                        <Text style={styles.addToBagText}> Add To Bag</Text>
+                        <Text style={[styles.addToBagText, item.isInCart && styles.goToCartText]}>
+                            {item.isInCart ? ' Go To Cart' : ' Add To Bag'}
+                        </Text>
                     </TouchableOpacity>
                     <TouchableOpacity style={styles.favoriteBtn} activeOpacity={0.7} onPress={() => handleRemove(item.id)}>
                         <Image source={require('../../assets/Png/heart1.png')} style={{ width: 16, height: 16 }} />
@@ -312,6 +361,12 @@ const styles = StyleSheet.create({
         borderColor: '#BFD56C',
         justifyContent: 'center',
         alignItems: 'center',
+    },
+    goToCartBtn: {
+        backgroundColor: '#5E6935',
+    },
+    goToCartText: {
+        color: '#FFFFFF',
     },
 });
 

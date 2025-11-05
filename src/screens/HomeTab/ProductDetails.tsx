@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect, useContext } from 'react';
 import {
   View,
   Text,
@@ -11,12 +11,14 @@ import {
   FlatList,
   Modal,
   TextInput,
-  Animated,
   ActivityIndicator,
+  Animated
 } from 'react-native';
-import Video from 'react-native-video';
+// gesture handling for custom zoom removed in favor of `react-native-image-viewing`
 import DropDownPicker from 'react-native-dropdown-picker';
 import { Colors } from '../../constant';
+import ImageView from 'react-native-image-viewing';
+
 
 const { width, height } = Dimensions.get('window');
 const HERO_HEIGHT = 300;
@@ -29,6 +31,7 @@ import Toast from 'react-native-toast-message';
 import { formatDate } from '../../helpers/helpers';
 import { WishlistContext } from '../../context';
 import { useCart } from '../../context/CartContext';
+import RecommendedProductCard from './RecommendedProductCard';
 
 // Lightweight skeleton placeholder (no external deps) - pulsing blocks
 const SkeletonPlaceholderFull: React.FC = () => {
@@ -103,12 +106,13 @@ type ProductDetailsProps = {
   route: { params: { productId: string } };
 };
 
+
 const ProductDetails = ({ route }: ProductDetailsProps) => {
-  const { addToCart, removeFromCart, isLoggedIn, cart } = useCart();
+  const { addToCart, cart, isLoggedIn } = useCart(); // ✅ hook at top
   const { productId: proDuctID } = route.params;
   const navigation = useNavigation<any>();
   const [isLoadingProduct, setIsLoadingProduct] = useState(true);
-  const { toggleWishlist, isWishlisted } = React.useContext(WishlistContext);
+  const { toggleWishlist, isWishlisted } = useContext(WishlistContext);
   const [productData, setProductData] = useState<any>(null);
   const [relatedProducts, setRelatedProducts] = useState<any[]>([]);
   //console.log('productData-------->', productData);
@@ -121,21 +125,30 @@ const ProductDetails = ({ route }: ProductDetailsProps) => {
   const [isInCart, setIsInCart] = useState(false);
   const [cartLoading, setCartLoading] = useState(false);
 
-  // keep isInCart in sync with cart context and local flag
+
+  // keep isInCart in sync with cart context and local flag (normalized check)
   useEffect(() => {
     try {
       if (!productData) return;
       const variantId = selectedVariant?.id ?? null;
       const present = Array.isArray(cart)
-        ? cart.some((c: any) => (
-          (c.id ?? c.product_id) === productData.id &&
-          ((c.variant_id ?? c.variantId ?? null) === (variantId || null))
-        ))
+        ? cart.some((c: any) => {
+          const cartProductId = c.product_id ?? c.id;
+          const cartVariantId = c.variant_id ?? null;
+          return (
+            Number(cartProductId) === Number(productData.id) &&
+            String(cartVariantId) === String(variantId)
+          );
+        })
         : false;
       // also respect locally set productData.is_cart to prevent flicker
       setIsInCart(Boolean(present || productData?.is_cart));
-    } catch { }
+    } catch (e) {
+      console.log('isInCart sync error', e);
+    }
   }, [cart, selectedVariant, productData?.id]);
+
+  // Using `react-native-image-viewing` for pinch & double-tap zoom; custom gesture code removed
 
   const GetProducts = async () => {
     // kept for backward compatibility; use loadProduct for flexible loading
@@ -299,6 +312,7 @@ const ProductDetails = ({ route }: ProductDetailsProps) => {
   useEffect(() => {
     // load initial product using route param
     GetProducts();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const PostReview = async () => {
@@ -350,18 +364,6 @@ const ProductDetails = ({ route }: ProductDetailsProps) => {
     }
   };
 
-  // const products = new Array(6).fill(0).map((_, i) => ({
-  //   id: String(i + 1),
-  //   title: `Magic Queen Oolong ${i + 1}`,
-  //   price: '24 €',
-  //   stock: i === 2 ? 0 : 10, // 👈 Example: product 3 is out of stock
-  //   image: require('../../assets/Png/product.png'),
-  // }));
-
-
-
-  const videoSource = require('../../assets/Png/splash.mp4');
-  // derive carousel images from fetched productData; if none, leave empty so we can show a neutral placeholder
   const productImages: any[] =
     productData?.images && productData.images.length ? productData.images : [];
 
@@ -422,6 +424,8 @@ const ProductDetails = ({ route }: ProductDetailsProps) => {
   const flatListRef = useRef<FlatList<any> | null>(null);
   const animOpacity = useRef(new Animated.Value(1)).current;
   const autoplayRef = useRef<number | null>(null);
+  const [visible, setIsVisible] = useState(false);
+
   const [isInteracting, setIsInteracting] = useState(false);
   const { showLoader, hideLoader } = CommonLoader();
   useEffect(() => {
@@ -478,11 +482,22 @@ const ProductDetails = ({ route }: ProductDetailsProps) => {
   const [zoomVisible, setZoomVisible] = useState<boolean>(false);
   const [zoomIndex, setZoomIndex] = useState<number>(0);
   const [zoomScale, setZoomScale] = useState<number>(1);
+  const doubleTapRef = useRef(null);
+  const pinchRef = useRef(null);
 
   const openZoom = (index: number) => {
     setZoomIndex(index);
     setZoomScale(1);
     setZoomVisible(true);
+  };
+
+  const onPinchEvent = (event: any) => {
+    const scale = Math.min(4, Math.max(1, event.nativeEvent.scale));
+    setZoomScale(scale);
+  };
+
+  const onDoubleTapEvent = () => {
+    setZoomScale(s => (s > 1 ? 1 : 2)); // Toggle between normal and 2x zoom
   };
 
   const closeZoom = () => {
@@ -501,7 +516,45 @@ const ProductDetails = ({ route }: ProductDetailsProps) => {
 
 
   const renderProduct = ({ item }: { item: any }) => {
-    const qty = quantities[item.id] || 0;
+    // determine if this recommended product is in cart (normalized check)
+    const isItemInCart = Array.isArray(cart)
+      ? cart.some((c: any) => {
+        const cartProductId = c.product_id ?? c.id;
+        const cartVariantId = c.variant_id ?? null;
+        const itemVariantId = item.variant_id ?? item.variants?.[0]?.id ?? null;
+        return Number(cartProductId) === Number(item.id) && String(cartVariantId) === String(itemVariantId);
+      })
+      : false;
+
+    const [localLoading, setLocalLoading] = useState(false);
+
+    const handleItemCart = async () => {
+      try {
+        if (isItemInCart) {
+          navigation.navigate('CheckoutScreen');
+          return;
+        }
+
+        setLocalLoading(true);
+        await addToCart(item.id, item?.variants?.[0]?.id ?? null);
+
+        // immediate visual feedback
+        // NOTE: we don't directly mutate cart here; CartContext will update it.
+        // setLocalLoading will keep the spinner until the action completes.
+        setLocalLoading(false);
+        Toast.show({
+          type: 'success',
+          text1: 'Added to cart successfully!',
+        });
+      } catch (err) {
+        setLocalLoading(false);
+        console.log('Cart add error:', err);
+        Toast.show({
+          type: 'error',
+          text1: 'Failed to add to cart'
+        });
+      }
+    };
 
     return (
       <TouchableOpacity
@@ -515,21 +568,52 @@ const ProductDetails = ({ route }: ProductDetailsProps) => {
             {item.name || item.title}
           </Text>
           <View style={{ flexDirection: 'row', marginTop: 8 }}>
-            {[1, 2, 3, 4, 5].map(r => (
-              <View key={r} style={{}}>
-                <Text style={{ color: '#F0C419', fontSize: 24 }}>★</Text>
-              </View>
-            ))}
+            {[1, 2, 3, 4, 5].map((r) => {
+              const isFull = item?.average_rating >= r;
+              const isHalf = item?.average_rating >= r - 0.5 && item?.average_rating < r;
+              return (
+                <View key={r} style={{ width: 18, height: 18, position: 'relative' }}>
+                  {/* base gray star */}
+                  <Text style={{ color: '#ccc', fontSize: 18, position: 'absolute' }}>★</Text>
+                  {/* overlay half or full star */}
+                  <View
+                    style={{
+                      width: isFull ? '100%' : isHalf ? '50%' : '0%',
+                      overflow: 'hidden',
+                      position: 'absolute',
+                    }}
+                  >
+                    <Text style={{ color: '#F0C419', fontSize: 18 }}>★</Text>
+                  </View>
+                </View>
+              )
+            })}
           </View>
           <Text style={styles.cardPrice}>{item.price}</Text>
 
-          <CartButton />
+          <TouchableOpacity
+            style={[
+              styles.cartButton,
+              isItemInCart && styles.cartButtonActive,
+              localLoading && styles.cartButtonDisabled
+            ]}
+            onPress={handleItemCart}
+            disabled={localLoading}
+          >
+            {localLoading ? (
+              <ActivityIndicator size="small" color="#fff" />
+            ) : (
+              <Text style={styles.cartButtonText}>
+                {isItemInCart ? 'Go to Cart' : 'Add to Bag'}
+              </Text>
+            )}
+          </TouchableOpacity>
         </View>
       </TouchableOpacity>
     );
   };
 
-  // Unified cart action handler
+  // Unified cart action handler for main product
   const handleCartAction = async () => {
     if (!productData) return;
 
@@ -585,16 +669,27 @@ const ProductDetails = ({ route }: ProductDetailsProps) => {
             <Text style={styles.cartButtonText}>
               {isInCart ? 'Go to Cart' : 'Add to Bag'}
             </Text>
-            {/* {!productData?.is_cart && (
-              <Text style={styles.cartPrice}>
-                {displayPrice}€ {displayUnit}
-              </Text>
-            )} */}
           </>
         )}
       </TouchableOpacity>
     );
   };
+
+  // Example review data (from backend)
+  const reviewStats = {
+    average_rating: productData?.average_rating || 0,
+    total_reviews: productData?.reviews.length,
+    breakdown: {
+      5: 2,
+      4: 1,
+      3: 0,
+      2: 0,
+      1: 0,
+    },
+  };
+
+  const total = Object.values(reviewStats.breakdown).reduce((a, b) => a + b, 0);
+  const average = reviewStats.average_rating || 0;
 
   return isLoadingProduct ? (
     <SkeletonPlaceholderFull />
@@ -663,8 +758,15 @@ const ProductDetails = ({ route }: ProductDetailsProps) => {
                 startAutoplay();
               }}
             >
+
               {/* Animated fade for image change */}
               <Animated.View style={{ opacity: animOpacity }}>
+                {/* <ImageView
+                  images={resolveImageSource(item)}
+                  imageIndex={index}
+                  visible={visible}
+                  onRequestClose={() => setIsVisible(false)}
+                /> */}
                 <Image
                   source={resolveImageSource(item)}
                   style={styles.heroImage}
@@ -701,64 +803,49 @@ const ProductDetails = ({ route }: ProductDetailsProps) => {
         )}
       </View>
 
-      {/* Zoom modal (built-in) */}
-      <Modal visible={zoomVisible} transparent animationType="fade">
-        <View style={styles.zoomModalBg}>
-          <View style={styles.zoomHeader}>
-            <TouchableOpacity onPress={closeZoom} style={styles.zoomClose}>
-              <Text style={{ color: '#fff', fontSize: 18 }}>Close</Text>
-            </TouchableOpacity>
-            <View style={styles.zoomControls}>
-              <TouchableOpacity
-                onPress={decreaseZoom}
-                style={styles.zoomControlBtn}
-              >
-                <Text style={{ color: '#fff', fontSize: 20 }}>−</Text>
-              </TouchableOpacity>
-              <TouchableOpacity
-                onPress={increaseZoom}
-                style={[styles.zoomControlBtn, { marginLeft: 8 }]}
-              >
-                <Text style={{ color: '#fff', fontSize: 20 }}>+</Text>
-              </TouchableOpacity>
-            </View>
-          </View>
-
-          <ScrollView
-            style={{ flex: 1 }}
-            contentContainerStyle={{
-              alignItems: 'center',
-              justifyContent: 'center',
-            }}
-            maximumZoomScale={4}
-            minimumZoomScale={1}
-            showsVerticalScrollIndicator={false}
-          >
-            {productImages && productImages.length ? (
-              <Image
-                source={resolveImageSource(productImages[zoomIndex])}
-                style={[
-                  styles.zoomImage,
-                  { transform: [{ scale: zoomScale }] },
-                ]}
-                resizeMode="contain"
-              />
-            ) : (
-              <View style={{ width: '100%', alignItems: 'center' }}>
-                <Text style={{ color: '#fff' }}>No Image</Text>
-              </View>
-            )}
-          </ScrollView>
-        </View>
-      </Modal>
+      {/* Zoom viewer using react-native-image-viewing */}
+      <ImageView
+        images={productImages.map((img: any) => (typeof img === 'string' ? { uri: img } : img))}
+        imageIndex={zoomIndex}
+        visible={zoomVisible}
+        onRequestClose={closeZoom}
+        swipeToCloseEnabled={true}
+        doubleTapToZoomEnabled={true}
+      />
 
       <ScrollView
         style={styles.content}
         contentContainerStyle={{ padding: 16 }}
       >
-        <Text style={styles.title}>
-          {productData?.name !== null ? productData?.name : ''}
-        </Text>
+
+        <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
+          <Text style={styles.title}>
+            {productData?.name !== null ? productData?.name : ''}
+          </Text>
+
+          <View style={{ flexDirection: 'row', }}>
+            {[1, 2, 3, 4, 5].map((r) => {
+              const isFull = productData?.average_rating >= r;
+              const isHalf = productData?.average_rating >= r - 0.5 && productData?.average_rating < r;
+              return (
+                <View key={r} style={{ width: 18, height: 18, position: 'relative' }}>
+                  {/* base gray star */}
+                  <Text style={{ color: '#ccc', fontSize: 18, position: 'absolute' }}>★</Text>
+                  {/* overlay half or full star */}
+                  <View
+                    style={{
+                      width: isFull ? '100%' : isHalf ? '50%' : '0%',
+                      overflow: 'hidden',
+                      position: 'absolute',
+                    }}
+                  >
+                    <Text style={{ color: '#F0C419', fontSize: 18 }}>★</Text>
+                  </View>
+                </View>
+              )
+            })}
+          </View>
+        </View>
         <View style={styles.priceRow}>
           <Text style={styles.price}>{displayPrice}€ </Text>
           <View style={{ width: 12 }} />
@@ -821,45 +908,62 @@ const ProductDetails = ({ route }: ProductDetailsProps) => {
         <Text style={{ marginTop: 20, fontWeight: '700', bottom: 10 }}>
           Recommended For You
         </Text>
+
+
         <FlatList
           data={relatedProducts}
-          keyExtractor={i => String(i.id)}
-          renderItem={renderProduct}
-          horizontal={true}
+          keyExtractor={(i) => String(i.id)}
+          renderItem={({ item }) => (
+            <RecommendedProductCard
+              item={item}
+              navigation={navigation}
+              loadProduct={loadProduct}
+            />
+          )}
+          horizontal
           showsHorizontalScrollIndicator={false}
         />
-
-        {/* tapping a recommended product now loads it inline via loadProduct(productId) */}
 
         {/* Customer Reviews Section */}
         <View style={styles.reviewsSection}>
           <Text style={styles.reviewsTitle}>Customer Reviews</Text>
 
           <View style={styles.reviewsRow}>
+            {/* LEFT SIDE: Average Score + Stars */}
             <View style={styles.reviewsLeft}>
-              <Text style={styles.reviewsScore}>5</Text>
+              <Text style={styles.reviewsScore}>{average.toFixed(1)}</Text>
+
+              {/* Stars display (with half-star overlay trick) */}
               <View style={{ flexDirection: 'row', marginTop: 6 }}>
-                {new Array(5).fill(0).map((_, i) => (
-                  <Text key={i} style={styles.star}>
-                    ★
-                  </Text>
-                ))}
+                {[1, 2, 3, 4, 5].map(r => {
+                  const isFull = average >= r;
+                  const isHalf = average >= r - 0.5 && average < r;
+                  return (
+                    <View key={r} style={{ width: 18, height: 18, position: 'relative' }}>
+                      <Text style={{ color: '#ccc', fontSize: 18, position: 'absolute' }}>★</Text>
+                      <View
+                        style={{
+                          width: isFull ? '100%' : isHalf ? '50%' : '0%',
+                          overflow: 'hidden',
+                          position: 'absolute',
+                        }}
+                      >
+                        <Text style={{ color: '#F0C419', fontSize: 18 }}>★</Text>
+                      </View>
+                    </View>
+                  );
+                })}
               </View>
-              <Text style={styles.reviewsCount}>3 Reviews</Text>
+
+              <Text style={styles.reviewsCount}>{total} Reviews</Text>
             </View>
 
+            {/* RIGHT SIDE: Rating Breakdown Bars */}
             <View style={styles.reviewsRight}>
               {[5, 4, 3, 2, 1].map(star => {
-                const percent =
-                  star === 5
-                    ? 0.95
-                    : star === 4
-                      ? 0.6
-                      : star === 3
-                        ? 0.2
-                        : star === 2
-                          ? 0.12
-                          : 0.05;
+                const count = reviewStats.breakdown[star] || 0;
+                const percent = total ? count / total : 0;
+
                 return (
                   <View key={star} style={styles.ratingRow}>
                     <Text style={styles.ratingLabel}>{star}</Text>
@@ -877,6 +981,7 @@ const ProductDetails = ({ route }: ProductDetailsProps) => {
             </View>
           </View>
 
+          {/* Buttons */}
           <View style={styles.reviewsButtons}>
             <TouchableOpacity
               style={styles.writeBtn}
@@ -884,6 +989,7 @@ const ProductDetails = ({ route }: ProductDetailsProps) => {
             >
               <Text style={styles.writeBtnText}>Write A Review</Text>
             </TouchableOpacity>
+
             <TouchableOpacity
               style={styles.showBtn}
               onPress={() => setShowModalVisible(true)}
@@ -1282,7 +1388,10 @@ const styles = StyleSheet.create({
     borderRadius: 6,
     backgroundColor: 'rgba(255,255,255,0.12)',
   },
-  zoomImage: { width: width, height: height - 100 },
+  zoomImage: {
+    width: '100%',
+    height: '100%',
+  },
   // skeleton placeholder styles
   skelContainer: { flex: 1, backgroundColor: '#fff' },
   skelCircle: {

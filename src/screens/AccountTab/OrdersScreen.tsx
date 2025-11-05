@@ -13,7 +13,7 @@ import {
 } from 'react-native';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
-import { UserService } from '../../service/ApiService';
+import { Image_url, UserService } from '../../service/ApiService';
 import { HttpStatusCode } from 'axios';
 import { CommonLoader } from '../../components/CommonLoader/commonLoader';
 import { formatDate } from '../../helpers/helpers';
@@ -54,24 +54,8 @@ const OrdersScreen = ({ navigation }: { navigation: any }) => {
       if (res && res.data && res.status === HttpStatusCode.Ok) {
         hideLoader()
         const apiOrders = Array.isArray(res?.data?.orders) ? res.data.orders : [];
-        const normalized = apiOrders.map((o: any, idx: number) => {
-          const firstItem = Array.isArray(o?.items) && o.items.length > 0 ? o.items[0] : undefined;
-          const qty = typeof o?.quantity === 'number' ? o.quantity : (firstItem?.quantity ?? 0);
-          const image = firstItem?.image || firstItem?.front_image || firstItem?.product_image || undefined;
-          return {
-            id: String(o?.id ?? o?.order_id ?? idx),
-            date: o?.date ?? o?.order_date ?? o?.created_at ?? '',
-            statusText: o?.status_text ?? o?.status ?? '',
-            productName: apiOrders[0]?.items[0]?.product?.name ?? '',
-            description: apiOrders[0]?.items[0]?.product?.description ?? '',
-            tracking_number: o?.tracking_number ?? '',
-            quantity: qty ?? 0,
-            productImage: image,
-          };
-
-        });
-
-        setorder(normalized)
+        //console.log("orders", apiOrders[0]?.items[0]?.product)
+        setorder(apiOrders)
       } else {
         hideLoader()
         console.log("error", res?.data)
@@ -98,7 +82,7 @@ const OrdersScreen = ({ navigation }: { navigation: any }) => {
         <Image source={require('../../assets/Png/orderLogo.png')} style={{ width: 22, height: 22, backgroundColor: '#EAFDFF', borderRadius: 20 }} />
 
         <View style={{ marginLeft: 6 }}>
-          <Text style={styles.deliveryDate}>Delivered {formatDate(item?.date) || ''}</Text>
+          <Text style={styles.deliveryDate}>Delivered {formatDate(item?.updated_at) || ''}</Text>
           <Text style={styles.deliveryStatus}>{item?.statusText || ''}</Text>
         </View>
         <Image source={require('../../assets/Png/next.png')} style={{ marginLeft: 'auto', width: 14, height: 14, }} />
@@ -107,28 +91,50 @@ const OrdersScreen = ({ navigation }: { navigation: any }) => {
       {/* Product Info */}
       <View style={styles.productInfo}>
         {item?.productImage ? (
-          <Image source={{ uri: item.productImage }} style={styles.productImage} />
+          <Image source={{ uri: Image_url + item?.items[0]?.product?.front_image }} style={styles.productImage} />
         ) : (
           <Image source={require('../../assets/Png/product.png')} style={styles.productImage} />
         )}
         <View style={styles.productDetails}>
-          <Text style={styles.productName}>{item?.productName || ''}</Text>
-          <Text style={styles.productName}>{item?.description || ''}</Text>
+          <Text style={styles.productName}>{item?.items[0]?.product?.name || ''}</Text>
+          <Text style={styles.productName}>{item?.total_amount || ''} € </Text>
           <Text style={styles.productDesc}>{item?.tracking_number || ''}</Text>
-          <Text style={styles.productQty}>Qty : {String(item?.quantity ?? 0).padStart(2, '0')}</Text>
+          <Text style={styles.productQty}>Qty : {item?.items.length}</Text>
         </View>
       </View>
 
       {/* Rate & Review */}
       <View style={styles.rateReviewRow}>
-        <Text style={styles.rateReviewLabel}>Rate & Review</Text>
-        <View style={{ flexDirection: 'row', marginTop: 8 }}>
+        <Text style={styles.rateReviewLabel}>Rate & Review </Text>
+        <View style={{ flexDirection: 'row', marginTop: -10 }}>
+          {[1, 2, 3, 4, 5].map((r) => {
+            const isFull = item?.items[0]?.product?.reviews[0]?.rating >= r;
+            const isHalf = item?.items[0]?.product?.reviews[0]?.rating >= r - 0.5 && item?.items[0]?.product?.reviews[0]?.rating < r;
+            return (
+              <View key={r} style={{ width: 18, height: 18, position: 'relative' }}>
+                {/* base gray star */}
+                <Text style={{ color: '#ccc', fontSize: 18, position: 'absolute' }}>★</Text>
+                {/* overlay half or full star */}
+                <View
+                  style={{
+                    width: isFull ? '100%' : isHalf ? '50%' : '0%',
+                    overflow: 'hidden',
+                    position: 'absolute',
+                  }}
+                >
+                  <Text style={{ color: '#F0C419', fontSize: 18 }}>★</Text>
+                </View>
+              </View>
+            )
+          })}
+        </View>
+        {/* <View style={{ flexDirection: 'row', marginTop: 8 }}>
           {[1, 2, 3, 4, 5].map(r => (
             <View key={r}>
               <Text style={{ color: '#F0C419', fontSize: 16 }}>★</Text>
             </View>
           ))}
-        </View>
+        </View> */}
       </View>
     </TouchableOpacity>
   );

@@ -198,7 +198,7 @@ const HomeScreen = ({ navigation }: any) => {
       if (res && res.data && res.status === HttpStatusCode.Ok) {
         const fetchedProducts = res.data?.data || [];
         setsellingProducts(fetchedProducts);
-        // console.log("sellingproduct", fetchedProducts)
+        //console.log("sellingproduct", fetchedProducts)
       } else {
         console.log("sellingerror", res?.data)
         // handle non-OK response if needed
@@ -418,11 +418,26 @@ const HomeScreen = ({ navigation }: any) => {
             {item?.name || item?.title}
           </Text>
           <View style={{ flexDirection: 'row', marginTop: 8 }}>
-            {[1, 2, 3, 4, 5].map(r => (
-              <Text key={r} style={{ color: '#F0C419', fontSize: 18 }}>
-                ★
-              </Text>
-            ))}
+            {[1, 2, 3, 4, 5].map((r) => {
+              const isFull = item?.average_rating >= r;
+              const isHalf = item?.average_rating >= r - 0.5 && item?.average_rating < r;
+              return (
+                <View key={r} style={{ width: 18, height: 18, position: 'relative' }}>
+                  {/* base gray star */}
+                  <Text style={{ color: '#ccc', fontSize: 18, position: 'absolute' }}>★</Text>
+                  {/* overlay half or full star */}
+                  <View
+                    style={{
+                      width: isFull ? '100%' : isHalf ? '50%' : '0%',
+                      overflow: 'hidden',
+                      position: 'absolute',
+                    }}
+                  >
+                    <Text style={{ color: '#F0C419', fontSize: 18 }}>★</Text>
+                  </View>
+                </View>
+              )
+            })}
           </View>
           <Text style={styles.cardPrice}>
             {Array.isArray(item.variants) && item.variants.length > 0 && (
@@ -437,7 +452,7 @@ const HomeScreen = ({ navigation }: any) => {
   };
 
   const BestProduct = ({ item }: { item: any }) => {
-    // console.log('Rendering product:', item?.name);
+    //console.log('Rendering product:', item);
     const wished = isWishlisted(item.id);
 
     return (
@@ -517,12 +532,28 @@ const HomeScreen = ({ navigation }: any) => {
           <Text numberOfLines={1} style={styles.cardTitle}>
             {item?.name || item?.title}
           </Text>
+
           <View style={{ flexDirection: 'row', marginTop: 8 }}>
-            {[1, 2, 3, 4, 5].map(r => (
-              <Text key={r} style={{ color: '#F0C419', fontSize: 18 }}>
-                ★
-              </Text>
-            ))}
+            {[1, 2, 3, 4, 5].map((r) => {
+              const isFull = item?.average_rating >= r;
+              const isHalf = item?.average_rating >= r - 0.5 && item?.average_rating < r;
+              return (
+                <View key={r} style={{ width: 18, height: 18, position: 'relative' }}>
+                  {/* base gray star */}
+                  <Text style={{ color: '#ccc', fontSize: 18, position: 'absolute' }}>★</Text>
+                  {/* overlay half or full star */}
+                  <View
+                    style={{
+                      width: isFull ? '100%' : isHalf ? '50%' : '0%',
+                      overflow: 'hidden',
+                      position: 'absolute',
+                    }}
+                  >
+                    <Text style={{ color: '#F0C419', fontSize: 18 }}>★</Text>
+                  </View>
+                </View>
+              )
+            })}
           </View>
           <Text style={styles.cardPrice}>
             {Array.isArray(item.variants) && item.variants.length > 0 && (
@@ -591,15 +622,6 @@ const HomeScreen = ({ navigation }: any) => {
         </ScrollView>
       </View>
     );
-  };
-
-  const handleRemove = async (productId: string) => {
-    try {
-      await removeFromWishlist(productId);
-      setItems(prev => prev.filter(i => i.id !== productId));
-    } catch (e) {
-      // removeFromWishlist already toasts on failure
-    }
   };
 
   return (

@@ -42,10 +42,9 @@ const ArticleScreen = ({ navigation }: any) => {
       hideLoader();
       if (res?.status === HttpStatusCode.Ok && res?.data) {
         const { message, data } = res.data;
-       // console.log("aitcle response data:", res.data);
-        Toast.show({ type: "success", text1: message });
+        // console.log("aitcle response data:", res.data);
+        //Toast.show({ type: "success", text1: message });
         setsampleArticle(data || []);
-
       } else {
         Toast.show({
           type: "error",
@@ -63,7 +62,7 @@ const ArticleScreen = ({ navigation }: any) => {
   };
 
   const renderUpcoming = ({ item, index }: { item: any; index: number }) => (
-    <TouchableOpacity onPress={() => navigation.navigate('ArticleDetails', { article: item.id })} activeOpacity={0.8}>
+    <TouchableOpacity onPress={() => { navigation.navigate('ArticleDetails', { article: item.id }), setTrendingModalVisible(false) }} activeOpacity={0.8}>
       <ImageBackground
         source={{ uri: Image_url + item.image }}
         style={[styles.upCard, { width: width - 64 }]}
@@ -71,7 +70,7 @@ const ArticleScreen = ({ navigation }: any) => {
       >
         <View style={styles.upBadgeRow}>
           <View style={styles.readBadge}>
-            <Text style={styles.readBadgeText}>20 Minute Read</Text>
+            <Text style={styles.readBadgeText}>{formatDate(item.updated_at)}</Text>
           </View>
           <TouchableOpacity style={styles.bookmarkBtn}>
             <Text style={{ fontSize: 18 }}>🔖</Text>
@@ -88,7 +87,7 @@ const ArticleScreen = ({ navigation }: any) => {
 
   const renderNear = ({ item }: { item: any }) => (
     <>
-      <TouchableOpacity onPress={() => navigation.navigate('ArticleDetails', { article: item.id })} activeOpacity={0.8}>
+      <TouchableOpacity onPress={() => { navigation.navigate('ArticleDetails', { article: item.id }), setJustForYouModalVisible(false) }} activeOpacity={0.8}>
 
         <View style={styles.nearCard}>
           <Image source={{ uri: Image_url + item.image }} style={styles.nearImage} />
@@ -148,6 +147,7 @@ const ArticleScreen = ({ navigation }: any) => {
                 <Text style={{ fontSize: 18, fontWeight: '700' }}>✕</Text>
               </TouchableOpacity>
             </View>
+
             <FlatList
               data={sampleArticle}
               keyExtractor={(i) => String(i.id)}

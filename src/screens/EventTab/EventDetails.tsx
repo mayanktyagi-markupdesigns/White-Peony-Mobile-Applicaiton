@@ -35,6 +35,7 @@ type EventDetail = {
 const EventDetails = ({ navigation, route }: any) => {
   const viewRef = useRef<any>(null);
   const eventid = route?.params?.event || '';
+  const slugs = route?.params?.upcoming || '';
   const { showLoader, hideLoader } = CommonLoader();
   const [isModalVisible, setModalVisible] = React.useState(false);
   const [eventDetails, setEventDetails] = React.useState<EventDetail | null>(null);
@@ -65,11 +66,11 @@ const EventDetails = ({ navigation, route }: any) => {
 
       if (res?.status === HttpStatusCode.Ok && res?.data) {
         const { message, event } = res.data;
-        //  console.log("EventList response data:", res.data);
+        //console.log("EventList response data:", res.data);
         Toast.show({ type: "success", text1: message });
         setEventDetails(event)
 
-        console.log("eventdetail", event)
+        //console.log("eventdetail", event)
 
       } else {
         Toast.show({
@@ -87,14 +88,30 @@ const EventDetails = ({ navigation, route }: any) => {
     }
   };
 
-
-
   const handleSeatSelect = (num) => {
     setSelectedSeats(num);
     setBottomSheetVisible(false);
     // Prepare emails array
     setModalVisible(true);
   };
+
+  const eventDate = new Date(eventDetails?.event_date);
+  const today = new Date();
+
+  // Compare only dates (ignore time)
+  const eventDay = new Date(
+    eventDate.getFullYear(),
+    eventDate.getMonth(),
+    eventDate.getDate()
+  );
+  const todayDay = new Date(
+    today.getFullYear(),
+    today.getMonth(),
+    today.getDate()
+  );
+
+  // Show button if today <= event date
+  const canRegister = todayDay.getTime() <= eventDay.getTime();
 
   // Step 2: submit emails
   const handleSubmitEmails = async (emails) => {
@@ -116,6 +133,8 @@ const EventDetails = ({ navigation, route }: any) => {
       hideLoader();
     }
   };
+
+
   return (
     <View style={styles.container}>
       <View ref={viewRef} style={styles.card}>
@@ -214,12 +233,12 @@ const EventDetails = ({ navigation, route }: any) => {
             ))
           }
 
-          <TouchableOpacity
+          {canRegister ? <TouchableOpacity
             style={styles.registerBtn}
             onPress={() => setBottomSheetVisible(true)}
           >
             <Text style={styles.registerText}>Register Now</Text>
-          </TouchableOpacity>
+          </TouchableOpacity> : null}
         </ScrollView>
       </View>
 
@@ -306,85 +325,7 @@ const EventDetails = ({ navigation, route }: any) => {
           </TouchableOpacity>
         </View>
       </Modal>
-      {/* 
-      <Modal
-        visible={modalVisible}
-        animationType="slide"
-        transparent
-        onRequestClose={() => setModalVisible(false)}
-      >
-        <TouchableWithoutFeedback onPress={() => setModalVisible(false)}>
-          <View style={styles.modalOverlay}>
-            <TouchableWithoutFeedback onPress={() => { }}>
-              <View style={styles.modalCard}>
-                <View style={styles.modalHandle} />
-                <Text style={styles.modalTitle}>Registration Form</Text>
-                <View style={styles.quantityRow}>
-                  <Text style={{ color: '#999' }}>Number of quantity</Text>
-                  <Text style={{ color: '#999' }}>
-                    {String(quantity).padStart(2, '0')}
-                  </Text>
-                </View>
-                <View
-                  style={{
-                    width: '100%',
-                    borderWidth: 1,
-                    borderColor: '#D9D9D9',
-                    marginBottom: 12,
-                  }}
-                />
 
-                <ScrollView>
-                  <View
-                    style={{
-                      width: '100%',
-                      borderWidth: 1,
-                      borderColor: '#D9D9D9',
-                      borderRadius: 8,
-                      padding: 12,
-                      marginBottom: 6,
-                    }}
-                  >
-                    <Text style={styles.inputLabel}>Full Name*</Text>
-                    <TextInput
-                      value={fullName}
-                      onChangeText={setFullName}
-                      style={styles.input}
-                      placeholder="Full Name"
-                    />
-
-                    <Text style={styles.inputLabel}>Attendee First*</Text>
-                    <TextInput
-                      value={attendeeOne}
-                      onChangeText={setAttendeeOne}
-                      style={styles.input}
-                      placeholder="Email Id"
-                    />
-
-                    <Text style={styles.inputLabel}>Attendee Second*</Text>
-                    <TextInput
-                      value={attendeeTwo}
-                      onChangeText={setAttendeeTwo}
-                      style={styles.input}
-                      placeholder="Email Id"
-                    />
-                  </View>
-                  <TouchableOpacity
-                    style={styles.confirmBtn}
-                    onPress={() => {
-                      // Here you would normally submit the booking
-                      navigation.navigate('BookingSuccess');
-                      setModalVisible(false);
-                    }}
-                  >
-                    <Text style={styles.confirmText}>Confirm Booking</Text>
-                  </TouchableOpacity>
-                </ScrollView>
-              </View>
-            </TouchableWithoutFeedback>
-          </View>
-        </TouchableWithoutFeedback>
-      </Modal> */}
 
       {/* Modal: enter emails */}
       <EmailModal

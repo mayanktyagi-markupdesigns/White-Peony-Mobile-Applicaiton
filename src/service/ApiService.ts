@@ -331,6 +331,53 @@ export const UserService = {
     return APIKit.get(`products/${id}`, apiHeaders);
   },
 
+  // Sorting can accept either a string (sort key) or an object of query params
+  // e.g. UserService.Sorting('newest') or UserService.Sorting({ sort_by: 'newest', category_id: 12 })
+  Sorting: async (params: any) => {
+
+    const apiHeaders = {
+      headers: {
+        "Content-Type": "application/json",
+        Accept: "application/json",
+        "X-Skip-Auth": 'true',
+      },
+    };
+    return APIKit.get(`products/sort?sort_by=${params}`, apiHeaders);
+  },
+
+  // Filter products by category and filter params
+  FilterProducts: async (params: any) => {
+    // params: { category_id, rating, min_price, max_price }
+    const apiHeaders = {
+      headers: {
+        "Content-Type": "application/json",
+        Accept: "application/json",
+        "X-Skip-Auth": 'true',
+      },
+    };
+    // Build query string
+    const parts: string[] = [];
+    for (const key of Object.keys(params)) {
+      const val = params[key];
+      if (val !== undefined && val !== null && val !== '') parts.push(`${encodeURIComponent(key)}=${encodeURIComponent(String(val))}`);
+    }
+    const query = parts.length ? `?${parts.join('&')}` : '';
+    console.log('FilterProducts params:', params,query );
+
+    return APIKit.get(`products/filter${query}`, apiHeaders);
+  },
+
+  // Filters: async (endpoint: any) => {
+  //   const apiHeaders = {
+  //     headers: {
+  //       "Content-Type": "application/json",
+  //       Accept: "application/json",
+  //       "X-Skip-Auth": 'true',
+  //     },
+  //   };
+  //   return APIKit.get(`products/filter?${endpoint}`, apiHeaders);
+  // },
+
   mostsellingproduct: async () => {
     const token = await LocalStorage.read("@token");
     const apiHeaders = {

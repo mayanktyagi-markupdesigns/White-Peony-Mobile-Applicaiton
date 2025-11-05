@@ -107,25 +107,10 @@ const CheckoutScreen = ({ navigation }: { navigation: any }) => {
       try {
         showLoader();
         const res = await UserService.wishlist();
-        const apiWishlist = res?.data?.wishlist;
-        const baseUrl = res?.data?.base_url || 'https://www.markupdesigns.net/whitepeony/storage/';
-        const apiItems: WishlistApiItem[] = Array.isArray(apiWishlist?.items) ? apiWishlist.items : [];
-        const mapped: DisplayWishlistItem[] = apiItems.map((w) => {
-          const firstImage = w.front_image || w.back_image || w.side_image || '';
-          const image = firstImage
-            ? (firstImage.startsWith('http') ? firstImage : `${baseUrl}${firstImage}`)
-            : null;
-          return {
-            id: String(w.product_id),
-            wishlistItemId: String(w.wishlist_item_id),
-            name: w.name,
-            unit: res?.data?.wishlist?.items[0]?.variants[0]?.unit ? `${res?.data?.wishlist?.items[0]?.variants[0]?.unit}` : '',
-            price: res?.data?.wishlist?.items[0]?.variants[0]?.price ? `${res?.data?.wishlist?.items[0]?.variants[0]?.price}` : '',
-            image,
-          };
-        });
-        setItems(mapped);
-        // console.log('mapped', res?.data?.wishlist?.items[0]?.variants[0]);
+        const apiWishlist = res?.data?.items || [];
+
+        setItems(apiWishlist);
+        //console.log('Wishlist fetched:', apiWishlist[0]?.variants);
       } catch (e) {
         hideLoader();
         Toast.show({ type: 'error', text1: 'Failed to load wishlist' });
@@ -156,7 +141,7 @@ const CheckoutScreen = ({ navigation }: { navigation: any }) => {
       const payload = {
         product_id: item.product_id,
         quantity: newQty,
-        variant_id: item.variants?.[0]?.variant_id ?? null,
+        variant_id: item.variant_id ?? null,
       };
 
       const res = await UserService.UpdateCart(payload);
@@ -213,8 +198,8 @@ const CheckoutScreen = ({ navigation }: { navigation: any }) => {
         style={styles.shipmentImage}
       />
       <View style={{ flex: 1, marginLeft: 12 }}>
-        <Text style={styles.shipmentName}>{item.product_name}</Text>
-        <Text style={styles.shipmentWeight}>{item.variant_sku} </Text>
+        <Text style={styles.shipmentName}>{item.name}</Text>
+        <Text style={styles.shipmentWeight}>{item?.unit || null} </Text>
         <TouchableOpacity
           onPress={() => moveToWishlist(item.id)}
           style={styles.moveToWishlistBtn}
@@ -222,7 +207,30 @@ const CheckoutScreen = ({ navigation }: { navigation: any }) => {
         >
           <Text style={styles.moveToWishlistText}>Move to wishlist</Text>
         </TouchableOpacity>
-        <Text style={styles.shipmentPrice}>{item.total_price} €</Text>
+
+        <View style={{ flexDirection: 'row', marginVertical: 5 }}>
+          {[1, 2, 3, 4, 5].map((r) => {
+            const isFull = item?.average_rating >= r;
+            const isHalf = item?.average_rating >= r - 0.5 && item?.average_rating < r;
+            return (
+              <View key={r} style={{ width: 18, height: 18, position: 'relative' }}>
+                {/* base gray star */}
+                <Text style={{ color: '#ccc', fontSize: 18, position: 'absolute' }}>★</Text>
+                {/* overlay half or full star */}
+                <View
+                  style={{
+                    width: isFull ? '100%' : isHalf ? '50%' : '0%',
+                    overflow: 'hidden',
+                    position: 'absolute',
+                  }}
+                >
+                  <Text style={{ color: '#F0C419', fontSize: 18 }}>★</Text>
+                </View>
+              </View>
+            )
+          })}
+        </View>
+        <Text style={styles.shipmentPrice}>{item?.total_price} €</Text>
 
         <View style={styles.qtyControlContainer}>
           <TouchableOpacity
@@ -255,22 +263,42 @@ const CheckoutScreen = ({ navigation }: { navigation: any }) => {
   );
 
   const renderSuggestionItem = ({ item }: { item: any }) => (
-    <View style={styles.suggestionCard}>
-      <Image source={require('../../assets/Png/product.png')} style={styles.suggestionImage} />
-      <Text style={styles.suggestionName} numberOfLines={1}>
-        {item.name}
-      </Text>
-      <View style={{ flexDirection: 'row', marginTop: 8 }}>
-        {[1, 2, 3, 4, 5].map(r => (
-          <View key={r}>
-            <Text style={{ color: '#F0C419', fontSize: 14 }}>★</Text>
-          </View>
-        ))}
+    <TouchableOpacity onPress={() =>
+      navigation.navigate('ProductDetails', { productId: item.product_id })
+    }
+      activeOpacity={0.8}>
+      <View style={styles.suggestionCard} >
+        <Image source={require('../../assets/Png/product.png')} style={styles.suggestionImage} />
+        <Text style={styles.suggestionName} numberOfLines={1}>
+          {item.name}
+        </Text>
+        <View style={{ flexDirection: 'row', marginTop: 8 }}>
+          {[1, 2, 3, 4, 5].map((r) => {
+            const isFull = item?.average_rating >= r;
+            const isHalf = item?.average_rating >= r - 0.5 && item?.average_rating < r;
+            return (
+              <View key={r} style={{ width: 18, height: 18, position: 'relative' }}>
+                {/* base gray star */}
+                <Text style={{ color: '#ccc', fontSize: 18, position: 'absolute' }}>★</Text>
+                {/* overlay half or full star */}
+                <View
+                  style={{
+                    width: isFull ? '100%' : isHalf ? '50%' : '0%',
+                    overflow: 'hidden',
+                    position: 'absolute',
+                  }}
+                >
+                  <Text style={{ color: '#F0C419', fontSize: 18 }}>★</Text>
+                </View>
+              </View>
+            )
+          })}
+        </View>
+        <Text style={styles.suggestionPrice}>{item?.variants[0]?.unit}</Text>
+        <Text style={[styles.suggestionPrice, { color: '#000' }]}>{item?.variants[0]?.price} €</Text>
       </View>
-      <Text style={styles.suggestionPrice}>{item.unit}</Text>
-      <Text style={styles.suggestionPrice}>{item.price} €</Text>
-    </View>
-  );
+    </TouchableOpacity>
+  )
 
   useFocusEffect(
     React.useCallback(() => {
@@ -289,7 +317,7 @@ const CheckoutScreen = ({ navigation }: { navigation: any }) => {
         const fetchedProducts = res.data?.cart || [];
         setcartid(res.data?.cart?.id);
         setApiCartData(fetchedProducts);
-        console.log('cart detaillss', cartData?.length);
+        console.log('cart detaillss', fetchedProducts);
       }
     } catch (err) {
       console.log("carterror", JSON.stringify(err))
@@ -930,7 +958,7 @@ const styles = StyleSheet.create({
   suggestionPrice: {
     fontSize: 12,
     fontWeight: '600',
-    color: '#111',
+    color: '#BFD56C',
     marginTop: 2,
   },
   seeAllBtn: {

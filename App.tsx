@@ -10,6 +10,9 @@ import Toast from 'react-native-toast-message';
 import NotificationService, { handleNotifeeBackgroundEvent } from './src/service/NotificationService';
 import notifee, { AndroidImportance } from '@notifee/react-native';
 import { CartProvider } from './src/context/CartContext';
+import { GestureHandlerRootView } from 'react-native-gesture-handler';
+import 'react-native-reanimated'; // 👈 import this early
+import 'react-native-gesture-handler';
 
 
 const Stack = createNativeStackNavigator();
@@ -39,16 +42,19 @@ function App() {
         <UserDataContextProvider>
           <WishlistProvider>
             <CartProvider>
-              <NavigationContainer theme={theme === 'dark' ? DarkTheme : DefaultTheme}>
-                <Stack.Navigator screenOptions={{ headerShown: false }}>
+              <GestureHandlerRootView style={{ flex: 1 }}>
 
-                  <Stack.Screen
-                    name="HomeStackNavigator"
-                    component={HomeStackNavigator}
-                  />
+                <NavigationContainer theme={theme === 'dark' ? DarkTheme : DefaultTheme}>
+                  <Stack.Navigator screenOptions={{ headerShown: false }}>
 
-                </Stack.Navigator>
-              </NavigationContainer>
+                    <Stack.Screen
+                      name="HomeStackNavigator"
+                      component={HomeStackNavigator}
+                    />
+
+                  </Stack.Navigator>
+                </NavigationContainer>
+              </GestureHandlerRootView>
               <Toast />
             </CartProvider>
           </WishlistProvider>

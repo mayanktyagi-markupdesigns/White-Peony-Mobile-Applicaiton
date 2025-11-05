@@ -114,7 +114,7 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
             }
         } catch (err: any) {
             hideLoader();
-            console.log('addToCart error', err);
+            console.log('addToCart error', JSON.stringify(err));
             Toast.show({
                 type: 'error',
                 text1: err?.response?.data?.message || 'Something went wrong! Please try again.',

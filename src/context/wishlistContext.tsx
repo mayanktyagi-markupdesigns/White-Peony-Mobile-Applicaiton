@@ -83,6 +83,7 @@ export const WishlistProvider: React.FC<Props> = ({ children }) => {
       try {
         await UserService.wishlistadd({ product_id: id });
       } catch (e) {
+        console.log('Add to wishlist error', JSON.stringify(e));
         // rollback on failure
         setWishlistIds(prev => prev.filter(x => x !== key));
         Toast.show({ type: 'error', text1: 'Failed to add to wishlist' });

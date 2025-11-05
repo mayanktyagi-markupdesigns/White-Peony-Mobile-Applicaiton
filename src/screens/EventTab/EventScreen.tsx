@@ -176,21 +176,22 @@ const EventScreen = ({ navigation }: any) => {
   };
 
   const renderUpcoming = ({ item }: { item: any }) => (
-    <TouchableOpacity style={styles.upCard} activeOpacity={0.8}>
-      <Image source={{ uri: Image_url + item.image }} style={styles.upImage} />
-      <View style={styles.upBody}>
-        <Text numberOfLines={2} style={styles.upTitle}>
+    <TouchableOpacity style={styles.nearCard} onPress={() => { navigation.navigate('EventDetails', { event: item.id }), setUpcomingModalVisible(false) }} activeOpacity={0.8}>
+      <Image source={{ uri: Image_url + item.image }} style={styles.nearImage} />
+      <View style={styles.nearBody}>
+        <Text numberOfLines={1} style={styles.nearTitle}>
           {item.title}
         </Text>
-        <Text style={styles.upMeta}>{item.address}</Text>
-        <Text style={styles.upMeta}> {formatDate(item.event_date)}</Text>
-        <Text style={styles.upMeta}>{item.capacity}</Text>
+        <Text style={styles.nearMeta}>
+          {item.address} • {item.remaining_seats}
+        </Text>
+        <Text style={styles.nearDate}>{formatDate(item.event_date)}</Text>
       </View>
     </TouchableOpacity>
   );
 
   const renderNear = ({ item }: { item: any }) => (
-    <TouchableOpacity style={styles.nearCard} onPress={() => navigation.navigate('EventDetails', { event: item.id })} activeOpacity={0.8}>
+    <TouchableOpacity style={styles.nearCard} onPress={() => { navigation.navigate('EventDetails', { event: item.id }), setNearbyModalVisible(false) }} activeOpacity={0.8}>
       <Image source={{ uri: Image_url + item.image }} style={styles.nearImage} />
       <View style={styles.nearBody}>
         <Text numberOfLines={1} style={styles.nearTitle}>
@@ -368,6 +369,7 @@ const EventScreen = ({ navigation }: any) => {
                 <Text style={{ fontSize: 18, fontWeight: '700' }}>✕</Text>
               </TouchableOpacity>
             </View>
+
             <FlatList
               data={sampleEvents}
               keyExtractor={(i) => String(i.id)}
@@ -483,7 +485,7 @@ const styles = StyleSheet.create({
   },
   nearImage: { width: 70, height: 70, borderRadius: 8, marginRight: 12 },
   nearBody: { flex: 1 },
-  nearTitle: { fontSize: 14, fontWeight: '700', width: widthPercentageToDP(60),  },
+  nearTitle: { fontSize: 14, fontWeight: '700', width: widthPercentageToDP(60), },
   nearMeta: { fontSize: 12, color: '#6B6B6B', marginTop: 6 },
   nearDate: { fontSize: 12, color: '#6B6B6B', marginTop: 4 },
   iconSmall: { width: 14, height: 14 },
