@@ -5,6 +5,7 @@ import { UserService } from '../service/ApiService';
 import { HttpStatusCode } from 'axios';
 import Toast from 'react-native-toast-message';
 import { useRoute } from '@react-navigation/native';
+import { Colors } from '../constant';
 
 const AddressDetailModal = ({ isVisible, onClose, addresses, onAddressUpdated }) => {
     const { showLoader, hideLoader } = CommonLoader();
@@ -203,6 +204,7 @@ const AddressDetailModal = ({ isVisible, onClose, addresses, onAddressUpdated })
                         <TextInput
                             style={styles.input}
                             placeholder="Full Name*"
+                            placeholderTextColor={Colors.text[200]}
                             value={formData.name}
                             onChangeText={(text) => handleChange("name", text)}
                         />
@@ -210,6 +212,7 @@ const AddressDetailModal = ({ isVisible, onClose, addresses, onAddressUpdated })
                         <TextInput
                             style={styles.input}
                             placeholder="Email ID*"
+                            placeholderTextColor={Colors.text[200]}
                             value={formData.email}
                             onChangeText={(text) => handleChange("email", text)}
                         />
@@ -218,6 +221,7 @@ const AddressDetailModal = ({ isVisible, onClose, addresses, onAddressUpdated })
                         <TextInput
                             style={styles.input}
                             placeholder="Contact Number*"
+                            placeholderTextColor={Colors.text[200]}
                             value={formData.phone}
                             onChangeText={(text) => handleChange("phone", text)}
                         />
@@ -226,6 +230,7 @@ const AddressDetailModal = ({ isVisible, onClose, addresses, onAddressUpdated })
                         <TextInput
                             style={styles.input}
                             placeholder="Full Address*"
+                            placeholderTextColor={Colors.text[200]}
                             value={formData.address}
                             onChangeText={(text) => handleChange("address", text)}
                         />
@@ -234,6 +239,7 @@ const AddressDetailModal = ({ isVisible, onClose, addresses, onAddressUpdated })
                         <TextInput
                             style={styles.input}
                             placeholder="City*"
+                            placeholderTextColor={Colors.text[200]}
                             value={formData.city}
                             onChangeText={(text) => handleChange("city", text)}
                         />
@@ -242,6 +248,7 @@ const AddressDetailModal = ({ isVisible, onClose, addresses, onAddressUpdated })
                         <TextInput
                             style={styles.input}
                             placeholder="ZIP Code*"
+                            placeholderTextColor={Colors.text[200]}
                             value={formData.zip}
                             onChangeText={(text) => handleChange("zip", text)}
                         />

@@ -18,6 +18,7 @@ import { Image_url, UserService } from '../../service/ApiService';
 import { HttpStatusCode } from 'axios';
 import { formatDate } from '../../helpers/helpers';
 import { widthPercentageToDP } from '../../constant/dimentions';
+import { Colors } from '../../constant';
 const { width } = Dimensions.get('window');
 
 
@@ -126,7 +127,7 @@ const ArticleScreen = ({ navigation }: any) => {
         <View style={styles.searchRow}>
           <TextInput
             placeholder="Search Products...."
-            placeholderTextColor={'#707070'}
+            placeholderTextColor={Colors.text[200]}
             style={styles.searchInput}
           />
           <TouchableOpacity style={styles.microphone}>

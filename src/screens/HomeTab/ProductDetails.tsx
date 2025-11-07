@@ -338,7 +338,6 @@ const ProductDetails = ({ route }: ProductDetailsProps) => {
             ShowReview();
             setNewComment('');
             setNewRating(5);
-            setWriteModalVisible(false);
             // navigation.goBack();
           } else {
             Toast.show({
@@ -387,7 +386,6 @@ const ProductDetails = ({ route }: ProductDetailsProps) => {
     });
   };
   // Reviews modal state
-  const [writeModalVisible, setWriteModalVisible] = useState(false);
   const [showModalVisible, setShowModalVisible] = useState(false);
   const [reviews, setReviews] = useState<Array<any>>([]);
   const [newRating, setNewRating] = useState<number>(5);
@@ -984,13 +982,6 @@ const ProductDetails = ({ route }: ProductDetailsProps) => {
           {/* Buttons */}
           <View style={styles.reviewsButtons}>
             <TouchableOpacity
-              style={styles.writeBtn}
-              onPress={() => setWriteModalVisible(true)}
-            >
-              <Text style={styles.writeBtnText}>Write A Review</Text>
-            </TouchableOpacity>
-
-            <TouchableOpacity
               style={styles.showBtn}
               onPress={() => setShowModalVisible(true)}
             >
@@ -998,78 +989,6 @@ const ProductDetails = ({ route }: ProductDetailsProps) => {
             </TouchableOpacity>
           </View>
         </View>
-        {/* Write Review Modal */}
-        <Modal visible={writeModalVisible} transparent animationType="slide">
-          <View
-            style={{
-              flex: 1,
-              justifyContent: 'flex-end',
-              backgroundColor: 'rgba(0,0,0,0.4)',
-            }}
-          >
-            <View
-              style={{
-                backgroundColor: '#fff',
-                padding: 16,
-                borderTopLeftRadius: 12,
-                borderTopRightRadius: 12,
-              }}
-            >
-              <Text style={{ fontSize: 18, fontWeight: '700' }}>
-                Write a Review
-              </Text>
-              <Text style={{ marginTop: 8 }}>Rating</Text>
-              <View style={{ flexDirection: 'row', marginTop: 8 }}>
-                {[1, 2, 3, 4, 5].map(r => (
-                  <TouchableOpacity
-                    key={r}
-                    onPress={() => setNewRating(r)}
-                    style={{ marginRight: 8 }}
-                  >
-                    <Text
-                      style={{
-                        color: newRating >= r ? '#F0C419' : '#ccc',
-                        fontSize: 24,
-                      }}
-                    >
-                      ★
-                    </Text>
-                  </TouchableOpacity>
-                ))}
-              </View>
-              <TextInput
-                value={newComment}
-                onChangeText={setNewComment}
-                placeholder="Write your review"
-                style={{
-                  borderWidth: 1,
-                  borderColor: '#eee',
-                  borderRadius: 8,
-                  padding: 8,
-                  marginTop: 12,
-                }}
-                multiline
-              />
-              <View
-                style={{
-                  flexDirection: 'row',
-                  justifyContent: 'flex-end',
-                  marginTop: 12,
-                }}
-              >
-                <TouchableOpacity
-                  onPress={() => setWriteModalVisible(false)}
-                  style={{ marginRight: 8 }}
-                >
-                  <Text>Cancel</Text>
-                </TouchableOpacity>
-                <TouchableOpacity onPress={PostReview}>
-                  <Text style={{ color: '#007AFF' }}>Submit</Text>
-                </TouchableOpacity>
-              </View>
-            </View>
-          </View>
-        </Modal>
 
         {/* Show Reviews Modal */}
         <Modal visible={showModalVisible} transparent animationType="slide">

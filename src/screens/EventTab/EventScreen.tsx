@@ -23,6 +23,7 @@ import { formatDate } from '../../helpers/helpers';
 import Geolocation from 'react-native-geolocation-service';
 import { check, request, RESULTS, PERMISSIONS } from 'react-native-permissions';
 import { widthPercentageToDP } from '../../constant/dimentions';
+import { Colors } from '../../constant';
 const { width } = Dimensions.get('window');
 
 const EventScreen = ({ navigation }: any) => {
@@ -259,7 +260,7 @@ const EventScreen = ({ navigation }: any) => {
         <View style={styles.searchRow}>
           <TextInput
             placeholder="Search events..."
-            placeholderTextColor={'#707070'}
+            placeholderTextColor={Colors.text[200]}
             style={styles.searchInput}
             value={searchQuery}
             onChangeText={handleSearchChange}

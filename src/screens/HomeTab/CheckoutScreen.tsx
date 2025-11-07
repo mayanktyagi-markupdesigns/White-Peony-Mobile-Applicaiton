@@ -32,19 +32,6 @@ import { LocalStorage } from '../../helpers/localstorage';
 
 const SCREEN_WIDTH = Dimensions.get('window').width;
 
-type WishlistApiItem = {
-  wishlist_item_id: string;
-  product_id: string;
-  name: string;
-  description?: string;
-  front_image?: string;
-  back_image?: string;
-  side_image?: string;
-  is_cart?: string;
-  stock_quantity?: string;
-  product_price?: string;
-};
-
 type DisplayWishlistItem = {
   id: string; // product id
   wishlistItemId: string;
@@ -78,7 +65,6 @@ type Address = {
 
 const CheckoutScreen = ({ navigation }: { navigation: any }) => {
   const { addToCart, removeFromCart, getCartDetails, syncCartAfterLogin } = useCart();
-  const { userData, setIsLoggedIn, isLoggedIn } = useContext<UserData>(UserDataContext);
   const [modalVisible, setModalVisible] = useState(false);
   const [modalAddress, setModalAddress] = useState(false);
   const [modalAddressADD, setmodalAddressADD] = useState(false);
@@ -99,8 +85,12 @@ const CheckoutScreen = ({ navigation }: { navigation: any }) => {
   const [promoOptions, setPromoOptions] = useState<any[]>([]);
   const [promoModalVisible, setPromoModalVisible] = useState(false);
   const [isApplyingPromo, setIsApplyingPromo] = useState(false);
-  const [selectedPromoCode, setSelectedPromoCode] = useState<string | null>(null);
+  const [selectedPromoCode, setSelectedPromoCode] = useState({ code: '', type: '', discount: '' });
   const [isFetchingPromo, setIsFetchingPromo] = useState(false);
+
+  ///coupans code 
+  const [appliedPromo, setAppliedPromo] = useState<any>(null);
+  const [discountAmount, setDiscountAmount] = useState<number>(0);
 
   useEffect(() => {
     const fetchWishlist = async () => {
@@ -121,7 +111,7 @@ const CheckoutScreen = ({ navigation }: { navigation: any }) => {
     fetchWishlist();
     // initial fetch shipping (optional)
     Getshiping();
-    GetPromo()
+    //GetPromo()
   }, []);
 
   const moveToWishlist = (itemId: string | number | undefined) => {
@@ -298,7 +288,69 @@ const CheckoutScreen = ({ navigation }: { navigation: any }) => {
         <Text style={[styles.suggestionPrice, { color: '#000' }]}>{item?.variants[0]?.price} €</Text>
       </View>
     </TouchableOpacity>
-  )
+  );
+
+  const SetPromo = async () => {
+    if (!selectedPromoCode?.code) {
+      Toast.show({ type: 'info', text1: 'Please select a coupon first.' });
+      return;
+    }
+
+    try {
+      setIsApplyingPromo(true);
+
+      // ✅ Find promo by code
+      const selectedPromo = promoOptions.find(
+        (p) =>
+          String(p.code ?? p.promo_code ?? p.promo ?? p.title) ===
+          String(selectedPromoCode.code)
+      );
+
+      if (!selectedPromo) {
+        Toast.show({ type: 'error', text1: 'Invalid coupon selected.' });
+        return;
+      }
+
+      const total = Number(cartData?.total_amount ?? 0);
+      const discountType = selectedPromo.discount_type?.toLowerCase();
+      const discountValue = parseFloat(selectedPromoCode.code.replace(/[^\d.]/g, '')) || 0;
+      const maxDiscount = Number(selectedPromo.max_discount ?? 0);
+
+      console.log('Applying promo:', total, discountType, discountValue, maxDiscount);
+
+      let calculatedDiscount = 0;
+
+      if (discountType === 'percentage') {
+        calculatedDiscount = (total * discountValue) / 100;
+        if (maxDiscount > 0 && calculatedDiscount > maxDiscount)
+          calculatedDiscount = maxDiscount;
+      } else {
+        calculatedDiscount = discountValue;
+      }
+
+      if (calculatedDiscount > total) calculatedDiscount = total;
+
+      setDiscountAmount(Number(calculatedDiscount.toFixed(0)));
+      setAppliedPromo(selectedPromo);
+      setPromoModalVisible(false);
+
+      Toast.show({
+        type: 'success',
+        text1: `Coupon applied! You saved ${calculatedDiscount.toFixed(0)}`,
+      });
+    } catch (err) {
+      console.log('SetPromo error', err);
+      Toast.show({ type: 'error', text1: 'Failed to apply coupon' });
+    } finally {
+      setIsApplyingPromo(false);
+    }
+  };
+
+  const removeCoupon = () => {
+    setAppliedPromo(null);
+    setDiscountAmount(0);
+    Toast.show({ type: 'info', text1: 'Coupon removed.' });
+  };
 
   useFocusEffect(
     React.useCallback(() => {
@@ -317,7 +369,7 @@ const CheckoutScreen = ({ navigation }: { navigation: any }) => {
         const fetchedProducts = res.data?.cart || [];
         setcartid(res.data?.cart?.id);
         setApiCartData(fetchedProducts);
-        console.log('cart detaillss', fetchedProducts);
+        //console.log('cart detaillss', fetchedProducts);
       }
     } catch (err) {
       console.log("carterror", JSON.stringify(err))
@@ -326,7 +378,6 @@ const CheckoutScreen = ({ navigation }: { navigation: any }) => {
       setIsLoadingProduct(false);
     }
   };
-
 
   const GetPromo = async () => {
     try {
@@ -338,6 +389,8 @@ const CheckoutScreen = ({ navigation }: { navigation: any }) => {
       setPromoOptions(list);
       setSelectedPromoCode(null);
       setPromoModalVisible(true);
+      //console.log('GetPromo', res?.data);
+
       return list;
     } catch (err) {
       console.log('GetPromo', JSON.stringify(err));
@@ -345,38 +398,6 @@ const CheckoutScreen = ({ navigation }: { navigation: any }) => {
       return [];
     } finally {
       setIsFetchingPromo(false);
-      setIsLoadingProduct(false);
-    }
-  };
-
-  const SetPromo = async (promoCode?: string) => {
-    const code = (promoCode ?? selectedPromoCode)?.replace(/\s+/g, '');
-    if (!code) {
-      Toast.show({ type: 'info', text1: 'Please select a coupon' });
-      return;
-    }
-    const payload = {
-      cart_id: cartid,
-      promo_code: code,
-    };
-    try {
-      setIsApplyingPromo(true);
-      setIsLoadingProduct(true);
-      const res = await UserService.PromoCode(payload);
-      const success = res?.data?.success === true || res?.status === HttpStatusCode.Ok || res?.status === 200;
-      if (success) {
-        Toast.show({ type: 'success', text1: res?.data?.message || 'Coupon applied' });
-        await GetCartDetails(); // refresh cart after successful apply
-        setPromoModalVisible(false);
-      } else {
-        const message = res?.data?.message || res?.data?.error || 'Invalid or expired coupon';
-        Toast.show({ type: 'error', text1: message });
-      }
-    } catch (err) {
-      console.log('SetPromo', JSON.stringify(err));
-      Toast.show({ type: 'error', text1: 'Failed to apply coupon' });
-    } finally {
-      setIsApplyingPromo(false);
       setIsLoadingProduct(false);
     }
   };
@@ -395,7 +416,7 @@ const CheckoutScreen = ({ navigation }: { navigation: any }) => {
         if (firstActive) setSelectedShippingId(Number(firstActive.id));
         return options;
       } else {
-        console.log('Getshiping response', res?.data);
+        //console.log('Getshiping response', res?.data);
         return [];
       }
     } catch (err) {
@@ -573,14 +594,36 @@ const CheckoutScreen = ({ navigation }: { navigation: any }) => {
                     ) : promoOptions.length === 0 ? (
                       <Text style={{ textAlign: 'center', color: '#666' }}>No coupons available</Text>
                     ) : (
-                      <FlatList data={promoOptions}
-                        keyExtractor={(it, idx) => (it.id ?? it.code ?? it.promo_code ?? idx).toString()}
+                      <FlatList
+                        data={promoOptions}
+                        keyExtractor={(it, idx) =>
+                          (it.id ?? it.code ?? it.promo_code ?? idx).toString()
+                        }
                         renderItem={({ item }) => {
-                          const code = item.code ?? item.promo_code ?? item.promo ?? item.title ?? item.name;
-                          const desc = item.description ?? item.details ?? item.note ?? item.title;
-                          const isSelected = selectedPromoCode === String(code);
+                          // 🧠 Safely get the promo code value
+                          const code =
+                            item?.code ??
+                            item?.promo_code ??
+                            item?.promo ??
+                            item?.title ??
+                            'N/A';
+
+                          const desc = item?.description ?? '';
+                          const discountType = item?.discount_type ?? '';
+                          const discountValue = item?.discount ?? item?.value ?? '';
+
+                          // ✅ check if this is the selected coupon
+                          const isSelected = selectedPromoCode?.code === String(code);
+
                           return (
-                            <TouchableOpacity onPress={() => setSelectedPromoCode(String(code))}
+                            <TouchableOpacity
+                              onPress={() =>
+                                setSelectedPromoCode({
+                                  code: String(code),
+                                  type: discountType,
+                                  discount: discountValue,
+                                })
+                              }
                               style={{
                                 flexDirection: 'row',
                                 justifyContent: 'space-between',
@@ -589,19 +632,26 @@ const CheckoutScreen = ({ navigation }: { navigation: any }) => {
                                 backgroundColor: isSelected ? '#F7F9E5' : '#fff',
                                 padding: 12,
                                 borderRadius: 8,
-                              }}>
+                                marginBottom: 10,
+                              }}
+                            >
                               <View style={{ flex: 1 }}>
                                 <Text style={{ fontWeight: '700' }}>{code}</Text>
-                                {desc ? <Text style={{ color: '#666', marginTop: 4 }}>{desc}</Text> : null}
+                                {desc ? (
+                                  <Text style={{ color: '#666', marginTop: 4 }}>{desc}</Text>
+                                ) : null}
                               </View>
                               <View style={{ alignItems: 'flex-end' }}>
-                                <Text style={{ fontSize: 12, color: '#888' }}>{item.discount ?? item.value ?? ''}</Text>
+                                <Text style={{ fontSize: 12, color: '#888' }}>
+                                  {discountValue}
+                                </Text>
                               </View>
                             </TouchableOpacity>
                           );
                         }}
-                        contentContainerStyle={{ paddingBottom: 10 }} />)}
-
+                        contentContainerStyle={{ paddingBottom: 10 }}
+                      />
+                    )}
                     <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginTop: 8 }}>
                       <TouchableOpacity onPress={() => setPromoModalVisible(false)} style={{ backgroundColor: '#eee', paddingVertical: 12, borderRadius: 28, alignItems: 'center', flex: 1, marginRight: 8 }}>
                         <Text style={{ color: '#333' }}>Cancel</Text>
@@ -617,54 +667,80 @@ const CheckoutScreen = ({ navigation }: { navigation: any }) => {
           </Modal>
 
           {/* Bill details */}
-          {cartData.length !== 0 ? <View
-            style={{
-              borderWidth: 1,
-              borderColor: '#D9D9D9',
-              borderRadius: 10,
-              margin: 10,
-              marginTop: 0,
-              padding: 10,
-            }}
-          >
-            <View style={styles.billDetailsCard}>
-              <Text style={styles.billTitle}>Bill details</Text>
-              <View style={styles.billRow}>
-                <Text style={styles.billLabel}>Total</Text>
-                <Text style={styles.billValue}>{cartData?.total_amount ?? 0} €</Text>
-              </View>
-              <View style={styles.billRow}>
-                <Text style={[styles.billLabel, { fontWeight: '600' }]}>
-                  Delivery Charges
-                </Text>
-                <Text
-                  style={[
-                    styles.billValue,
-                    { color: '#5DA53B', fontWeight: '600' },
-                  ]}
-                >
-                  Free
-                </Text>
-              </View>
-              <View style={styles.billRow}>
-                <Text
-                  style={[
-                    styles.billLabel,
-                    { fontWeight: '700', fontSize: 18 },
-                  ]}>
-                  Grand total
-                </Text>
-                <Text
-                  style={[
-                    styles.billValue,
-                    { fontWeight: '700', fontSize: 18 },
-                  ]}
-                >
-                  {cartData?.total_amount}€
-                </Text>
+          {cartData.length !== 0 ? (
+            <View
+              style={{
+                borderWidth: 1,
+                borderColor: '#D9D9D9',
+                borderRadius: 10,
+                margin: 10,
+                marginTop: 0,
+                padding: 10,
+              }}
+            >
+              <View style={styles.billDetailsCard}>
+                <Text style={styles.billTitle}>Bill details</Text>
+
+                <View style={styles.billRow}>
+                  <Text style={styles.billLabel}>Total</Text>
+                  <Text style={styles.billValue}>{cartData?.total_amount ?? 0} €</Text>
+                </View>
+
+                {appliedPromo && (
+                  <View style={styles.billRow}>
+                    <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                      <Text style={[styles.billLabel, { color: '#5DA53B' }]}>
+                        Coupon ({appliedPromo.code ?? appliedPromo.promo_code})
+                      </Text>
+                      <TouchableOpacity onPress={removeCoupon} style={{ marginLeft: 6 }}>
+                        <Text style={{ color: '#FF0000', fontSize: 12 }}>Remove</Text>
+                      </TouchableOpacity>
+                    </View>
+                    <Text
+                      style={[
+                        styles.billValue,
+                        { color: '#5DA53B', fontWeight: '700' },
+                      ]}
+                    >
+                      -{discountAmount.toFixed(2)} €
+                    </Text>
+                  </View>
+                )}
+
+                <View style={styles.billRow}>
+                  <Text style={[styles.billLabel, { fontWeight: '600' }]}>
+                    Delivery Charges
+                  </Text>
+                  <Text
+                    style={[
+                      styles.billValue,
+                      { color: '#5DA53B', fontWeight: '600' },
+                    ]}
+                  >
+                    Free
+                  </Text>
+                </View>
+
+                <View style={styles.billRow}>
+                  <Text
+                    style={[
+                      styles.billLabel,
+                      { fontWeight: '700', fontSize: 18 },
+                    ]}
+                  >
+                    Grand total
+                  </Text>
+                  <Text
+                    style={[
+                      styles.billValue,
+                      { fontWeight: '700', fontSize: 18 },
+                    ]}>
+                    {(Number(cartData?.total_amount ?? 0) - discountAmount).toFixed(2)} €
+                  </Text>
+                </View>
               </View>
             </View>
-          </View> : null}
+          ) : null}
 
           {/* Delivery address */}
           <View style={styles.deliveryAddressCard}>

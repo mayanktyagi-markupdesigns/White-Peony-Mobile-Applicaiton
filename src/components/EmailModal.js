@@ -16,6 +16,7 @@ const EmailInput = memo(({ index, value, onChange }) => (
   <TextInput
     value={value}
     onChangeText={(text) => onChange(text, index)}
+    placeholderTextColor={Colors.text[200]}
     placeholder={`Email for Seat ${index + 1}`}
     keyboardType="email-address"
     autoCapitalize="none"

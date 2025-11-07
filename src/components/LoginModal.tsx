@@ -20,6 +20,7 @@ import { useNavigation } from "@react-navigation/native";
 import { LocalStorage } from "../helpers/localstorage";
 import { UserData, UserDataContext } from "../context/userDataContext";
 import { useCart } from '../context/CartContext';
+import { Colors } from "../constant";
 
 
 interface AuthModalProps {
@@ -268,7 +269,7 @@ const LoginModal: React.FC<AuthModalProps> = ({
                   <TextInput
                     style={styles.input}
                     placeholder="+420 605 476 490"
-                    placeholderTextColor="#999"
+                    placeholderTextColor={Colors.text[200]}
                     value={emailOrPhone}
                     onChangeText={setEmailOrPhone}
                     keyboardType="default"
@@ -309,6 +310,7 @@ const LoginModal: React.FC<AuthModalProps> = ({
                       keyboardType="number-pad"
                       maxLength={1}
                       value={digit}
+                      placeholderTextColor={Colors.text[200]}
                       onChangeText={(text) => handleChangeOtp(text, index)}
                       onKeyPress={(e) => handleKeyPress(e, index)}
                       ref={(ref) => (inputRefs.current[index] = ref)}

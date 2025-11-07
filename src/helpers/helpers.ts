@@ -75,7 +75,7 @@ export const formatDate = async (dateString) => {
     year: 'numeric', // "2025"
     hour: '2-digit',
     minute: '2-digit',
-    hour12: true,    // "10:00 PM"
+    hour12: true,   // "10:00 PM"
   };
 
   // Example: "Sep 23, 2025, 10:00 PM"

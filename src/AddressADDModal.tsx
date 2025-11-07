@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { Modal, View, Text, TextInput, TouchableOpacity, StyleSheet } from 'react-native';
+import { Colors } from './constant';
 
 const AddressDetailModal = ({ isVisible, onClose, onSubmit }) => {
     const [formData, setFormData] = useState({
@@ -35,36 +36,42 @@ const AddressDetailModal = ({ isVisible, onClose, onSubmit }) => {
                     <TextInput
                         style={styles.input}
                         placeholder="Full Name*"
+                        placeholderTextColor={Colors.text[200]}
                         value={formData.name}
                         onChangeText={(text) => handleChange('name', text)}
                     />
                     <TextInput
                         style={styles.input}
                         placeholder="Email ID*"
+                         placeholderTextColor={Colors.text[200]}
                         value={formData.email}
                         onChangeText={(text) => handleChange('email', text)}
                     />
                     <TextInput
                         style={styles.input}
                         placeholder="Contact Number*"
+                         placeholderTextColor={Colors.text[200]}
                         value={formData.phone}
                         onChangeText={(text) => handleChange('phone', text)}
                     />
                     <TextInput
                         style={styles.input}
                         placeholder="Full Address*"
+                         placeholderTextColor={Colors.text[200]}
                         value={formData.address}
                         onChangeText={(text) => handleChange('address', text)}
                     />
                     <TextInput
                         style={styles.input}
                         placeholder="City*"
+                         placeholderTextColor={Colors.text[200]}
                         value={formData.city}
                         onChangeText={(text) => handleChange('city', text)}
                     />
                     <TextInput
                         style={styles.input}
                         placeholder="ZIP Code*"
+                         placeholderTextColor={Colors.text[200]}
                         value={formData.zip}
                         onChangeText={(text) => handleChange('zip', text)}
                     />

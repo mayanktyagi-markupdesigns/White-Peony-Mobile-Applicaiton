@@ -25,6 +25,7 @@ import AddressModal from '../../components/AddressModal';
 import LoginModal from '../../components/LoginModal';
 import { useCart } from '../../context/CartContext';
 import { number } from 'yup';
+import { Colors } from '../../constant';
 const { width } = Dimensions.get('window');
 
 
@@ -644,7 +645,7 @@ const HomeScreen = ({ navigation }: any) => {
         <View style={styles.searchRow}>
           <TextInput
             placeholder="Search products..."
-            placeholderTextColor={'#707070'}
+             placeholderTextColor={Colors.text[200]}
             style={styles.searchInput}
             value={searchQuery}
             onChangeText={handleSearchChange}

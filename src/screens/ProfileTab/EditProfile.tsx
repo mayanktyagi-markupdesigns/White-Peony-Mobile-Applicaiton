@@ -13,6 +13,7 @@ import { CommonLoader } from '../../components/CommonLoader/commonLoader';
 import { launchCamera, launchImageLibrary } from 'react-native-image-picker';
 import { check, request, PERMISSIONS, RESULTS } from 'react-native-permissions';
 import { widthPercentageToDP } from '../../constant/dimentions';
+import { Colors } from '../../constant';
 
 
 
@@ -413,6 +414,7 @@ const ProfileField = ({
       <TextInput
         style={[styles.input, multiline && { height: 60 }]}
         value={value}
+        placeholderTextColor={Colors.text[200]}
         onChangeText={onChangeText}
         onBlur={onBlur}
         keyboardType={keyboardType}

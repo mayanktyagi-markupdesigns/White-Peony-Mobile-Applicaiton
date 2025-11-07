@@ -12,6 +12,7 @@ import {
 } from 'react-native';
 import { UserService } from '../../service/ApiService';
 import { HttpStatusCode } from 'axios';
+import { Colors } from '../../constant';
 
 const { width } = Dimensions.get('window');
 
@@ -63,7 +64,7 @@ const CategoryScreen = ({ navigation }) => {
         <View style={styles.searchRow}>
           <TextInput
             placeholder="Search Products...."
-            placeholderTextColor={'#707070'}
+            placeholderTextColor={Colors.text[200]}
             style={styles.searchInput}
           />
           <TouchableOpacity style={styles.microphone}>

@@ -312,6 +312,7 @@ const CategoryDetailsList = ({ navigation, route }: any) => {
                 <TextInput
                   style={{ borderWidth: 1, borderColor: '#ccc', borderRadius: 8, padding: 6, marginLeft: 6, width: 80 }}
                   keyboardType="numeric"
+                  placeholderTextColor={Colors.text[200]}
                   value={filterMinPrice}
                   onChangeText={setFilterMinPrice}
                   placeholder="Min"
@@ -323,6 +324,7 @@ const CategoryDetailsList = ({ navigation, route }: any) => {
                 <TextInput
                   style={{ borderWidth: 1, borderColor: '#ccc', borderRadius: 8, padding: 6, marginLeft: 6, width: 80 }}
                   keyboardType="numeric"
+                  placeholderTextColor={Colors.text[200]}
                   value={filterMaxPrice}
                   onChangeText={setFilterMaxPrice}
                   placeholder="Max"
