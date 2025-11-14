@@ -21,14 +21,12 @@ import { Image_url, UserService } from '../../service/ApiService';
 import { HttpStatusCode } from 'axios';
 import { CommonLoader } from '../../components/CommonLoader/commonLoader';
 import Toast from 'react-native-toast-message';
-import { UserDataContext } from '../../context';
-import { UserData } from '../../context/userDataContext';
 import AddressModal from '../../components/AddressModal';
 import { useFocusEffect } from '@react-navigation/native';
-import { watchPosition } from 'react-native-geolocation-service';
 import { widthPercentageToDP } from '../../constant/dimentions';
 import { useCart } from '../../context/CartContext';
-import { LocalStorage } from '../../helpers/localstorage';
+import { WebView } from 'react-native-webview';
+
 
 const SCREEN_WIDTH = Dimensions.get('window').width;
 
@@ -70,6 +68,9 @@ const CheckoutScreen = ({ navigation }: { navigation: any }) => {
   const [modalAddressADD, setmodalAddressADD] = useState(false);
   const [isLoadingProduct, setIsLoadingProduct] = useState(true);
   const [items, setItems] = useState<DisplayWishlistItem[]>([]);
+  const [showWebView, setShowWebView] = useState(false);
+  const [paymentUrl, setPaymentUrl] = useState('');
+
 
   const { showLoader, hideLoader } = CommonLoader();
   const [cartData, setApiCartData] = useState<CartItem[]>([]);
@@ -416,7 +417,7 @@ const CheckoutScreen = ({ navigation }: { navigation: any }) => {
         if (firstActive) setSelectedShippingId(Number(firstActive.id));
         return options;
       } else {
-        //console.log('Getshiping response', res?.data);
+        console.log('Getshiping response', res?.data);
         return [];
       }
     } catch (err) {
@@ -442,10 +443,11 @@ const CheckoutScreen = ({ navigation }: { navigation: any }) => {
       setIsLoadingProduct(true);
       const res = await UserService.Placeorder(payload);
       if (res && res.data && (res.status === HttpStatusCode.Ok || res.status === 200)) {
-        GetCartDetails();
         setShippingModalVisible(false);
         // navigation.navigate('PaymentSuccess');
-        // console.log('PlaceOrder', res?.data);
+        console.log('PlaceOrder', res?.data);
+        setPaymentUrl(res.data.payment_url);
+        setShowWebView(true);
       } else {
         console.log('error', res?.data);
       }
@@ -792,6 +794,7 @@ const CheckoutScreen = ({ navigation }: { navigation: any }) => {
             />
             <Text style={styles.checkoutBtnText}>Check Out</Text>
           </TouchableOpacity>
+
         </ScrollView> :
           <View style={{ justifyContent: "center", alignSelf: "center", flex: 1, }}>
             <Text style={[styles.headerTitle, { alignSelf: "center", marginBottom: 10 }]}>No Item Found</Text>
@@ -804,7 +807,7 @@ const CheckoutScreen = ({ navigation }: { navigation: any }) => {
       </View >
 
       {/* Shipping selection modal */}
-      <Modal Modal visible={shippingModalVisible} transparent animationType="slide" onRequestClose={() => setShippingModalVisible(false)}>
+      <Modal visible={shippingModalVisible} transparent animationType="slide" onRequestClose={() => setShippingModalVisible(false)}>
         <TouchableWithoutFeedback onPress={() => setShippingModalVisible(false)}>
           <View style={{ flex: 1, backgroundColor: 'rgba(0,0,0,0.5)', justifyContent: 'flex-end' }}>
             <TouchableWithoutFeedback>
@@ -871,6 +874,47 @@ const CheckoutScreen = ({ navigation }: { navigation: any }) => {
         onVerify={otp => Alert.alert('OTP Verified', otp)}
       />
 
+      {/* Payment WebView */}
+      {showWebView && (
+        <View style={{ flex: 1, position: 'absolute', top: 0, bottom: 0, left: 0, right: 0, zIndex: 999 }}>
+          {/* Header */}
+          <View
+            style={{
+              height: 60,
+              backgroundColor: '#f5f5f5',
+              flexDirection: 'row',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              paddingHorizontal: 15,
+              borderBottomWidth: 1,
+              borderBottomColor: '#ddd',
+            }}>
+            <Text style={{ fontSize: 18, fontWeight: '600' }}>Payment</Text>
+            <TouchableOpacity onPress={() => setShowWebView(false)}>
+              <Text style={{ fontSize: 18, color: '#000' }}>✕</Text>
+            </TouchableOpacity>
+          </View>
+          <WebView
+            style={{ flex: 1, }}
+            source={{ uri: paymentUrl }}
+            onNavigationStateChange={navState => {
+              console.log("thankyuu", navState.url)
+              if (navState.url.includes('payment-success')) {
+                setTimeout(() => {
+                  setShowWebView(false);
+                  // Toast.show({ type: 'success', text1: 'Payment complete!' });
+                  GetCartDetails();
+                  // navigation.navigate('YourBooking');
+                }, 2000);
+              } else if (navState.url.includes('cancel')) { // Replace with your actual cancel URL
+                setShowWebView(false);
+                // Toast.show({ type: 'error', text1: 'Payment cancelled.' });
+              }
+            }}
+          />
+        </View>
+      )}
+
       <AddressModal
         visible={modalAddress}
         onClose={() => setModalAddress(false)}
@@ -881,8 +925,7 @@ const CheckoutScreen = ({ navigation }: { navigation: any }) => {
           setModalAddress(false);
         }}
       />
-
-    </View >
+    </View>
   );
 };
 

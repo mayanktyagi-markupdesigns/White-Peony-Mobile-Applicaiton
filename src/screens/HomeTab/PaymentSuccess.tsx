@@ -7,17 +7,18 @@ import {
   TouchableOpacity,
   Share,
   ActivityIndicator,
-} from 'react-native'
-import LinearGradient from 'react-native-linear-gradient';
+} from 'react-native';
+
+
 const PaymentSuccess = ({ navigation }: any) => {
+  const [processing, setProcessing] = useState(false)
+
   const ref = useRef<any>(null)
   const cardRef = useRef<any>(null)
-  const [processing, setProcessing] = useState(false)
 
   useEffect(() => {
     setTimeout(() => {
       navigation.goBack();
-
     }, 2000);
   }, [])
 
