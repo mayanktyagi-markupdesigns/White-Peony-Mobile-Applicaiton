@@ -15,7 +15,7 @@ const SplashScreens = () => {
 
   useEffect(() => {
     const t = setTimeout(() => {
-      navigation.replace('IntroScreen')
+      navigation.replace('SelectLanguageScreen')
     }, 3000)
 
     return () => clearTimeout(t)

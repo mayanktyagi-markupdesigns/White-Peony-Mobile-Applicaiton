@@ -4,6 +4,7 @@ const Images = {
   event: require("../assets/Png/events.png"),
   article: require("../assets/Png/blog.png"),
   account: require("../assets/Png/Accounts.png"),
+  langbg: require("../assets/Png/langbg.jpg"),
 
 };
 export default Images;

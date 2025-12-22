@@ -333,6 +333,7 @@ const OrdersScreen = ({ navigation }: { navigation: any }) => {
                     </TouchableOpacity>
                   ))}
                 </View>
+                
                 <TextInput
                   value={newComment}
                   onChangeText={setNewComment}

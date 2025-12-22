@@ -11,6 +11,7 @@ import NotificationService, { handleNotifeeBackgroundEvent } from './src/service
 import notifee, { AndroidImportance } from '@notifee/react-native';
 import { CartProvider } from './src/context/CartContext';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
+import { TranslationProvider } from './src/hooks/useTranslate';
 import 'react-native-reanimated'; // 👈 import this early
 import 'react-native-gesture-handler';
 
@@ -38,28 +39,30 @@ function App() {
 
   return (
     <>
-      <CommonLoaderProvider>
-        <UserDataContextProvider>
-          <WishlistProvider>
-            <CartProvider>
-              <GestureHandlerRootView style={{ flex: 1 }}>
+      <TranslationProvider>
+        <CommonLoaderProvider>
+          <UserDataContextProvider>
+            <WishlistProvider>
+              <CartProvider>
+                <GestureHandlerRootView style={{ flex: 1 }}>
 
-                <NavigationContainer theme={theme === 'dark' ? DarkTheme : DefaultTheme}>
-                  <Stack.Navigator screenOptions={{ headerShown: false }}>
+                  <NavigationContainer theme={theme === 'dark' ? DarkTheme : DefaultTheme}>
+                    <Stack.Navigator screenOptions={{ headerShown: false }}>
 
-                    <Stack.Screen
-                      name="HomeStackNavigator"
-                      component={HomeStackNavigator}
-                    />
+                      <Stack.Screen
+                        name="HomeStackNavigator"
+                        component={HomeStackNavigator}
+                      />
 
-                  </Stack.Navigator>
-                </NavigationContainer>
-              </GestureHandlerRootView>
-              <Toast />
-            </CartProvider>
-          </WishlistProvider>
-        </UserDataContextProvider>
-      </CommonLoaderProvider>
+                    </Stack.Navigator>
+                  </NavigationContainer>
+                </GestureHandlerRootView>
+                <Toast />
+              </CartProvider>
+            </WishlistProvider>
+          </UserDataContextProvider>
+        </CommonLoaderProvider>
+      </TranslationProvider>
 
     </>
 

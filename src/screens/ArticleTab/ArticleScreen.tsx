@@ -111,7 +111,7 @@ const ArticleScreen = ({ navigation }: any) => {
         </View>
       </TouchableOpacity>
 
-      <View style={{ borderBottomColor: '#D9D9D9', borderBottomWidth: 1, marginVertical: 10, width: '90%', alignSelf: 'center' }}></View>
+      <View style={{ borderBottomColor: '#D9D9D9', borderBottomWidth: 1, marginVertical: 10, width: '90%', alignSelf: 'center' }} />
     </>
   );
 

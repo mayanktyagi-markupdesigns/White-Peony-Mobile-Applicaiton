@@ -115,7 +115,7 @@ const PaymentSuccess = ({ navigation }: any) => {
   )
 }
 
-export default PaymentSuccess
+export default PaymentSuccess;
 
 const styles = StyleSheet.create({
   page: { flex: 1, padding: 24, backgroundColor: '#fff', alignItems: 'center' },

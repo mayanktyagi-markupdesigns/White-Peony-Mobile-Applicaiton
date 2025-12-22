@@ -18,7 +18,7 @@ APIKit.interceptors.request.use(
     }
     const token = await LocalStorage.read('@token');
     if (token) {
-      (config.headers as any)['authorization'] = `Bearer ${token}`;
+      (config.headers as any).authorization = `Bearer ${token}`;
     }
     return config;
   },

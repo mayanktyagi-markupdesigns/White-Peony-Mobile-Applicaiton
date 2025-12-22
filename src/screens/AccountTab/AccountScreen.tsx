@@ -387,6 +387,33 @@ const AccountScreen = ({ navigation }: AccountScreenProps) => {
 
             <Text>›</Text>
           </TouchableOpacity>
+
+          <TouchableOpacity onPress={() => navigation.navigate('SelectLanguageScreen')}
+            style={{
+              width: '95%',
+              alignSelf: 'center',
+              borderRadius: 6,
+              height: 51,
+              borderBottomWidth: 1,
+              borderBottomColor: '#E5E5E5',
+              flexDirection: 'row',
+              justifyContent: 'space-between',
+              alignItems: 'center',
+              paddingHorizontal: 8,
+              backgroundColor: '#FFFFFF',
+            }}
+          >
+            <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+              <Image
+                source={require('../../assets/Png/cookies.png')}
+                style={{ width: 16, height: 14 }}
+              />
+              <Text style={{ marginLeft: 8 }}>Language Change</Text>
+            </View>
+
+            <Text>›</Text>
+          </TouchableOpacity>
+
           <TouchableOpacity onPress={() => navigation.navigate('Slugs', { slug: 'cookies-policy' })}
             style={{
               width: '95%',

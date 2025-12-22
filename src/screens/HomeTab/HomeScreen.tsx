@@ -21,11 +21,11 @@ import { CommonLoader } from '../../components/CommonLoader/commonLoader';
 import Toast from 'react-native-toast-message';
 import { UserData, UserDataContext } from '../../context/userDataContext';
 import { WishlistContext } from '../../context/wishlistContext';
-import AddressModal from '../../components/AddressModal';
 import LoginModal from '../../components/LoginModal';
 import { useCart } from '../../context/CartContext';
-import { number } from 'yup';
 import { Colors } from '../../constant';
+import T from "../../components/T";
+
 const { width } = Dimensions.get('window');
 
 
@@ -415,9 +415,9 @@ const HomeScreen = ({ navigation }: any) => {
         </View>
 
         <View style={styles.cardBody}>
-          <Text numberOfLines={1} style={styles.cardTitle}>
+          <T numberOfLines={1} style={styles.cardTitle}>
             {item?.name || item?.title}
-          </Text>
+          </T>
           <View style={{ flexDirection: 'row', marginTop: 8 }}>
             {[1, 2, 3, 4, 5].map((r) => {
               const isFull = item?.average_rating >= r;
@@ -425,7 +425,7 @@ const HomeScreen = ({ navigation }: any) => {
               return (
                 <View key={r} style={{ width: 18, height: 18, position: 'relative' }}>
                   {/* base gray star */}
-                  <Text style={{ color: '#ccc', fontSize: 18, position: 'absolute' }}>★</Text>
+                  <T style={{ color: '#ccc', fontSize: 18, position: 'absolute' }}>★</T>
                   {/* overlay half or full star */}
                   <View
                     style={{
@@ -434,19 +434,19 @@ const HomeScreen = ({ navigation }: any) => {
                       position: 'absolute',
                     }}
                   >
-                    <Text style={{ color: '#F0C419', fontSize: 18 }}>★</Text>
+                    <T style={{ color: '#F0C419', fontSize: 18 }}>★</T>
                   </View>
                 </View>
               )
             })}
           </View>
-          <Text style={styles.cardPrice}>
+          <T style={styles.cardPrice}>
             {Array.isArray(item.variants) && item.variants.length > 0 && (
               <>
                 {item.variants[0]?.price}€ {item.variants[0]?.unit ? `- ${item.variants[0]?.unit}` : ''}
               </>
             )}
-          </Text>
+          </T>
         </View>
       </TouchableOpacity>
     );
@@ -530,9 +530,9 @@ const HomeScreen = ({ navigation }: any) => {
         </View>
 
         <View style={styles.cardBody}>
-          <Text numberOfLines={1} style={styles.cardTitle}>
+          <T numberOfLines={1} style={styles.cardTitle}>
             {item?.name || item?.title}
-          </Text>
+          </T>
 
           <View style={{ flexDirection: 'row', marginTop: 8 }}>
             {[1, 2, 3, 4, 5].map((r) => {
@@ -541,7 +541,7 @@ const HomeScreen = ({ navigation }: any) => {
               return (
                 <View key={r} style={{ width: 18, height: 18, position: 'relative' }}>
                   {/* base gray star */}
-                  <Text style={{ color: '#ccc', fontSize: 18, position: 'absolute' }}>★</Text>
+                  <T style={{ color: '#ccc', fontSize: 18, position: 'absolute' }}>★</T>
                   {/* overlay half or full star */}
                   <View
                     style={{
@@ -550,19 +550,19 @@ const HomeScreen = ({ navigation }: any) => {
                       position: 'absolute',
                     }}
                   >
-                    <Text style={{ color: '#F0C419', fontSize: 18 }}>★</Text>
+                    <T style={{ color: '#F0C419', fontSize: 18 }}>★</T>
                   </View>
                 </View>
               )
             })}
           </View>
-          <Text style={styles.cardPrice}>
+          <T style={styles.cardPrice}>
             {Array.isArray(item.variants) && item.variants.length > 0 && (
               <>
                 {item.variants[0]?.price}€ {item.variants[0]?.unit ? `- ${item.variants[0]?.unit}` : ''}
               </>
             )}
-          </Text>
+          </T>
 
         </View>
       </TouchableOpacity>
@@ -585,9 +585,9 @@ const HomeScreen = ({ navigation }: any) => {
     // onPress={() => setIndex(index)}
     >
       <View>
-        <Text style={{ color: indexs === index ? '#000' : '#B4B4B4' }}>
+        <T style={{ color: indexs === index ? '#000' : '#B4B4B4' }}>
           {item.name}
-        </Text>
+        </T>
       </View>
     </TouchableOpacity>
   );
@@ -609,13 +609,13 @@ const HomeScreen = ({ navigation }: any) => {
                 style={styles.imageBackground}
                 resizeMode='stretch'
               >
-                <Text style={styles.title}>WHITE PEONY TEA CO</Text>
-                <Text style={styles.subtitle}>
+                <T style={styles.title}>WHITE PEONY TEA CO</T>
+                <T style={styles.subtitle}>
                   Best Organic Tea Delivered Worldwide
-                </Text>
+                </T>
 
                 <TouchableOpacity style={styles.button}>
-                  <Text style={styles.buttonText}>Shop Now</Text>
+                  <T style={styles.buttonText}>Shop Now</T>
                 </TouchableOpacity>
               </ImageBackground>
             </View>
@@ -656,7 +656,7 @@ const HomeScreen = ({ navigation }: any) => {
             <ActivityIndicator style={{ marginLeft: 8 }} size="small" color="#2DA3C7" />
           ) : searchQuery ? (
             <TouchableOpacity onPress={clearSearch} style={{ marginLeft: 8 }}>
-              <Text style={{ fontSize: 16 }}>✕</Text>
+              <T style={{ fontSize: 16 }}>✕</T>
             </TouchableOpacity>
           ) : (
             <TouchableOpacity style={styles.microphone}>
@@ -703,9 +703,9 @@ const HomeScreen = ({ navigation }: any) => {
             marginVertical: 20,
           }}
         >
-          <Text style={styles.sectionTitle}>Best Sale Products</Text>
+          <T style={styles.sectionTitle}>Best Sale Products</T>
           <TouchableOpacity onPress={() => navigation.navigate('CategoryDetailsList', { mode: 'Best Sale', categoryTitle: 'Best Sale Products' })}>
-            <Text style={{ color: '#AEB254', fontSize: 15 }}>See More</Text>
+            <T style={{ color: '#AEB254', fontSize: 15 }}>See More</T>
           </TouchableOpacity>
         </View>
 
@@ -750,7 +750,7 @@ const HomeScreen = ({ navigation }: any) => {
             ListEmptyComponent={() =>
               searchQuery.trim() ? (
                 <View style={{ padding: 20 }}>
-                  <Text style={{ color: '#666' }}>No results for "{searchQuery}"</Text>
+                  <T style={{ color: '#666' }}>No results for "{searchQuery}"</T>
                 </View>
               ) : null
             }
@@ -796,7 +796,7 @@ const HomeScreen = ({ navigation }: any) => {
                   >
                     <Image source={item.image} style={styles.smallImage} />
                     <Animated.View style={[styles.smallOverlay, { opacity }]}>
-                      <Text style={styles.smallOverlayText}>{item.title}</Text>
+                      <T style={styles.smallOverlayText}>{item.title}</T>
                     </Animated.View>
                   </Animated.View>
                 </TouchableOpacity>
@@ -822,9 +822,9 @@ const HomeScreen = ({ navigation }: any) => {
               marginTop: 10,
             }}
           >
-            <Text style={styles.sectionTitle}>Recomended For You</Text>
+            <T style={styles.sectionTitle}>Recomended For You</T>
             <TouchableOpacity onPress={() => navigation.navigate('CategoryDetailsList', { mode: 'recommended', categoryTitle: 'Recommended For You' })}>
-              <Text style={{ color: '#AEB254', fontSize: 15 }}>See More</Text>
+              <T style={{ color: '#AEB254', fontSize: 15 }}>See More</T>
             </TouchableOpacity>
           </View>
 

@@ -22,6 +22,7 @@ import PaymentSuccess from "../screens/HomeTab/PaymentSuccess";
 import { checkFirstLaunch, setFirstLaunch } from "../helpers/helpers";
 import MyEventsScreen from "../screens/EventTab/MyEvents";
 import Slugs from "../screens/ProfileTab/Slugs";
+import SelectLanguageScreen from "../SelectLanguageScreen";
 
 
 
@@ -47,8 +48,9 @@ const HomeStackNavigator: FC = () => {
 
 
   return (
-    <Stack.Navigator initialRouteName={isFirstLaunch ? "IntroScreen" : "BottomTabScreen"} screenOptions={{ headerShown: false }}>
+    <Stack.Navigator initialRouteName={isFirstLaunch ? "SelectLanguageScreen" : "BottomTabScreen"} screenOptions={{ headerShown: false }}>
       <Stack.Screen name="SplashScreens" component={SplashScreens} />
+      <Stack.Screen name="SelectLanguageScreen" component={SelectLanguageScreen} />
       <Stack.Screen name="BottomTabScreen" component={BottomTabScreen} />
       <Stack.Screen name="HomeScreen" component={HomeScreen} />
       <Stack.Screen name="CategoryScreen" component={CategoryScreen} />

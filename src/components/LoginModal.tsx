@@ -272,7 +272,7 @@ const LoginModal: React.FC<AuthModalProps> = ({
                     placeholderTextColor={Colors.text[200]}
                     value={emailOrPhone}
                     onChangeText={setEmailOrPhone}
-                    keyboardType="default"
+                    keyboardType='name-phone-pad'
                   />
                 </View>
 

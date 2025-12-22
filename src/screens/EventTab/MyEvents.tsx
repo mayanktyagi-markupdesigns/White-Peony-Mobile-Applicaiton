@@ -145,7 +145,7 @@ const MyEventsScreen = ({ navigation }) => {
                     <Image source={require('../../assets/Png/back.png')} style={{ width: 20, height: 20 }} />
                 </TouchableOpacity>
                 <Text style={styles.headerTitle}>My Event</Text>
-                <View></View>
+                <View />
             </View>
 
             {events.length === 0 ? (
