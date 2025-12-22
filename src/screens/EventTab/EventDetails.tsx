@@ -342,7 +342,7 @@ const EventDetails = ({ navigation, route }: any) => {
 export default EventDetails;
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#fff', top: Platform.OS === 'android' ? StatusBar.currentHeight : 0, },
+  container: { flex: 1, backgroundColor: '#fff', marginTop: Platform.OS === 'android' ? StatusBar.currentHeight : 0, },
   scroll: { padding: 16, paddingBottom: 120 },
   card: { backgroundColor: '#fff' },
   headerRow: {
@@ -351,7 +351,8 @@ const styles = StyleSheet.create({
     marginBottom: 12,
     width: '90%',
     alignSelf: 'center',
-    marginTop: '10%',
+    marginVertical: 15
+
   },
   backBtn: { padding: 8, marginRight: 8 },
   screenTitle: { flex: 1, textAlign: 'center', fontWeight: '600' },

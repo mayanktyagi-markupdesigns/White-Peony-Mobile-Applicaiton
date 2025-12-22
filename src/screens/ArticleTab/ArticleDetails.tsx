@@ -153,7 +153,7 @@ const ArticleDetails = ({ navigation, route }: any) => {
 export default ArticleDetails
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#fff', top: Platform.OS === 'android' ? StatusBar.currentHeight : 0, },
+  container: { flex: 1, backgroundColor: '#fff', marginTop: Platform.OS === 'android' ? StatusBar.currentHeight : 0, },
   scroll: { paddingBottom: 120 },
   card: { borderRadius: 16, overflow: 'hidden', backgroundColor: '#fff' },
   headerImage: { width: '100%', height: 378, borderBottomLeftRadius: 20, borderBottomRightRadius: 20 },

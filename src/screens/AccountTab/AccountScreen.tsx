@@ -108,7 +108,6 @@ const AccountScreen = ({ navigation }: AccountScreenProps) => {
   return (
     <LinearGradient style={styles.container} colors={['#F3F3F3', '#FFFFFF']} start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }}>
       <View style={styles.header}>
-        {/* no back icon as requested */}
         <Text style={styles.headerTitle}>Account</Text>
         {isLoggedIn ? (<TouchableOpacity onPress={() => signout()} style={styles.logoutIcon}>
           <Image
@@ -356,7 +355,6 @@ const AccountScreen = ({ navigation }: AccountScreenProps) => {
             marginTop: 12,
             borderWidth: 1,
             borderColor: '#E5E5E5',
-            height: 173,
             borderRadius: 6,
             backgroundColor: '#FFFFFF',
           }}
@@ -453,7 +451,6 @@ const AccountScreen = ({ navigation }: AccountScreenProps) => {
               justifyContent: 'space-between',
               alignItems: 'center',
               paddingHorizontal: 8,
-
               backgroundColor: '#FFFFFF',
             }}
           >
@@ -490,13 +487,12 @@ const AccountScreen = ({ navigation }: AccountScreenProps) => {
 export default AccountScreen;
 
 const styles = StyleSheet.create({
-  container: { flex: 1, },
+  container: { flex: 1, marginTop: StatusBar.currentHeight },
   header: {
-    height: 72,
     alignItems: 'center',
     justifyContent: 'center',
     position: 'relative',
-    marginTop: Platform.OS === 'android' ? StatusBar.currentHeight : StatusBar.currentHeight,
+    marginVertical: 15
   },
   headerTitle: { fontSize: 18, fontWeight: '600' },
   logoutIcon: { position: 'absolute', right: 16, alignItems: 'center' },

@@ -253,6 +253,8 @@ const EventScreen = ({ navigation }: any) => {
 
   return (
     <View style={styles.container}>
+      <StatusBar barStyle={Platform.OS === 'ios' ? 'dark-content' : 'dark-content'} />
+
       <View style={{ backgroundColor: '#FFFFF0', height: 160 }}>
         <View style={styles.header}>
           <Text style={styles.headerTitle}>Events</Text>
@@ -409,12 +411,11 @@ const EventScreen = ({ navigation }: any) => {
 export default EventScreen;
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#fff', top: Platform.OS === 'android' ? StatusBar.currentHeight : 0, },
+  container: { flex: 1, backgroundColor: '#fff', marginTop: Platform.OS === 'android' ? StatusBar.currentHeight : 0, },
   header: {
     height: 90,
     justifyContent: 'center',
     alignItems: 'center',
-    marginTop: 20,
   },
   headerTitle: { fontSize: 18, fontWeight: '600' },
   searchRow: {

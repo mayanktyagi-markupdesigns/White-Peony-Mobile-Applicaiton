@@ -11,6 +11,8 @@ import {
   ScrollView,
   ImageBackground,
   Modal,
+  StatusBar,
+  Platform,
 } from 'react-native';
 import Toast from 'react-native-toast-message';
 import { CommonLoader } from '../../components/CommonLoader/commonLoader';
@@ -117,9 +119,9 @@ const ArticleScreen = ({ navigation }: any) => {
 
   return (
     <View style={styles.container}>
-      {/* <View style={styles.header}>
-        <Text style={styles.headerTitle}>Events</Text>
-      </View> */}
+      <StatusBar barStyle={Platform.OS === 'ios' ? 'dark-content' : 'dark-content'} />
+
+
       <View style={{ backgroundColor: '#FFFFF0', height: 160 }}>
         <View style={styles.header}>
           <Text style={styles.headerTitle}>Articles</Text>
@@ -256,12 +258,11 @@ const ArticleScreen = ({ navigation }: any) => {
 export default ArticleScreen;
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#fff' },
+  container: { flex: 1, backgroundColor: '#fff', marginTop: StatusBar.currentHeight },
   header: {
     height: 90,
     justifyContent: 'center',
     alignItems: 'center',
-    marginTop: 20,
   },
   headerTitle: { fontSize: 18, fontWeight: '600' },
   searchRow: {

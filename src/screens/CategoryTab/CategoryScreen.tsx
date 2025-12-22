@@ -9,6 +9,8 @@ import {
   FlatList,
   Dimensions,
   Image,
+  StatusBar,
+  Platform,
 } from 'react-native';
 import { UserService } from '../../service/ApiService';
 import { HttpStatusCode } from 'axios';
@@ -18,6 +20,7 @@ const { width } = Dimensions.get('window');
 
 
 const CategoryScreen = ({ navigation }) => {
+
   const renderItem = ({ item }: { item: any }) => (
     <TouchableOpacity style={styles.tile} activeOpacity={0.9} onPress={() => navigation.navigate('CategoryDetailsList', { categoryId: item.id, categoryTitle: item.name })}>
       <ImageBackground
@@ -57,6 +60,7 @@ const CategoryScreen = ({ navigation }) => {
   };
   return (
     <View style={styles.container}>
+      <StatusBar barStyle={Platform.OS === 'ios' ? 'dark-content' : 'dark-content'} />
       <View style={{ backgroundColor: '#FFFFF0', height: 160 }}>
         <View style={styles.header}>
           <Text style={styles.headerTitle}>Categories</Text>
@@ -92,13 +96,13 @@ const CategoryScreen = ({ navigation }) => {
 export default CategoryScreen;
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#fff' },
+  container: { flex: 1, backgroundColor: '#fff', marginTop: StatusBar.currentHeight },
   header: {
     height: 80,
     alignItems: 'center',
     justifyContent: 'center',
     position: 'relative',
-    marginTop: 30,
+
   },
   headerTitle: { fontSize: 18, fontWeight: '600' },
   logoutIcon: { position: 'absolute', right: 16, top: 28 },
