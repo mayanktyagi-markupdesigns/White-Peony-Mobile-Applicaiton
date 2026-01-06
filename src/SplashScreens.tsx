@@ -23,7 +23,7 @@ const SplashScreens = () => {
 
   return (
     <View style={styles.container}>
-      <StatusBar barStyle={Platform.OS === 'ios' ? 'dark-content' : 'dark-content'}/>
+      <StatusBar barStyle={Platform.OS === 'ios' ? 'dark-content' : 'default'}/>
 
       <Image source={logo} style={styles.logo} resizeMode="contain" />
 

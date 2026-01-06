@@ -1,5 +1,6 @@
 
 import { DarkTheme, DefaultTheme, NavigationContainer } from '@react-navigation/native';
+import './src/components/TextOverride';
 import React, { useEffect } from 'react';
 import HomeStackNavigator from './src/navigations/HomeStackNavigation';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';

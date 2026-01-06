@@ -311,16 +311,16 @@ const styles = StyleSheet.create({
         fontSize: 16,
     },
     confirmButton: {
-        backgroundColor: '#c3d200',
+        backgroundColor: '#E2E689',
         paddingVertical: 12,
         borderRadius: 5,
         marginTop: 10,
         alignItems: 'center',
     },
     confirmButtonText: {
-        fontSize: 18,
-        fontWeight: 'bold',
-        color: 'black',
+        fontSize: 14,
+        fontWeight: '700',
+        color: '#000',
     },
     addressTypeContainer: {
         flexDirection: 'row',
@@ -346,7 +346,7 @@ const styles = StyleSheet.create({
         backgroundColor: '#fff',
     },
     addressTypeButtonSelected: {
-        borderColor: '#c3d200',
+        borderColor: '#E2E689',
         backgroundColor: '#f8fbe5',
     },
     addressTypeIcon: {
@@ -358,7 +358,7 @@ const styles = StyleSheet.create({
         color: '#666',
     },
     addressTypeLabelSelected: {
-        color: '#c3d200',
+        color: '#E2E689',
         fontWeight: 'bold',
     },
 });

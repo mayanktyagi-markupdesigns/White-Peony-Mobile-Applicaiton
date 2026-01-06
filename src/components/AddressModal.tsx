@@ -155,7 +155,7 @@ const AddressModal: React.FC<AddressModalProps> = ({
                         <Text style={styles.header}>Select Address</Text>
 
                         <TouchableOpacity style={styles.addButton} onPress={() => handleAddressSelect(null)}>
-                            <Text style={styles.addText}>➕ Add New Address</Text>
+                            <Text style={styles.addText}>+ Add New Address</Text>
                         </TouchableOpacity>
 
                         <ScrollView style={{ maxHeight: 300, marginTop: 15 }}>
@@ -240,7 +240,7 @@ const styles = StyleSheet.create({
         alignItems: "center",
     },
     addText: {
-        color: "#6B8E23",
+        color: "#E2E689",
         fontWeight: "600",
     },
     addressCard: {
@@ -253,7 +253,7 @@ const styles = StyleSheet.create({
     addressLabel: {
         fontSize: 14,
         fontWeight: "600",
-        color: "#6B8E23",
+        color: "#AEB254",
     },
     addressName: {
         fontSize: 15,
@@ -265,14 +265,15 @@ const styles = StyleSheet.create({
         color: "#555",
     },
     closeButton: {
-        backgroundColor: "#007AFF",
+        backgroundColor: "#E2E689",
         paddingVertical: 12,
         borderRadius: 10,
         marginTop: 10,
     },
     closeText: {
-        color: "#fff",
+        color: "#000",
         fontWeight: "600",
         textAlign: "center",
+        fontSize: 14
     },
 });

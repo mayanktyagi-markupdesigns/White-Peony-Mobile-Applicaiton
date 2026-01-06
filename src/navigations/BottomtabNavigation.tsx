@@ -31,14 +31,14 @@ const CustomTabBarIcon: React.FC<CustomTabBarIconProps> = ({
       <Image
         source={source}
         style={[
-          styles.icon,
-          { tintColor: focused ? '#AEB254' : Colors.text[600] },
+          styles.icon, 
+          { tintColor: focused ? undefined : Colors.text[300], },
         ]}
         resizeMode="contain"
       />
       <Text
         style={{
-          color: focused ? '#AEB254' : Colors.text[600],
+          color: focused ? '#AEB254' : Colors.text[300],
           fontSize: 12,
           marginTop: 4,
         }}
@@ -56,7 +56,7 @@ const BottomTabScreen = () => {
         tabBarStyle: styles.tabBar,
         tabBarHideOnKeyboard: true,
         tabBarActiveTintColor: "#AEB254", // active color
-        tabBarInactiveTintColor: "#A9A9A9", // inactive color
+        tabBarInactiveTintColor: "#999", // inactive color
         tabBarLabelStyle: {
           fontSize: 12,
           marginTop: 10, // Updated active tint color
@@ -66,15 +66,15 @@ const BottomTabScreen = () => {
           let iconSource;
 
           if (route.name === 'Home') {
-            iconSource = Images.home; // Replace with your image path
+            iconSource = focused? Images.homeC: Images.home; // Replace with your image path
           } else if (route.name === 'Category') {
-            iconSource = Images.category; // Replace with your image path
+            iconSource = focused? Images.shoppingc: Images.category; // Replace with your image path
           } else if (route.name === 'Events') {
-            iconSource = Images.event; // Updated image path for Events
+            iconSource = focused? Images.eventC: Images.event; // Updated image path for Events
           } else if (route.name === 'Articles') {
-            iconSource = Images.article; // Updated image path for Articles
+            iconSource = focused? Images.blogC: Images.article; // Updated image path for Articles
           } else if (route.name === 'Accounts') {
-            iconSource = Images.account; // Updated image path for Accounts
+            iconSource = focused? Images.GroupC: Images.account; // Updated image path for Accounts
           }
 
           return (

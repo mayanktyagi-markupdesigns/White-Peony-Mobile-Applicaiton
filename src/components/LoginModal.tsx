@@ -145,7 +145,7 @@ const LoginModal: React.FC<AuthModalProps> = ({
             });
             console.log('Login successful:', res.data);
             setStep("otp");
-            Alert.alert('White Peony', JSON.stringify(res.data.otp));
+            // Alert.alert('White Peony', JSON.stringify(res.data.otp));
           } else {
             Toast.show({
               type: 'error',

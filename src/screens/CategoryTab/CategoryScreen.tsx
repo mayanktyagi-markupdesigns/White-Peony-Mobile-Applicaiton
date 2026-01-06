@@ -60,8 +60,8 @@ const CategoryScreen = ({ navigation }) => {
   };
   return (
     <View style={styles.container}>
-      <StatusBar barStyle={Platform.OS === 'ios' ? 'dark-content' : 'dark-content'} />
-      <View style={{ backgroundColor: '#FFFFF0', height: 160 }}>
+      <StatusBar barStyle={Platform.OS === 'ios' ? 'dark-content' : 'default'} />
+      <View style={{ backgroundColor: '#FFFFF', height: 160 }}>
         <View style={styles.header}>
           <Text style={styles.headerTitle}>Categories</Text>
         </View>

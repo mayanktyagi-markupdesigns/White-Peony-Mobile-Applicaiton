@@ -73,7 +73,6 @@ const SelectLanguageScreen = ({ navigation }: { navigation: any }) => {
         <TouchableOpacity
           style={[
             styles.nextButton,
-            !selectedLanguage && styles.nextButtonDisabled,
           ]}
           onPress={handleNext}
           disabled={!selectedLanguage}
@@ -100,12 +99,11 @@ const styles = StyleSheet.create({
     flex: 1,
     width: "100%",
     alignItems: "center",
-    paddingTop: hp(40),
+    paddingTop: hp(60),
   },
 
   TopTitle: {
     fontSize: 24,
-    fontFamily: Fonts.Ubuntu_Regular,
     color: Colors.text[200],
     marginBottom: hp(3),
     textAlign: "center",
@@ -113,17 +111,16 @@ const styles = StyleSheet.create({
 
   langList: {
     width: "90%",
-    marginTop: hp(3),
     justifyContent: 'center',
     alignItems: "center"
   },
 
   languageCard: {
     width: "100%",
-    height: 58,
+    height: 50,
     borderRadius: 12,
     borderWidth: 1,
-    borderColor: Colors.text[200],
+    borderColor: '#E2E689',
     backgroundColor: Colors.text[100],
     flexDirection: "row",
     alignItems: "center",
@@ -133,7 +130,7 @@ const styles = StyleSheet.create({
 
   languageCardSelected: {
     backgroundColor: Colors.text[100],
-    borderColor: Colors.text[200],
+    borderColor: '#E2E689',
     borderWidth: 2,
     shadowColor: "#000",
     shadowOpacity: 0.1,
@@ -146,7 +143,7 @@ const styles = StyleSheet.create({
     height: 24,
     borderRadius: 12,
     borderWidth: 2,
-    borderColor: Colors.text[100],
+    borderColor: '#E2E689',
     alignItems: "center",
     justifyContent: "center",
     alignSelf: "center",
@@ -157,37 +154,27 @@ const styles = StyleSheet.create({
     width: 12,
     height: 12,
     borderRadius: 6,
-    backgroundColor: Colors.text[200],
+    backgroundColor: '#E2E689',
   },
 
   languageText: {
     marginLeft: 16,
-    fontSize: 18,
+    fontSize: 14,
     color: Colors.text[200],
     textAlign: 'center',
-    fontFamily: Fonts.Ubuntu_Regular,
   },
 
   nextButton: {
-    width: "85%",
-    paddingVertical: 14,
-    borderRadius: 30,
-    backgroundColor: Colors.text[100],
-    borderColor: Colors.button[100],
-    alignItems: "center",
-    justifyContent: "center",
-    position: "absolute",
-    bottom: hp(10),
-  },
-
-  nextButtonDisabled: {
-    backgroundColor: Colors.text[200],
+    top: hp(3),
+    backgroundColor: '#E2E689',
+    borderRadius: 12,
+    paddingHorizontal: 40,
+    paddingVertical: 8,
   },
 
   nextButtonText: {
-    color: Colors.text[200],
-    fontSize: 18,
-    fontWeight: "bold",
-    fontFamily: Fonts.Ubuntu_Regular,
+    color: '#000',
+    fontSize: 14,
+    fontWeight: '600',
   },
 });

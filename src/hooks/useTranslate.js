@@ -15,7 +15,7 @@ const STORAGE_KEY = "app_lang";
 
 const TranslationContext = createContext({
   lang: DEFAULT_LANG,
-  changeLanguage: async () => {},
+  changeLanguage: async () => { },
   t: async (text) => text,
   isReady: false,
 });
@@ -39,7 +39,13 @@ export const TranslationProvider = ({ children }) => {
           setLang(deviceLang);
         }
       } catch (error) {
-        console.warn("Failed to load language preference", error);
+        hideloader();
+        if (error.status === 401) {
+          console.log('Unauthorized access - perhaps token expired');
+        }
+        else {
+          Toast.show({ type: 'error', text1: 'Failed to load wishlist' });
+        }
       } finally {
         setIsReady(true);
       }

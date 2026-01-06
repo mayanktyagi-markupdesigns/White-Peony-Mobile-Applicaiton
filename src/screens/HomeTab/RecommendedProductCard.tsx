@@ -41,11 +41,14 @@ const RecommendedProductCard = ({ item, navigation, loadProduct }) => {
         >
             <Image
                 source={{ uri: item.images?.[0] }}
-                style={styles.cardImage}
+                style={styles.cardImage} resizeMode='cover'
             />
             <View style={styles.cardBody}>
                 <Text numberOfLines={1} style={styles.cardTitle}>{item.name}</Text>
-                <Text style={styles.cardPrice}>{item.price}</Text>
+                <View style={{ flexDirection: 'row', alignItems: 'center', marginTop: 6, }}>
+                    <Text style={styles.cardPrice}>{Math.round(item.price)}</Text>
+                    <Text style={styles.cardPrice}> €</Text>
+                </View>
 
                 <View style={{ flexDirection: 'row', marginTop: 8 }}>
                     {[1, 2, 3, 4, 5].map((r) => {
@@ -53,9 +56,7 @@ const RecommendedProductCard = ({ item, navigation, loadProduct }) => {
                         const isHalf = item?.average_rating >= r - 0.5 && item?.average_rating < r;
                         return (
                             <View key={r} style={{ width: 18, height: 18, position: 'relative' }}>
-                                {/* base gray star */}
                                 <Text style={{ color: '#ccc', fontSize: 18, position: 'absolute' }}>★</Text>
-                                {/* overlay half or full star */}
                                 <View
                                     style={{
                                         width: isFull ? '100%' : isHalf ? '50%' : '0%',
@@ -117,7 +118,7 @@ const styles = StyleSheet.create({
         marginTop: 16,
     },
     cartButtonActive: {
-        backgroundColor: '#2DA3C7',
+        backgroundColor: '#E2E689',
     },
     cartButtonDisabled: {
         opacity: 0.7,
@@ -147,10 +148,9 @@ const styles = StyleSheet.create({
     cardBody: { padding: 8, alignItems: 'center', justifyContent: 'center' },
     cardTitle: { fontSize: 13, fontWeight: '600' },
     cardPrice: {
-        marginTop: 6,
         fontSize: 14,
         fontWeight: '700',
-        color: '#0b3b2e',
+        color: '#000',
     },
 
 })

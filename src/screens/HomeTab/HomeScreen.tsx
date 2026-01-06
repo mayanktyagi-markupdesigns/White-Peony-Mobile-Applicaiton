@@ -24,7 +24,7 @@ import { UserData, UserDataContext } from '../../context/userDataContext';
 import { WishlistContext } from '../../context/wishlistContext';
 import LoginModal from '../../components/LoginModal';
 import { useCart } from '../../context/CartContext';
-import { Colors } from '../../constant';
+import { Colors, Fonts } from '../../constant';
 const { width } = Dimensions.get('window');
 
 
@@ -149,8 +149,15 @@ const HomeScreen = ({ navigation }: any) => {
       setUserData(GetProfile);
       //console.log("userprofile", GetProfile)
     } catch (e) {
-      console.error('Wishlist fetch error:', e);
-      Toast.show({ type: 'error', text1: 'Failed to load wishlist' });
+      hideLoader();
+      const error = e as any;
+      if (error.status === 401) {
+        console.log('Unauthorized access - perhaps token expired');
+      }
+      else {
+        console.log('Profile fetch error:', JSON.stringify(e));
+        // Toast.show({ type: 'error', text1: 'Failed to load profile' });
+      }
     } finally {
       hideLoader();
     }
@@ -328,11 +335,9 @@ const HomeScreen = ({ navigation }: any) => {
   };
 
   const { toggleWishlist, isWishlisted, removeFromWishlist } = React.useContext(WishlistContext);
-  const [items, setItems] = useState<DisplayWishlistItem[]>([]);
-
 
   const renderProduct = ({ item }: { item: any }) => {
-    // console.log('Rendering product:', item?.name);
+    //console.log('Rendering product:', isWishlisted(item.id));
     const wished = isWishlisted(item.id);
 
     return (
@@ -437,7 +442,7 @@ const HomeScreen = ({ navigation }: any) => {
           <Text style={styles.cardPrice}>
             {Array.isArray(item.variants) && item.variants.length > 0 && (
               <>
-                {item.variants[0]?.price}€ {item.variants[0]?.unit ? `- ${item.variants[0]?.unit}` : ''}
+                {Math.round(item.variants[0]?.price)} € {item.variants[0]?.unit ? `- ${item.variants[0]?.unit}` : ''}
               </>
             )}
           </Text>
@@ -553,7 +558,7 @@ const HomeScreen = ({ navigation }: any) => {
           <Text style={styles.cardPrice}>
             {Array.isArray(item.variants) && item.variants.length > 0 && (
               <>
-                {item.variants[0]?.price}€ {item.variants[0]?.unit ? `- ${item.variants[0]?.unit}` : ''}
+                {Math.round(item.variants[0]?.price)} € {item.variants[0]?.unit ? `- ${item.variants[0]?.unit}` : ''}
               </>
             )}
           </Text>
@@ -571,15 +576,15 @@ const HomeScreen = ({ navigation }: any) => {
         backgroundColor: indexs === index ? '#E2E689' : '#FFF',
         borderRadius: 16,
         alignItems: 'center',
-        justifyContent: 'center',
-        padding: 5,
         paddingHorizontal: 10,
-        margin: 5,
+        justifyContent: 'center',
+        marginHorizontal: 0,
+        marginLeft: 12,
       }}
     // onPress={() => setIndex(index)}
     >
       <View>
-        <Text style={{ color: indexs === index ? '#000' : '#B4B4B4' }}>
+        <Text style={{ color: indexs === index ? '#000' : '#B4B4B4', fontFamily: Fonts.Redhat_Medium }}>
           {item.name}
         </Text>
       </View>
@@ -590,31 +595,29 @@ const HomeScreen = ({ navigation }: any) => {
     if (!promotional.length) return null;
 
     return (
-      <View style={{ marginTop: 10 }}>
-        <ScrollView
-          horizontal
-          pagingEnabled
-          showsHorizontalScrollIndicator={false}
-        >
-          {promotional.map((item: any, index: number) => (
-            <View key={String(index)} style={styles.page}>
-              <ImageBackground
-                source={{ uri: item.image_url }}
-                style={styles.imageBackground}
-                resizeMode='stretch'
-              >
+      <View style={{ marginVertical: 12 }}>
+
+        {promotional.map((item: any, index: number) => (
+          <View key={String(index)} style={styles.page}>
+            <ImageBackground
+              source={{ uri: item.image_url }}
+              style={styles.imageBackground}
+              resizeMode='cover'
+            >
+              <View style={{ position: 'absolute', top: '10%', left: 0, right: 0, bottom: 0, paddingHorizontal: 20 }}>
                 <Text style={styles.title}>WHITE PEONY TEA CO</Text>
                 <Text style={styles.subtitle}>
                   Best Organic Tea Delivered Worldwide
                 </Text>
 
-                <TouchableOpacity style={styles.button}>
+                {/* <TouchableOpacity style={styles.button}>
                   <Text style={styles.buttonText}>Shop Now</Text>
-                </TouchableOpacity>
-              </ImageBackground>
-            </View>
-          ))}
-        </ScrollView>
+                </TouchableOpacity> */}
+              </View>
+            </ImageBackground>
+          </View>
+        ))}
+
       </View>
     );
   };
@@ -622,14 +625,12 @@ const HomeScreen = ({ navigation }: any) => {
   return (
     <View style={styles.container}>
       <StatusBar barStyle='dark-content' />
-      <View style={{ backgroundColor: '#FFF', height: 209 }}>
+      <View style={{ backgroundColor: '#FFF', }}>
         <View style={styles.header}>
-          <View style={styles.headerLeft}>
-            <Image
-              source={require('../../assets/Png/headerLogo.png')}
-              style={{ width: 140, height: 22, backgroundColor: 'transparent' }}
-            />
-          </View>
+          <Image
+            source={require('../../assets/Png/headerLogo.png')}
+            style={{ width: 140, height: 22, backgroundColor: 'transparent' }}
+          />
           <TouchableOpacity style={styles.iconBtn} onPress={() => { isLoggedIn ? navigation.navigate('CheckoutScreen') : setModalVisible(true) }}>
             <Image
               source={require('../../assets/Png/order.png')}
@@ -662,6 +663,7 @@ const HomeScreen = ({ navigation }: any) => {
             </TouchableOpacity>
           )}
         </View>
+
         <FlatList
           data={category}
           keyExtractor={i => i.id}
@@ -671,7 +673,7 @@ const HomeScreen = ({ navigation }: any) => {
         />
       </View>
 
-      <ScrollView contentContainerStyle={{ paddingBottom: 80, marginTop: 20 }}>
+      <ScrollView contentContainerStyle={{ paddingBottom: 20, marginTop: 12 }}>
         <ScrollView
           horizontal
           pagingEnabled
@@ -694,7 +696,7 @@ const HomeScreen = ({ navigation }: any) => {
             flexDirection: 'row',
             justifyContent: 'space-between',
             alignItems: 'center',
-            paddingHorizontal: 16,
+            paddingHorizontal: 12,
             marginVertical: 20,
           }}
         >
@@ -762,8 +764,7 @@ const HomeScreen = ({ navigation }: any) => {
             horizontal
             showsHorizontalScrollIndicator={false}
             contentContainerStyle={{
-              paddingLeft: 16,
-              paddingRight: 12,
+              marginHorizontal: 12,
               alignItems: 'center',
             }}
             renderItem={({ item, index }) => {
@@ -782,7 +783,7 @@ const HomeScreen = ({ navigation }: any) => {
                     style={{
                       width: widthAnim,
                       height: 82,
-                      marginRight: 12,
+                      marginRight: 10,
                       borderRadius: 8,
                       overflow: 'hidden',
                       zIndex: index === activeSmallIndex ? 2 : 1,
@@ -812,9 +813,8 @@ const HomeScreen = ({ navigation }: any) => {
               flexDirection: 'row',
               justifyContent: 'space-between',
               alignItems: 'center',
-              paddingHorizontal: 16,
-              marginBottom: 10,
-              marginTop: 10,
+              paddingHorizontal: 12,
+              marginVertical: 15,
             }}
           >
             <Text style={styles.sectionTitle}>Recomended For You</Text>
@@ -877,10 +877,11 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    paddingHorizontal: 16,
+    paddingHorizontal: 12,
     marginVertical: 15,
+    height: '6%',
+    paddingTop: 10
   },
-  headerLeft: {},
   appTitle: { fontSize: 20, fontWeight: '700', color: '#0b3b2e' },
   headerRight: { flexDirection: 'row' },
   iconBtn: { position: 'absolute', right: 20 },
@@ -889,7 +890,7 @@ const styles = StyleSheet.create({
   searchRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingHorizontal: 16,
+    paddingHorizontal: 12,
     marginBottom: 12,
     marginTop: '3%',
   },
@@ -916,7 +917,6 @@ const styles = StyleSheet.create({
   sectionTitle: {
     fontSize: 16,
     fontWeight: '700',
-    marginLeft: 16,
   },
   imageBackground: {
     width: '100%',
@@ -926,19 +926,18 @@ const styles = StyleSheet.create({
   },
   title: {
     textAlign: 'center',
-    fontSize: 24,
+    fontSize: 18,
     color: '#338AB1',
     marginTop: 0,
     fontWeight: '600',
   },
   page: {
-    width, // full screen width for clean paging
     alignItems: 'center',
     justifyContent: 'center',
   },
   subtitle: {
     textAlign: 'center',
-    fontSize: 20,
+    fontSize: 22,
     color: '#000000',
     marginTop: 10,
     fontWeight: '400',
@@ -963,7 +962,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     marginBottom: 12,
   },
-  card: { paddingHorizontal: 8 },
+  card: { paddingHorizontal: 12 },
   CateView: {
     width: 'auto',
     height: 32,

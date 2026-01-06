@@ -40,8 +40,14 @@ const EditProfile = ({ navigation, route }) => {
         setUserData(GetProfile)
         console.log(GetProfile)
       } catch (e) {
-        console.error('Wishlist fetch error:', e);
-        Toast.show({ type: 'error', text1: 'Failed to load wishlist' });
+        hideLoader();
+        const error = e as any;
+        if (error.status === 401) {
+          console.log('Unauthorized access - perhaps token expired');
+        }
+        else {
+          Toast.show({ type: 'error', text1: 'Failed to load profile' });
+        }
       } finally {
         hideLoader();
       }
@@ -271,7 +277,7 @@ const EditProfile = ({ navigation, route }) => {
             <Image source={require('../../assets/Png/back.png')} style={{ width: 20, height: 20 }} />
           </TouchableOpacity>
           <Text style={styles.headerTitle}>My Profile</Text>
-          <Text onPress={() => navigation.navigate('BottomTabScreen')} style={[styles.headerTitle, { fontSize: 16, textDecorationLine: 'underline', color: '#999' }]}>Skip</Text>
+          <Text onPress={() => navigation.navigate('BottomTabScreen')} style={[styles.headerTitle, { fontSize: 14, textDecorationLine: 'underline', color: '#999' }]}>Skip</Text>
         </View>
 
         <Image
@@ -420,7 +426,7 @@ const ProfileField = ({
         keyboardType={keyboardType}
         multiline={multiline}
       />
-      <Image source={require('../../assets/Png/edit.png')} style={{ width: 16, height: 16, }} />
+      <Image source={require('../../assets/Png/clock.png')} style={{ width: 16, height: 16, }} />
     </View>
     {error && <Text style={styles.errorText}>{error}</Text>}
   </View>
@@ -436,7 +442,7 @@ const styles = StyleSheet.create({
   header: {
     flexDirection: 'row',
     alignItems: 'center',
-    padding: 20,
+    padding: 12,
     justifyContent: 'space-between',
     width: widthPercentageToDP(100),
   },

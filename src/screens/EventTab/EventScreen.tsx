@@ -4,6 +4,7 @@ import {
   Text,
   StyleSheet,
   Image,
+  ImageBackground,
   TextInput,
   TouchableOpacity,
   FlatList,
@@ -23,7 +24,7 @@ import { formatDate } from '../../helpers/helpers';
 import Geolocation from 'react-native-geolocation-service';
 import { check, request, RESULTS, PERMISSIONS } from 'react-native-permissions';
 import { widthPercentageToDP } from '../../constant/dimentions';
-import { Colors } from '../../constant';
+import { Colors, Images } from '../../constant';
 const { width } = Dimensions.get('window');
 
 const EventScreen = ({ navigation }: any) => {
@@ -177,16 +178,32 @@ const EventScreen = ({ navigation }: any) => {
   };
 
   const renderUpcoming = ({ item }: { item: any }) => (
-    <TouchableOpacity style={styles.nearCard} onPress={() => { navigation.navigate('EventDetails', { event: item.id }), setUpcomingModalVisible(false) }} activeOpacity={0.8}>
-      <Image source={{ uri: Image_url + item.image }} style={styles.nearImage} />
-      <View style={styles.nearBody}>
-        <Text numberOfLines={1} style={styles.nearTitle}>
-          {item.title}
-        </Text>
-        <Text style={styles.nearMeta}>
-          {item.address} • {item.remaining_seats}
-        </Text>
-        <Text style={styles.nearDate}>{formatDate(item.event_date)}</Text>
+    <TouchableOpacity style={{ borderWidth: 1, borderRadius: 12, borderColor: '#D9D9D9', padding: 10,marginLeft: 5 }} onPress={() => { navigation.navigate('EventDetails', { event: item.id }), setUpcomingModalVisible(false) }} activeOpacity={0.8}>
+      <Image
+        source={{ uri: Image_url + item.image }}
+        style={[styles.upCard,]}
+      />
+      <TouchableOpacity style={styles.bookmarkBtn}>
+        <Image source={require('../../assets/Png/bookmark.png')} style={{ width: 16, height: 16, alignItems: 'center', alignSelf: 'center' }} />
+      </TouchableOpacity>
+      <View style={styles.upBadgeRow}>
+        <View style={styles.readBadge}>
+          <Text numberOfLines={2} style={styles.upTitleWhite}>
+            {item.title}
+          </Text>
+          <View style={{ flexDirection: 'row', alignItems: 'center', marginTop: 5 }}>
+            <Image source={Images.location} style={{ width: 15, height: 15, marginRight: 10, }} />
+            <Text numberOfLines={1} style={styles.upMetaWhite}>{item.address} • {item.remaining_seats} Seats Left</Text>
+          </View>
+          <View style={{ flexDirection: 'row', alignItems: 'center', marginTop: 5 }}>
+            <Image source={Images.clock_3} style={{ width: 15, height: 15, marginRight: 10, }} />
+            <Text style={styles.readBadgeText}>{formatDate(item.event_date)}</Text>
+          </View>
+          <View style={{ flexDirection: 'row', alignItems: 'center', marginTop: 5 }}>
+            <Image source={Images.officechair2} style={{ width: 15, height: 15, marginRight: 10, }} />
+            <Text style={styles.readBadgeText}>{'15 Seats Left'}</Text>
+          </View>
+        </View>
       </View>
     </TouchableOpacity>
   );
@@ -195,14 +212,23 @@ const EventScreen = ({ navigation }: any) => {
     <TouchableOpacity style={styles.nearCard} onPress={() => { navigation.navigate('EventDetails', { event: item.id }), setNearbyModalVisible(false) }} activeOpacity={0.8}>
       <Image source={{ uri: Image_url + item.image }} style={styles.nearImage} />
       <View style={styles.nearBody}>
-        <Text numberOfLines={1} style={styles.nearTitle}>
+        <Text numberOfLines={2} style={styles.nearTitle}>
           {item.title}
         </Text>
-        <Text style={styles.nearMeta}>
-          {item.address} • {item.remaining_seats}
-        </Text>
-        <Text style={styles.nearDate}>{formatDate(item.event_date)}</Text>
+
+        <View style={{ flexDirection: 'row', alignItems: 'center', marginTop: 6 }}>
+          <Image source={Images.location} style={{ width: 14, height: 14, marginRight: 6 }} />
+          <Text numberOfLines={1} style={styles.nearMeta}>{item.address} • {item.remaining_seats} Seats Left</Text>
+        </View>
+
+        <View style={{ flexDirection: 'row', alignItems: 'center', marginTop: 6 }}>
+          <Image source={Images.clock_3} style={{ width: 14, height: 14, marginRight: 6 }} />
+          <Text style={styles.nearDate}>{formatDate(item.event_date)}</Text>
+        </View>
       </View>
+      <TouchableOpacity style={{ marginLeft: 8 }}>
+        <Image source={require('../../assets/Png/bookmark.png')} style={{ width: 20, height: 20, tintColor: '#AEB254' }} />
+      </TouchableOpacity>
     </TouchableOpacity>
   );
 
@@ -253,9 +279,9 @@ const EventScreen = ({ navigation }: any) => {
 
   return (
     <View style={styles.container}>
-      <StatusBar barStyle={Platform.OS === 'ios' ? 'dark-content' : 'dark-content'} />
+      <StatusBar barStyle={Platform.OS === 'ios' ? 'dark-content' : 'default'} />
 
-      <View style={{ backgroundColor: '#FFFFF0', height: 160 }}>
+      <View style={{ backgroundColor: '#FFFFF', height: 140 }}>
         <View style={styles.header}>
           <Text style={styles.headerTitle}>Events</Text>
         </View>
@@ -290,14 +316,13 @@ const EventScreen = ({ navigation }: any) => {
           )}
         </View>
       </View>
-
-      {/* single FlatList as main vertical container to avoid nested VirtualizedLists */}
+      
       <FlatList
         data={searchQuery.trim() ? searchResults : NearbyEvents}
         keyExtractor={(i) => String(i.id)}
         renderItem={renderNear}
         showsVerticalScrollIndicator={false}
-        contentContainerStyle={{ paddingBottom: 20 }}
+        contentContainerStyle={{ paddingBottom: 20, }}
         ListHeaderComponent={() => (
           <View>
             <View style={styles.sectionHeader}>
@@ -328,28 +353,16 @@ const EventScreen = ({ navigation }: any) => {
                     renderItem={renderUpcoming}
                     horizontal
                     showsHorizontalScrollIndicator={false}
-                    contentContainerStyle={{ paddingLeft: 16, paddingRight: 12 }}
+                    contentContainerStyle={{ paddingLeft: 12,  }}
                   />
                 </View>
 
                 <View style={[styles.sectionHeader, { marginTop: 16 }]}>
                   <Text style={styles.sectionTitle}>Events Near You</Text>
-                  <TouchableOpacity onPress={() => setNearbyModalVisible(true)}>
+                  <TouchableOpacity onPress={() => { NearbyEvents.length == 0 ? Alert.alert('', 'No Event Found') : setNearbyModalVisible(true) }}>
                     <Text style={styles.seeMore}>See more</Text>
                   </TouchableOpacity>
                 </View>
-                {/* spacer wrapper to keep styling consistent */}
-                <View
-                  style={{
-                    width: '90%',
-                    alignSelf: 'center',
-                    justifyContent: 'center',
-                    borderWidth: 1,
-                    borderColor: '#D9D9D9',
-                    borderRadius: 10,
-                    marginTop: 10,
-                  }}
-                />
               </>
             )}
           </View>
@@ -357,11 +370,12 @@ const EventScreen = ({ navigation }: any) => {
         ListEmptyComponent={() =>
           !searchQuery.trim() ? (
             <View style={{ padding: 20 }}>
-              <Text style={{ color: '#666' }}>No nearby events found</Text>
+              <Text style={{ color: '#000', fontWeight: '700', alignSelf: 'center' }}>No nearby events found</Text>
             </View>
           ) : null
         }
       />
+
       {/* Upcoming events modal */}
       <Modal visible={upcomingModalVisible} transparent animationType="slide">
         <View style={modalStyles.overlay}>
@@ -413,16 +427,15 @@ export default EventScreen;
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#fff', marginTop: Platform.OS === 'android' ? StatusBar.currentHeight : 0, },
   header: {
-    height: 90,
+    height: 80,
     justifyContent: 'center',
     alignItems: 'center',
   },
   headerTitle: { fontSize: 18, fontWeight: '600' },
   searchRow: {
     flexDirection: 'row',
-    paddingHorizontal: 16,
+    paddingHorizontal: 12,
     alignItems: 'center',
-    marginBottom: 12,
   },
   searchInput: {
     flex: 1,
@@ -446,22 +459,24 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    paddingHorizontal: 16,
+    paddingHorizontal: 12,
     marginTop: 20,
   },
   sectionTitle: { fontSize: 16, fontWeight: '700' },
   seeMore: { color: '#AEB254' },
   upCard: {
-    width: 220,
-    marginRight: 12,
-    backgroundColor: '#fff',
+    width: '100%',
+    height: 175,
     borderRadius: 12,
-    overflow: 'hidden',
-    elevation: 2,
-    borderWidth: 1,
-    borderColor: '#D9D9D9',
-    padding: 5,
+    alignSelf: 'center'
   },
+  upBadgeRow: { flexDirection: 'row', justifyContent: 'space-between', padding: 12 },
+  readBadge: { backgroundColor: 'rgba(255,255,255,0.85)', borderRadius: 12 },
+  readBadgeText: { fontSize: 12, color: '#000' },
+  bookmarkBtn: { backgroundColor: '#E2E689', borderRadius: 18, width: 30, height: 30, position: 'absolute', top: 20, right: 20, alignItems: 'center', justifyContent: 'center', },
+  upTitleWrap: { flex: 1, justifyContent: 'flex-end', padding: 12 },
+  upTitleWhite: { color: '#000', fontSize: 16, fontWeight: '700' },
+  upMetaWhite: { color: '#000', fontSize: 12, opacity: 0.95 },
   upImage: { width: '100%', height: 120, borderRadius: 10 },
   upBody: { padding: 10 },
   upTitle: { fontSize: 14, fontWeight: '700' },
@@ -469,12 +484,12 @@ const styles = StyleSheet.create({
   upSeats: { marginTop: 8, color: '#6B6B6B', fontWeight: '600' },
   nearCard: {
     flexDirection: 'row',
-    alignItems: 'center',
+    alignSelf: 'center',
     backgroundColor: '#fff',
     borderRadius: 12,
     padding: 10,
-    marginTop: 12,
-    borderBottomWidth: 1, borderBottomColor: '#D9D9D9', width: widthPercentageToDP(95)
+    marginTop: 15,
+    borderBottomWidth: 0.9, borderBottomColor: '#D9D9D9', width: widthPercentageToDP(95)
   },
   microphone: {
     marginLeft: 8,
@@ -511,7 +526,7 @@ const modalStyles = StyleSheet.create({
   },
   content: {
     backgroundColor: '#fff',
-    padding: 16,
+    padding: 15,
     borderTopLeftRadius: 12,
     borderTopRightRadius: 12,
     maxHeight: '80%',

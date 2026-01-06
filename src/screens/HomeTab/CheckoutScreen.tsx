@@ -26,6 +26,7 @@ import { useFocusEffect } from '@react-navigation/native';
 import { widthPercentageToDP } from '../../constant/dimentions';
 import { useCart } from '../../context/CartContext';
 import { WebView } from 'react-native-webview';
+import { Images } from '../../constant';
 
 
 const SCREEN_WIDTH = Dimensions.get('window').width;
@@ -104,7 +105,13 @@ const CheckoutScreen = ({ navigation }: { navigation: any }) => {
         //console.log('Wishlist fetched:', apiWishlist[0]?.variants);
       } catch (e) {
         hideLoader();
-        Toast.show({ type: 'error', text1: 'Failed to load wishlist' });
+        const error = e as any;
+        if (error.status === 401) {
+          console.log('Unauthorized access - perhaps token expired');
+        }
+        else {
+          Toast.show({ type: 'error', text1: 'Failed to load wishlist' });
+        }
       } finally {
         hideLoader();
       }
@@ -489,7 +496,7 @@ const CheckoutScreen = ({ navigation }: { navigation: any }) => {
           >
             {/* Shipment of items */}
             <Text style={styles.sectionTitle}>
-              Shipment of {cartData.length} items
+              Shipment of {cartData?.items?.length} items
             </Text>
 
             <FlatList
@@ -523,38 +530,41 @@ const CheckoutScreen = ({ navigation }: { navigation: any }) => {
               ItemSeparatorComponent={() => <View style={{ width: 14 }} />}
             />
 
-            <View
-              style={{
-                backgroundColor: '#F3F3F3',
-                borderRadius: 6,
-                flexDirection: 'row',
-                justifyContent: 'center',
-                paddingVertical: 7,
-                margin: 20,
-              }}
-            >
-              <Image
-                source={require('../../assets/Png/Ellipse.png')}
-                style={{
-                  width: 14,
-                  height: 14,
-                  alignSelf: 'center',
-                  right: 10,
-                }}
-              />
-              <Text
-                style={[
-                  styles.moveToWishlistText,
-                  { alignSelf: 'center', color: '#000' },
-                ]}
-              >
-                See all products
-              </Text>
-              <Image
-                source={require('../../assets/Png/next.png')}
-                style={{ width: 12, height: 12, alignSelf: 'center', left: 10 }}
-              />
-            </View>
+            {items.length >= 3 ?
+              <TouchableOpacity onPress={() => navigation.navigate('WishlistScreen')} >
+                <View
+                  style={{
+                    backgroundColor: '#F3F3F3',
+                    borderRadius: 6,
+                    flexDirection: 'row',
+                    justifyContent: 'center',
+                    paddingVertical: 7,
+                    margin: 20,
+                  }}
+                >
+                  <Image
+                    source={require('../../assets/Png/Ellipse.png')}
+                    style={{
+                      width: 14,
+                      height: 14,
+                      alignSelf: 'center',
+                      right: 10,
+                    }}
+                  />
+                  <Text
+                    style={[
+                      styles.moveToWishlistText,
+                      { alignSelf: 'center', color: '#000' },
+                    ]}
+                  >
+                    See all products
+                  </Text>
+                  <Image
+                    source={require('../../assets/Png/next.png')}
+                    style={{ width: 12, height: 12, alignSelf: 'center', left: 10 }}
+                  />
+                </View>
+              </TouchableOpacity> : null}
           </View> : null}
 
           {/* Use Coupons */}
@@ -658,7 +668,7 @@ const CheckoutScreen = ({ navigation }: { navigation: any }) => {
                       <TouchableOpacity onPress={() => setPromoModalVisible(false)} style={{ backgroundColor: '#eee', paddingVertical: 12, borderRadius: 28, alignItems: 'center', flex: 1, marginRight: 8 }}>
                         <Text style={{ color: '#333' }}>Cancel</Text>
                       </TouchableOpacity>
-                      <TouchableOpacity onPress={() => SetPromo()} disabled={isApplyingPromo} style={{ backgroundColor: '#AEB254', paddingVertical: 12, borderRadius: 28, alignItems: 'center', flex: 1 }}>
+                      <TouchableOpacity onPress={() => SetPromo()} disabled={isApplyingPromo} style={{ backgroundColor: '#E2E689', paddingVertical: 12, borderRadius: 28, alignItems: 'center', flex: 1 }}>
                         <Text style={{ color: '#000', fontWeight: '700' }}>{isApplyingPromo ? 'Applying...' : 'Apply Coupon'}</Text>
                       </TouchableOpacity>
                     </View>
@@ -674,72 +684,71 @@ const CheckoutScreen = ({ navigation }: { navigation: any }) => {
               style={{
                 borderWidth: 1,
                 borderColor: '#D9D9D9',
-                borderRadius: 10,
+                borderRadius: 12,
                 margin: 10,
-                marginTop: 0,
                 padding: 10,
               }}
             >
-              <View style={styles.billDetailsCard}>
-                <Text style={styles.billTitle}>Bill details</Text>
+              <Text style={styles.billTitle}>Bill details</Text>
 
+              <View style={styles.billRow}>
+                <Text style={styles.billLabel}>Total</Text>
+                <Text style={styles.billValue}>{cartData?.total_amount ?? 0} €</Text>
+              </View>
+
+              {appliedPromo && (
                 <View style={styles.billRow}>
-                  <Text style={styles.billLabel}>Total</Text>
-                  <Text style={styles.billValue}>{cartData?.total_amount ?? 0} €</Text>
-                </View>
-
-                {appliedPromo && (
-                  <View style={styles.billRow}>
-                    <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-                      <Text style={[styles.billLabel, { color: '#5DA53B' }]}>
-                        Coupon ({appliedPromo.code ?? appliedPromo.promo_code})
-                      </Text>
-                      <TouchableOpacity onPress={removeCoupon} style={{ marginLeft: 6 }}>
-                        <Text style={{ color: '#FF0000', fontSize: 12 }}>Remove</Text>
-                      </TouchableOpacity>
-                    </View>
-                    <Text
-                      style={[
-                        styles.billValue,
-                        { color: '#5DA53B', fontWeight: '700' },
-                      ]}
-                    >
-                      -{discountAmount.toFixed(2)} €
+                  <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                    <Text style={[styles.billLabel, { color: '#E2E689' }]}>
+                      Coupon ({appliedPromo.code ?? appliedPromo.promo_code})
                     </Text>
+                    <TouchableOpacity onPress={removeCoupon} style={{ marginLeft: 6 }}>
+                      <Text style={{ color: '#FF0000', fontSize: 12 }}>Remove</Text>
+                    </TouchableOpacity>
                   </View>
-                )}
-
-                <View style={styles.billRow}>
-                  <Text style={[styles.billLabel, { fontWeight: '600' }]}>
-                    Delivery Charges
-                  </Text>
                   <Text
                     style={[
                       styles.billValue,
-                      { color: '#5DA53B', fontWeight: '600' },
+                      { color: '#E2E689', fontWeight: '700' },
                     ]}
                   >
-                    Free
+                    -{discountAmount.toFixed(2)} €
                   </Text>
                 </View>
+              )}
 
-                <View style={styles.billRow}>
-                  <Text
-                    style={[
-                      styles.billLabel,
-                      { fontWeight: '700', fontSize: 18 },
-                    ]}
-                  >
-                    Grand total
-                  </Text>
-                  <Text
-                    style={[
-                      styles.billValue,
-                      { fontWeight: '700', fontSize: 18 },
-                    ]}>
-                    {(Number(cartData?.total_amount ?? 0) - discountAmount).toFixed(2)} €
-                  </Text>
-                </View>
+              <View style={styles.billRow}>
+                <Text style={[styles.billLabel, { fontWeight: '500' }]}>
+                  Delivery Charges
+                </Text>
+                <Text
+                  style={[
+                    styles.billValue,
+                    { color: '#878B2F', fontWeight: '600' },
+                  ]}
+                >
+                  Free
+                </Text>
+              </View>
+
+              <View style={{ borderWidth: 0.6, width: '100%', borderColor: '#D9D9D9', marginVertical: 10 }}></View>
+
+              <View style={styles.billRow}>
+                <Text
+                  style={[
+                    styles.billLabel,
+                    { fontWeight: '700', fontSize: 14 },
+                  ]}
+                >
+                  Grand total
+                </Text>
+                <Text
+                  style={[
+                    styles.billValue,
+                    { fontWeight: '700', fontSize: 14 },
+                  ]}>
+                  {(Number(cartData?.total_amount ?? 0) - discountAmount).toFixed(2)} €
+                </Text>
               </View>
             </View>
           ) : null}
@@ -747,11 +756,11 @@ const CheckoutScreen = ({ navigation }: { navigation: any }) => {
           {/* Delivery address */}
           <View style={styles.deliveryAddressCard}>
             <Image
-              source={require('../../assets/Png/home.png')}
-              style={{ width: 20, height: 20, alignSelf: 'center' }}
+              source={Images.home}
+              style={{ width: 20, height: 20, alignSelf: 'center', tintColor: '#878B2F' }}
             />
 
-            <View style={{ alignSelf: 'center', marginLeft: 10 }}>
+            <View style={{ alignSelf: 'center', }}>
               <Text style={styles.deliveryAddressTitle}>
                 {selectedAddress?.address_type ? `Delivering to ${selectedAddress.address_type?.toString().charAt(0).toUpperCase()}${selectedAddress.address_type?.toString().slice(1)}` : 'Delivering to Home'}
               </Text>
@@ -761,7 +770,7 @@ const CheckoutScreen = ({ navigation }: { navigation: any }) => {
             </View>
 
 
-            <TouchableOpacity activeOpacity={0.7} onPress={async () => {
+            <TouchableOpacity style={{ alignSelf: 'center', }} activeOpacity={0.7} onPress={async () => {
               const opts = await Getshiping();
               if (opts && opts.length) {
                 setShippingModalVisible(true);
@@ -785,7 +794,7 @@ const CheckoutScreen = ({ navigation }: { navigation: any }) => {
             }}
           >
             <Image
-              source={require('../../assets/Png/shopping-cart.png')} tintColor={'#fff'}
+              source={require('../../assets/Png/shopping-cart.png')} tintColor={'#000'}
               style={{
                 width: 20,
                 height: 20,
@@ -817,7 +826,7 @@ const CheckoutScreen = ({ navigation }: { navigation: any }) => {
                 </View>
                 <Text style={{ fontSize: 18, fontWeight: '600', marginBottom: 12 }}>Delivery Method</Text>
                 {isFetchingShipping ? (
-                  <ActivityIndicator size="small" color="#5DA53B" />
+                  <ActivityIndicator size="small" color="#E2E689" />
                 ) : (
                   <FlatList
                     data={shippingOptions}
@@ -839,12 +848,12 @@ const CheckoutScreen = ({ navigation }: { navigation: any }) => {
                           }}
                         >
                           <View style={{ flex: 1 }}>
-                            <Text style={{ fontWeight: '600' }}>{item.type}</Text>
-                            <Text style={{ color: '#666', marginTop: 4 }}>Estimated Time: {item.estimated_time}</Text>
+                            <Text style={{ fontWeight: '600', fontSize: 14 }}>{item.type}</Text>
+                            <Text style={{ color: '#666', marginTop: 4, fontSize: 12 }}>Estimated Time: {item.estimated_time}</Text>
                           </View>
                           <View style={{ alignItems: 'flex-end' }}>
-                            <Text style={{ color: '#888', fontSize: 12 }}>Cost</Text>
-                            <Text style={{ fontWeight: '700', color: '#5DA53B' }}>{item.cost} €</Text>
+                            <Text style={{ color: '#888', fontSize: 14, fontWeight: '600', }}>Cost</Text>
+                            <Text style={{ color: '#AEB254', fontSize: 12 }}>{item.cost} €</Text>
                           </View>
                         </TouchableOpacity>
                       );
@@ -954,7 +963,7 @@ const styles = StyleSheet.create({
   sectionTitle: {
     fontSize: 16,
     fontWeight: '600',
-    color: '#444',
+    color: '#999',
     marginHorizontal: 20,
     marginBottom: 12,
     marginTop: 10,
@@ -1001,15 +1010,15 @@ const styles = StyleSheet.create({
   moveToWishlistText: {
     fontSize: 12,
     fontWeight: '500',
-    color: '#BFD56C',
+    color: '#E2E689',
   },
   qtyControlContainer: {
     flexDirection: 'row',
     alignItems: 'center',
     borderRadius: 7,
     borderWidth: 1,
-    borderColor: '#BFD56C',
-    backgroundColor: '#BFD56C',
+    borderColor: '#E2E689',
+    backgroundColor: '#E2E689',
     width: 100,
     justifyContent: 'center',
     marginTop: 4,
@@ -1021,7 +1030,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 12,
     fontWeight: '600',
     fontSize: 16,
-    color: '#5DA53B',
+    color: '#000',
   },
   wishlistItemCard: {
     backgroundColor: '#fff',
@@ -1077,7 +1086,7 @@ const styles = StyleSheet.create({
   suggestionPrice: {
     fontSize: 12,
     fontWeight: '600',
-    color: '#BFD56C',
+    color: '#E2E689',
     marginTop: 2,
   },
   seeAllBtn: {
@@ -1095,14 +1104,16 @@ const styles = StyleSheet.create({
     fontSize: 14,
   },
   couponBtn: {
-    marginHorizontal: 20,
+    marginHorizontal: 10,
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: 16,
-    borderRadius: 6,
-    borderWidth: 0.8,
+    marginVertical: 12,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: '#D9D9D9',
+    backgroundColor: '#FFF',
     justifyContent: 'space-between',
-    paddingVertical: 10,
+    paddingVertical: 12,
   },
   couponText: {
     fontWeight: '600',
@@ -1110,17 +1121,12 @@ const styles = StyleSheet.create({
     color: '#000',
     marginLeft: 10,
   },
-  billDetailsCard: {
-    backgroundColor: '#FCFCEC',
-    borderRadius: 10,
-    padding: 20,
-    paddingHorizontal: 20,
-  },
+
   billTitle: {
     fontWeight: '600',
     fontSize: 14,
     marginBottom: 12,
-    color: '#5E6935',
+    color: '#878B2F',
   },
   billRow: {
     flexDirection: 'row',
@@ -1137,9 +1143,9 @@ const styles = StyleSheet.create({
   },
   deliveryAddressCard: {
     backgroundColor: '#fff',
-    marginTop: 20,
-    borderRadius: 24,
-    padding: 20,
+    marginTop: 12,
+    borderRadius: 12,
+    padding: 12,
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignSelf: 'center',
@@ -1150,8 +1156,7 @@ const styles = StyleSheet.create({
   deliveryAddressTitle: {
     fontWeight: '600',
     fontSize: 16,
-    color: '#5E6935',
-    paddingLeft: 8,
+    color: '#878B2F',
   },
   deliveryAddress: {
     fontSize: 14,
@@ -1160,8 +1165,7 @@ const styles = StyleSheet.create({
     width: SCREEN_WIDTH - 150,
   },
   changeAddress: {
-    marginTop: 10,
-    color: '#BFD56C',
+    color: '#878B2F',
     fontWeight: '600',
     fontSize: 14,
     textDecorationLine: 'underline',
@@ -1170,7 +1174,7 @@ const styles = StyleSheet.create({
     bottom: 20,
     marginVertical: 20,
     alignSelf: 'center',
-    backgroundColor: '#5DA53B',
+    backgroundColor: '#E2E689',
     paddingHorizontal: 32,
     paddingVertical: 14,
     borderRadius: 32,
@@ -1185,9 +1189,9 @@ const styles = StyleSheet.create({
     elevation: 3,
   },
   checkoutBtnText: {
-    color: '#fff',
+    color: '#000',
     fontWeight: '700',
-    fontSize: 18,
+    fontSize: 14,
   },
 });
 

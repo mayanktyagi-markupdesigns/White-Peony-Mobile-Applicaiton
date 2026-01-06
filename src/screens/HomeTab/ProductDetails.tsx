@@ -3,7 +3,6 @@ import {
   View,
   Text,
   StyleSheet,
-  ImageBackground,
   Image,
   TouchableOpacity,
   ScrollView,
@@ -12,7 +11,8 @@ import {
   Modal,
   TextInput,
   ActivityIndicator,
-  Animated
+  Animated,
+  Alert
 } from 'react-native';
 // gesture handling for custom zoom removed in favor of `react-native-image-viewing`
 import DropDownPicker from 'react-native-dropdown-picker';
@@ -571,9 +571,7 @@ const ProductDetails = ({ route }: ProductDetailsProps) => {
               const isHalf = item?.average_rating >= r - 0.5 && item?.average_rating < r;
               return (
                 <View key={r} style={{ width: 18, height: 18, position: 'relative' }}>
-                  {/* base gray star */}
                   <Text style={{ color: '#ccc', fontSize: 18, position: 'absolute' }}>★</Text>
-                  {/* overlay half or full star */}
                   <View
                     style={{
                       width: isFull ? '100%' : isHalf ? '50%' : '0%',
@@ -587,7 +585,7 @@ const ProductDetails = ({ route }: ProductDetailsProps) => {
               )
             })}
           </View>
-          <Text style={styles.cardPrice}>{item.price}</Text>
+          <Text style={styles.cardPrice}>{Math.round(item.price)}</Text>
 
           <TouchableOpacity
             style={[
@@ -726,97 +724,93 @@ const ProductDetails = ({ route }: ProductDetailsProps) => {
           </TouchableOpacity>
         </View>
       </View>
-      {/* Image carousel with dots. Tap an image to open zoom modal */}
-      <View>
-        <FlatList
-          ref={r => {
-            flatListRef.current = r;
-          }}
-          data={productImages}
-          keyExtractor={(_, i) => String(i)}
-          horizontal
-          pagingEnabled
-          showsHorizontalScrollIndicator={false}
-          onMomentumScrollEnd={e => {
-            const idx = Math.round(e.nativeEvent.contentOffset.x / width);
-            setActiveIndex(idx);
-          }}
-          renderItem={({ item, index }) => (
-            <TouchableOpacity
-              activeOpacity={0.9}
-              onPress={() => openZoom(index)}
-              style={{ width }}
-              onPressIn={() => {
-                setIsInteracting(true);
-                stopAutoplay();
-              }}
-              onPressOut={() => {
-                setIsInteracting(false);
-                stopAutoplay();
-                startAutoplay();
-              }}
-            >
-
-              {/* Animated fade for image change */}
-              <Animated.View style={{ opacity: animOpacity }}>
-                {/* <ImageView
-                  images={resolveImageSource(item)}
-                  imageIndex={index}
-                  visible={visible}
-                  onRequestClose={() => setIsVisible(false)}
-                /> */}
-                <Image
-                  source={resolveImageSource(item)}
-                  style={styles.heroImage}
-                  resizeMode="cover"
-                />
-              </Animated.View>
-            </TouchableOpacity>
-          )}
-        />
-        {productImages && productImages.length ? (
-          <View style={styles.dotsRow}>
-            {productImages.map((_, i) => (
-              <View
-                key={i}
-                style={[
-                  styles.dot,
-                  i === activeIndex ? styles.dotActive : undefined,
-                ]}
-              />
-            ))}
-          </View>
-        ) : (
-          <View
-            style={{
-              width,
-              height: HERO_HEIGHT,
-              alignItems: 'center',
-              justifyContent: 'center',
-              backgroundColor: '#f6f6f6',
-            }}
-          >
-            <Text style={{ color: '#999' }}>No images available</Text>
-          </View>
-        )}
-      </View>
-
-      {/* Zoom viewer using react-native-image-viewing */}
-      <ImageView
-        images={productImages.map((img: any) => (typeof img === 'string' ? { uri: img } : img))}
-        imageIndex={zoomIndex}
-        visible={zoomVisible}
-        onRequestClose={closeZoom}
-        swipeToCloseEnabled={true}
-        doubleTapToZoomEnabled={true}
-      />
 
       <ScrollView
         style={styles.content}
-        contentContainerStyle={{ padding: 16 }}
+        contentContainerStyle={{ padding: 12 }}
       >
+        {/* Image carousel with dots. Tap an image to open zoom modal */}
+        <View>
+          <FlatList
+            ref={r => {
+              flatListRef.current = r;
+            }}
+            data={productImages}
+            keyExtractor={(_, i) => String(i)}
+            horizontal
+            pagingEnabled
+            showsHorizontalScrollIndicator={false}
+            onMomentumScrollEnd={e => {
+              const idx = Math.round(e.nativeEvent.contentOffset.x / width);
+              setActiveIndex(idx);
+            }}
+            renderItem={({ item, index }) => (
+              <TouchableOpacity
+                activeOpacity={0.9}
+                onPress={() => openZoom(index)}
+                style={{ width }}
+                onPressIn={() => {
+                  setIsInteracting(true);
+                  stopAutoplay();
+                }}
+                onPressOut={() => {
+                  setIsInteracting(false);
+                  stopAutoplay();
+                  startAutoplay();
+                }}
+              >
 
-        <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
+                {/* Animated fade for image change */}
+                <Animated.View style={{ opacity: animOpacity }}>
+                  <Image
+                    source={resolveImageSource(item)}
+                    style={styles.heroImage}
+                    resizeMode='contain'
+                  />
+                </Animated.View>
+              </TouchableOpacity>
+            )}
+          />
+          {productImages && productImages.length ? (
+            <View style={styles.dotsRow}>
+              {productImages.map((_, i) => (
+                <View
+                  key={i}
+                  style={[
+                    styles.dot,
+                    i === activeIndex ? styles.dotActive : undefined,
+                  ]}
+                />
+              ))}
+            </View>
+          ) : (
+            <View
+              style={{
+                width,
+                height: HERO_HEIGHT,
+                alignItems: 'center',
+                justifyContent: 'center',
+                backgroundColor: '#f6f6f6',
+              }}
+            >
+              <Text style={{ color: '#999' }}>No images available</Text>
+            </View>
+          )}
+        </View>
+
+        {/* Zoom viewer using react-native-image-viewing */}
+        <ImageView
+          images={productImages.map((img: any) => (typeof img === 'string' ? { uri: img } : img))}
+          imageIndex={zoomIndex}
+          visible={zoomVisible}
+          onRequestClose={closeZoom}
+          swipeToCloseEnabled={true}
+          doubleTapToZoomEnabled={true}
+        />
+
+
+
+        <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginTop: 16 }}>
           <Text style={styles.title}>
             {productData?.name !== null ? productData?.name : ''}
           </Text>
@@ -845,13 +839,14 @@ const ProductDetails = ({ route }: ProductDetailsProps) => {
           </View>
         </View>
         <View style={styles.priceRow}>
-          <Text style={styles.price}>{displayPrice}€ </Text>
+          <Text style={styles.price}>{Math.round(displayPrice)}€ </Text>
           <View style={{ width: 12 }} />
           <View style={styles.dropdownWrapper}>
             <DropDownPicker
               open={weightOpen}
               value={weightValue}
               items={weightItems}
+              placeholder='Select an Unit'
               setOpen={setWeightOpen}
               setValue={setWeightValue}
               setItems={setWeightItems}
@@ -884,7 +879,7 @@ const ProductDetails = ({ route }: ProductDetailsProps) => {
         <View style={styles.headerRight}>
           <CartButton />
         </View>
-        <Text style={{ marginTop: 12, color: '#666' }}>
+        <Text style={{ marginTop: 20, fontWeight: '700', }}>
           Product Description
         </Text>
         <Text
@@ -893,14 +888,14 @@ const ProductDetails = ({ route }: ProductDetailsProps) => {
         >
           {productData.description != null ? productData.description : ''}
         </Text>
-        <TouchableOpacity
+        {descExpanded ? <TouchableOpacity
           onPress={() => setDescExpanded(prev => !prev)}
           activeOpacity={0.7}
         >
-          <Text style={{ marginTop: 8, color: '#FFC107', fontWeight: '700' }}>
+          <Text style={{ marginTop: 8, color: '#E2E689', fontWeight: '700' }}>
             {descExpanded ? 'Read less' : 'Read more'}
           </Text>
-        </TouchableOpacity>
+        </TouchableOpacity> : null}
 
         {/* recommended row placeholder */}
         <Text style={{ marginTop: 20, fontWeight: '700', bottom: 10 }}>
@@ -952,7 +947,6 @@ const ProductDetails = ({ route }: ProductDetailsProps) => {
                   );
                 })}
               </View>
-
               <Text style={styles.reviewsCount}>{total} Reviews</Text>
             </View>
 
@@ -983,7 +977,7 @@ const ProductDetails = ({ route }: ProductDetailsProps) => {
           <View style={styles.reviewsButtons}>
             <TouchableOpacity
               style={styles.showBtn}
-              onPress={() => setShowModalVisible(true)}
+              onPress={() => { reviews.length == 0 ? Alert.alert('', 'No Review Found') : setShowModalVisible(true) }}
             >
               <Text style={styles.showBtnText}>Show Review</Text>
             </TouchableOpacity>
@@ -1142,11 +1136,12 @@ const styles = StyleSheet.create({
     marginTop: 6,
     fontSize: 14,
     fontWeight: '700',
-    color: '#0b3b2e',
+    color: '#000',
   },
+
   addBtn: {
     marginTop: 10,
-    backgroundColor: '#2DA3C7',
+    backgroundColor: '#E2E689',
     paddingVertical: 6,
     paddingHorizontal: 18,
     borderRadius: 20,
@@ -1171,7 +1166,7 @@ const styles = StyleSheet.create({
     width: 28,
     height: 28,
     borderRadius: 14,
-    backgroundColor: '#2DA3C7',
+    backgroundColor: '#E2E689',
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -1403,7 +1398,7 @@ const styles = StyleSheet.create({
     marginTop: 16,
   },
   cartButtonActive: {
-    backgroundColor: '#2DA3C7',
+    backgroundColor: '#E2E689',
   },
   cartButtonDisabled: {
     opacity: 0.7,

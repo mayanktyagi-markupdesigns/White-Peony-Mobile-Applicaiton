@@ -96,7 +96,7 @@ const NotificationScreen = ({ navigation }) => {
             >
                 {isActive ? (
                     <LinearGradient
-                        colors={['#E3F3DD', '#D5EACF']}
+                        colors={['#E2E689', '#E2E689']}
                         start={{ x: 0, y: 0 }}
                         end={{ x: 1, y: 0 }}
                         style={styles.activeTabGradient}
@@ -115,7 +115,7 @@ const NotificationScreen = ({ navigation }) => {
         <>
             <View style={[styles.notificationCard, item.read ? styles.readCard : {}]}>
                 <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
-                    <Image source={require('../assets/Png/cropped-white_peony.png')} style={{ width: 100, height: 12 }} />
+                    <Image source={require('../assets/Png/headerLogo.png')} style={{ width: 100, height: 12 }} />
                     <View style={styles.notificationRight}>
                         <Text style={styles.notificationTime}>{item.time}</Text>
                         {!item.read && <View style={styles.unreadDot} />}
@@ -273,7 +273,7 @@ const styles = StyleSheet.create({
         textAlign: 'center',
     },
     tabLabelActive: {
-        color: '#5DA53B', // greenish color
+        color: '#000', // greenish color
     },
     activeTabGradient: {
         borderRadius: 20,
@@ -287,7 +287,7 @@ const styles = StyleSheet.create({
         height: 3,
         width: 40,
         borderRadius: 2,
-        backgroundColor: '#5DA53B',
+        backgroundColor: '#E2E689',
     },
     notificationCard: {
         backgroundColor: '#fff',

@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useContext, useRef } from 'react';
-import { View, Text, FlatList, TouchableOpacity, Image, StyleSheet, Modal, Dimensions, Animated, TextInput } from 'react-native';
+import { View, Text, FlatList, TouchableOpacity, Image, StyleSheet, Modal, Dimensions, Animated, TextInput, StatusBar } from 'react-native';
 import { useCart } from '../../context/CartContext'; // adjust import path if needed
 import { Image_url, UserService } from '../../service/ApiService'; // replace with your actual functions
 import { heightPercentageToDP, widthPercentageToDP } from '../../constant/dimentions';
@@ -232,7 +232,7 @@ const CategoryDetailsList = ({ navigation, route }: any) => {
             })}
           </View>
           <Text style={styles.cardPrice}>
-            {item?.variants[0]?.price}€ {item?.variants[0]?.weight ? `- ${item?.variants[0]?.weight}` : item?.variants[0]?.unit ? `- ${item?.variants[0]?.unit}` : ''}
+            {Math.round(item?.variants[0]?.price)} € {item?.variants[0]?.weight ? `- ${item?.variants[0]?.weight}` : item?.variants[0]?.unit ? `- ${item?.variants[0]?.unit}` : ''}
           </Text>
 
           {item.stock_quantity === 0 ? (
@@ -255,19 +255,23 @@ const CategoryDetailsList = ({ navigation, route }: any) => {
 
 
   return (
-    <LinearGradient colors={['#F3F3F3', '#FFFFFF']}
-      style={styles.container}>
+    <LinearGradient colors={['#F3F3F3', '#FFFFFF']} style={styles.container}>
       <View style={styles.header}>
         <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton} >
           <Image source={require('../../assets/Png/back.png')} style={{ width: 20, height: 20 }} />
-        </TouchableOpacity> <Text style={styles.headerTitle}>{categoryTitle}</Text>
-        <TouchableOpacity style={styles.iconBtn} onPress={() => navigation.navigate('CheckoutScreen')}>
+        </TouchableOpacity>
+        <Text style={styles.headerTitle}>{categoryTitle}</Text>
+        <TouchableOpacity onPress={() => navigation.navigate('CheckoutScreen')}>
           <Image source={require('../../assets/Png/order.png')} style={styles.icon} />
-        </TouchableOpacity> </View> <View style={styles.headerRight}>
+        </TouchableOpacity>
+      </View>
+      <View style={styles.headerRight}>
         <TouchableOpacity style={styles.filterBtn} onPress={() => setFilterVisible(true)} >
           <Text style={styles.filterText}>Filters ▾</Text> </TouchableOpacity>
         <TouchableOpacity style={styles.sortBtn} onPress={() => setSortVisible(true)} >
-          <Text style={styles.sortText}>Sort ▾</Text> </TouchableOpacity> </View>
+          <Text style={styles.sortText}>Sort ▾</Text>
+        </TouchableOpacity>
+      </View>
 
       <FlatList
         data={apiProducts}
@@ -420,6 +424,7 @@ export default CategoryDetailsList;
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+    marginTop: StatusBar.currentHeight
   },
   modalHeader: {
     flexDirection: 'row',
@@ -440,11 +445,6 @@ const styles = StyleSheet.create({
     fontWeight: '400',
   },
   outOfStock: { marginTop: 10, fontSize: 14, fontWeight: '600', color: 'red' },
-  iconBtn: {
-    position: 'absolute',
-    right: 20,
-
-  },
   addBtn: {
     marginTop: 10,
     backgroundColor: '#2DA3C7',
@@ -460,25 +460,21 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     paddingHorizontal: 16,
-    paddingTop: 16,
     backgroundColor: 'transparent',
-    marginTop: 30,
+    marginTop: 10,
+    justifyContent: 'space-between',
   },
   backButton: {
-    width: 36,
-    height: 36,
+
     alignItems: 'center',
     justifyContent: 'center',
   },
   backText: { fontSize: 20 },
   headerTitle: {
-    flex: 1,
-    textAlign: 'center',
     fontSize: 16,
     fontWeight: '600',
-    marginRight: '20%'
   },
-  headerRight: { flexDirection: 'row', alignItems: 'center', width: '90%', alignSelf: 'center', justifyContent: 'space-around' },
+  headerRight: { flexDirection: 'row', alignItems: 'center', width: '95%', alignSelf: 'center', justifyContent: 'space-around', marginVertical: 12 },
   filterBtn: {
     padding: 8,
     backgroundColor: '#AEB254',

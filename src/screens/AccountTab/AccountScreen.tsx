@@ -15,12 +15,10 @@ import {
 import { StackNavigationProp } from '@react-navigation/stack';
 import LinearGradient from 'react-native-linear-gradient';
 import AddressModal from '../../components/AddressModal';
-import AddressDetailModal from '../../components/AddressDetailModal';
-import AddressAddModal from '../../components/AddressADDModal';
 import Toast from 'react-native-toast-message';
 import { formatDate, handleSignout } from '../../helpers/helpers';
 import { UserData, UserDataContext } from '../../context/userDataContext';
-import { API_URL, Image_url, UserService } from '../../service/ApiService';
+import { Image_url, UserService } from '../../service/ApiService';
 import LoginModal from '../../components/LoginModal';
 import { CommonLoader } from '../../components/CommonLoader/commonLoader';
 import { HttpStatusCode } from 'axios';
@@ -106,7 +104,7 @@ const AccountScreen = ({ navigation }: AccountScreenProps) => {
   };
 
   return (
-    <LinearGradient style={styles.container} colors={['#F3F3F3', '#FFFFFF']} start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }}>
+    <View style={styles.container}>
       <View style={styles.header}>
         <Text style={styles.headerTitle}>Account</Text>
         {isLoggedIn ? (<TouchableOpacity onPress={() => signout()} style={styles.logoutIcon}>
@@ -129,38 +127,74 @@ const AccountScreen = ({ navigation }: AccountScreenProps) => {
       />
       <ScrollView contentContainerStyle={{ paddingBottom: 20 }} showsVerticalScrollIndicator={false}>
 
-        {isLoggedIn ? <View style={styles.profileCard}>
-          <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-            {userData?.profile_image ? <Image
-              source={{ uri: Image_url + userData?.profile_image }}
-              style={styles.avatar}
-            /> :
-              <Image
-                source={{ uri: 'https://i.postimg.cc/mZXFdw63/person.png' }}
+        {isLoggedIn ?
+          <LinearGradient
+            colors={['#FCFFBF', '#F7FB9D']}
+            start={{ x: 0, y: 0 }}
+            end={{ x: 1, y: 1 }}
+            style={styles.profileCard}
+
+          >
+            {/* Diagonal Shine Overlay */}
+            <LinearGradient
+              colors={[
+                'rgba(255,255,255,0.45)',
+                'rgba(255,255,255,0.15)',
+                'rgba(255,255,255,0)',
+              ]}
+              start={{ x: 0, y: 0 }}
+              end={{ x: 1, y: 1 }}
+              style={{
+                position: 'absolute',
+                top: -20,
+                right: -40,
+                width: 150,
+                height: 250,
+                transform: [{ rotate: '35deg' }],
+              }}
+            />
+            <View style={{
+              flexDirection: 'row',
+              alignItems: 'center',
+              ...(userData?.type !== 'b2c'
+                ? { paddingTop: 12 }
+                : { paddingHorizontal: 12 }),
+            }}>
+              {userData?.profile_image ? <Image
+                source={{ uri: Image_url + userData?.profile_image }}
                 style={styles.avatar}
-              />
-            }
-            <View style={{ flex: 1, marginLeft: 12 }}>
-              <Text style={styles.name}>{userData?.name}</Text>
-              <Text style={styles.since}>Member since {formatDate(userData?.created_at)}</Text>
-            </View>
-          </View>
-          {userData?.type !== 'b2c' ?
-            <> <View style={{ borderColor: '#E2E689', borderWidth: 1, width: '100%', marginTop: 15 }} />
-              <View style={styles.badgeBox}>
-                <Text style={{ fontWeight: '700' }}>Super Shiny</Text>
-                <Text style={{ fontSize: 12, color: '#6B6B6B' }}>
-                  Growth Value 10000€ / 2500012000€
-                </Text>
-                <View style={styles.progressBackground}>
-                  <View style={[styles.progressFill, { width: '30%' }]} />
-                </View>
-                <Text style={{ fontSize: 12, marginTop: 6 }}>
-                  4 Privileges In Total, 1 Unlocked
-                </Text>
+              /> :
+                <Image
+                  source={{ uri: 'https://i.postimg.cc/mZXFdw63/person.png' }}
+                  style={styles.avatar}
+                />
+              }
+              <View style={{ flex: 1, marginLeft: 12 }}>
+                <Text style={styles.name}>{userData?.name}</Text>
+                <Text style={styles.since}>Member since {formatDate(userData?.created_at)}</Text>
               </View>
-            </> : null}
-        </View> : null}
+            </View>
+            {userData?.type !== 'b2c' ?
+              <>
+                <View style={{ borderColor: '#E2E689', borderWidth: 1, width: '90%', marginVertical: 12, alignSelf: 'center' }}></View>
+                <View style={{ paddingHorizontal: 12 }}>
+                  <Text style={{ fontWeight: '700', fontSize: 14 }}>Super Shiny</Text>
+                  <Text style={{ fontSize: 10, color: '#000', fontWeight: '700', marginTop: 5 }}>
+                    Growth Value 10000€ / 2500012000€
+                  </Text>
+                  <View style={styles.progressBackground}>
+                    <View style={[styles.progressFill, { width: '30%' }]} />
+                  </View>
+                </View>
+                <View style={{ backgroundColor: '#E2E689', marginTop: 12, borderBottomLeftRadius: 11, borderBottomRightRadius: 11 }}>
+                  <Text style={{ fontSize: 12, padding: 12 }}>
+                    4 Privileges In Total, 1 Unlocked
+                  </Text>
+                </View>
+              </> : null}
+          </LinearGradient>
+          : null}
+
 
         {isLoggedIn ? <TouchableOpacity onPress={() => navigation.navigate('EditProfile')}
           style={{
@@ -173,7 +207,7 @@ const AccountScreen = ({ navigation }: AccountScreenProps) => {
             flexDirection: 'row',
             justifyContent: 'space-between',
             alignItems: 'center',
-            paddingHorizontal: 16,
+            paddingHorizontal: 12,
             marginTop: 12,
             backgroundColor: '#FFFFFF',
           }}
@@ -212,7 +246,7 @@ const AccountScreen = ({ navigation }: AccountScreenProps) => {
               flexDirection: 'row',
               justifyContent: 'space-between',
               alignItems: 'center',
-              paddingHorizontal: 8,
+              paddingHorizontal: 12,
 
               backgroundColor: '#FFFFFF',
             }}
@@ -240,7 +274,7 @@ const AccountScreen = ({ navigation }: AccountScreenProps) => {
               flexDirection: 'row',
               justifyContent: 'space-between',
               alignItems: 'center',
-              paddingHorizontal: 8,
+              paddingHorizontal: 12,
 
               backgroundColor: '#FFFFFF',
             }}
@@ -267,8 +301,7 @@ const AccountScreen = ({ navigation }: AccountScreenProps) => {
               flexDirection: 'row',
               justifyContent: 'space-between',
               alignItems: 'center',
-              paddingHorizontal: 8,
-
+              paddingHorizontal: 12,
               backgroundColor: '#FFFFFF',
             }}
           >
@@ -294,7 +327,7 @@ const AccountScreen = ({ navigation }: AccountScreenProps) => {
               flexDirection: 'row',
               justifyContent: 'space-between',
               alignItems: 'center',
-              paddingHorizontal: 8,
+              paddingHorizontal: 12,
 
               backgroundColor: '#FFFFFF',
             }}
@@ -325,7 +358,7 @@ const AccountScreen = ({ navigation }: AccountScreenProps) => {
             flexDirection: 'row',
             justifyContent: 'space-between',
             alignItems: 'center',
-            paddingHorizontal: 8,
+            paddingHorizontal: 12,
             marginTop: 12,
             backgroundColor: '#FFFFFF',
           }}
@@ -370,7 +403,7 @@ const AccountScreen = ({ navigation }: AccountScreenProps) => {
               flexDirection: 'row',
               justifyContent: 'space-between',
               alignItems: 'center',
-              paddingHorizontal: 8,
+              paddingHorizontal: 12,
 
               backgroundColor: '#FFFFFF',
             }}
@@ -397,7 +430,7 @@ const AccountScreen = ({ navigation }: AccountScreenProps) => {
               flexDirection: 'row',
               justifyContent: 'space-between',
               alignItems: 'center',
-              paddingHorizontal: 8,
+              paddingHorizontal: 12,
               backgroundColor: '#FFFFFF',
             }}
           >
@@ -423,7 +456,7 @@ const AccountScreen = ({ navigation }: AccountScreenProps) => {
               flexDirection: 'row',
               justifyContent: 'space-between',
               alignItems: 'center',
-              paddingHorizontal: 8,
+              paddingHorizontal: 12,
 
               backgroundColor: '#FFFFFF',
             }}
@@ -450,7 +483,7 @@ const AccountScreen = ({ navigation }: AccountScreenProps) => {
               flexDirection: 'row',
               justifyContent: 'space-between',
               alignItems: 'center',
-              paddingHorizontal: 8,
+              paddingHorizontal: 12,
               backgroundColor: '#FFFFFF',
             }}
           >
@@ -479,43 +512,42 @@ const AccountScreen = ({ navigation }: AccountScreenProps) => {
         onClose={() => setModalAddress(false)}
         onAddNew={() => { setModalAddress(false), setmodalAddressADD(true) }}
       />
+    </View>
 
-    </LinearGradient>
   );
 };
 
 export default AccountScreen;
 
 const styles = StyleSheet.create({
-  container: { flex: 1, marginTop: StatusBar.currentHeight },
+  container: { flex: 1, marginTop: StatusBar.currentHeight, backgroundColor: '#fff' },
   header: {
     alignItems: 'center',
     justifyContent: 'center',
     position: 'relative',
-    marginVertical: 15
+    marginVertical: 20
   },
   headerTitle: { fontSize: 18, fontWeight: '600' },
   logoutIcon: { position: 'absolute', right: 16, alignItems: 'center' },
   profileCard: {
     width: '90%',
-    backgroundColor: '#F7FB9D',
     borderRadius: 12,
-    padding: 12,
-    // flexDirection: 'row',
-    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: '#AEB254',
+    paddingVertical: 12,
     alignSelf: 'center',
   },
   avatar: { width: 52, height: 52, borderRadius: 28, backgroundColor: '#fff' },
-  name: { fontSize: 16, fontWeight: '700' },
+  name: { fontSize: 14, fontWeight: '700' },
   since: { fontSize: 12, color: '#6B6B6B' },
-  badgeBox: { marginLeft: 12, flex: 1 },
+
   progressBackground: {
     height: 8,
     backgroundColor: '#F0F0F0',
     borderRadius: 6,
     marginTop: 8,
   },
-  progressFill: { height: 8, backgroundColor: '#AEB254', borderRadius: 6 },
+  progressFill: { height: 8, backgroundColor: '#D7E109', borderRadius: 6 },
   menuCard: {
     backgroundColor: '#fff',
     borderRadius: 12,

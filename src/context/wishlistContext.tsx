@@ -144,4 +144,3 @@ export const WishlistProvider: React.FC<Props> = ({ children }) => {
 
 export default WishlistProvider;
 
-

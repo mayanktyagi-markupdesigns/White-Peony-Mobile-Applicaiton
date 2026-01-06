@@ -65,18 +65,18 @@ const ArticleScreen = ({ navigation }: any) => {
   };
 
   const renderUpcoming = ({ item, index }: { item: any; index: number }) => (
-    <TouchableOpacity onPress={() => { navigation.navigate('ArticleDetails', { article: item.id }), setTrendingModalVisible(false) }} activeOpacity={0.8}>
+    <TouchableOpacity style={{ alignSelf: 'center', left: 7, paddingLeft: 5 }} onPress={() => { navigation.navigate('ArticleDetails', { article: item.id }), setTrendingModalVisible(false) }} activeOpacity={0.8}>
       <ImageBackground
         source={{ uri: Image_url + item.image }}
-        style={[styles.upCard, { width: width - 64 }]}
-        imageStyle={{ borderRadius: 12 }}
+        style={[styles.upCard, { width: width - 40 }]}
+        imageStyle={{ borderRadius: 12, resizeMode: 'cover' }}
       >
         <View style={styles.upBadgeRow}>
           <View style={styles.readBadge}>
             <Text style={styles.readBadgeText}>{formatDate(item.updated_at)}</Text>
           </View>
           <TouchableOpacity style={styles.bookmarkBtn}>
-            <Text style={{ fontSize: 18 }}>🔖</Text>
+            <Image source={require('../../assets/Png/bookmark.png')} style={{ width: 16, height: 16, alignItems: 'center', alignSelf: 'center' }} />
           </TouchableOpacity>
         </View>
         <View style={styles.upTitleWrap}>
@@ -97,9 +97,9 @@ const ArticleScreen = ({ navigation }: any) => {
           <View style={{ flex: 1 }}>
             <View style={styles.nearBody}>
               <Text numberOfLines={2} style={styles.nearTitle}> {item.content} </Text>
-              {/* <View style={{ backgroundColor: '#E2E689', width: 25, height: 25, borderRadius: 10, alignSelf: "center", justifyContent: 'center' }}>
+              <View style={{ backgroundColor: '#E2E689', width: 25, height: 25, borderRadius: 10, alignSelf: "center", justifyContent: 'center' }}>
                 <Image source={require('../../assets/Png/bookmark.png')} style={{ width: 15, height: 15, alignSelf: 'center' }} />
-              </View> */}
+              </View>
             </View>
             <View style={{ flexDirection: 'row', alignItems: 'center' }}>
               <Image source={require('../../assets/Png/clock.png')} style={{ width: 15, height: 15, }} />
@@ -119,10 +119,9 @@ const ArticleScreen = ({ navigation }: any) => {
 
   return (
     <View style={styles.container}>
-      <StatusBar barStyle={Platform.OS === 'ios' ? 'dark-content' : 'dark-content'} />
+      <StatusBar barStyle={Platform.OS === 'ios' ? 'dark-content' : 'default'} />
 
-
-      <View style={{ backgroundColor: '#FFFFF0', height: 160 }}>
+      <View style={{ backgroundColor: '#FFFFF', height: 160 }}>
         <View style={styles.header}>
           <Text style={styles.headerTitle}>Articles</Text>
         </View>
@@ -182,6 +181,7 @@ const ArticleScreen = ({ navigation }: any) => {
           </View>
         </View>
       </Modal>
+
       <ScrollView
         contentContainerStyle={{ paddingBottom: 20 }}
         showsVerticalScrollIndicator={false}
@@ -192,6 +192,7 @@ const ArticleScreen = ({ navigation }: any) => {
             <Text style={styles.seeMore}>View All</Text>
           </TouchableOpacity>
         </View>
+
         <View style={{ marginTop: 10 }}>
           <FlatList
             ref={viewRef}
@@ -201,7 +202,6 @@ const ArticleScreen = ({ navigation }: any) => {
             horizontal
             pagingEnabled
             showsHorizontalScrollIndicator={false}
-            contentContainerStyle={{ paddingLeft: 16, paddingRight: 12 }}
             onMomentumScrollEnd={ev => {
               const newIndex = Math.round(
                 ev.nativeEvent.contentOffset.x / (width - 64 + 12),
@@ -260,16 +260,15 @@ export default ArticleScreen;
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#fff', marginTop: StatusBar.currentHeight },
   header: {
-    height: 90,
+    height: 80,
     justifyContent: 'center',
     alignItems: 'center',
   },
   headerTitle: { fontSize: 18, fontWeight: '600' },
   searchRow: {
     flexDirection: 'row',
-    paddingHorizontal: 16,
+    paddingHorizontal: 12,
     alignItems: 'center',
-    marginBottom: 12,
   },
   searchInput: {
     flex: 1,
@@ -293,22 +292,19 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    paddingHorizontal: 16,
+    paddingHorizontal: 12,
     marginTop: 20,
   },
   sectionTitle: { fontSize: 16, fontWeight: '700' },
   seeMore: { color: '#AEB254' },
   upCard: {
-    width: 220,
-    marginRight: 12,
     backgroundColor: '#fff',
     borderRadius: 12,
     overflow: 'hidden',
     elevation: 2,
     borderWidth: 1,
     borderColor: '#D9D9D9',
-    padding: 5,
-    height: 175,
+    height: 180,
   },
   upImage: { width: '100%', height: 120, borderRadius: 10 },
   upBody: { padding: 10 },
@@ -322,30 +318,29 @@ const styles = StyleSheet.create({
   },
   readBadge: {
     backgroundColor: 'rgba(255,255,255,0.85)',
-    paddingHorizontal: 10,
-    paddingVertical: 6,
     borderRadius: 12,
+    alignSelf: "center",
+
   },
-  readBadgeText: { fontSize: 12, color: '#6B6B6B' },
-  bookmarkBtn: { backgroundColor: '#E2E689', padding: 6, borderRadius: 18 },
+  readBadgeText: { fontSize: 12, color: '#6B6B6B', padding: 10 },
+  bookmarkBtn: { backgroundColor: '#E2E689', padding: 6,alignSelf:'center', borderRadius: 20  },
   upTitleWrap: { flex: 1, justifyContent: 'flex-end', padding: 12 },
   upTitleWhite: { color: '#fff', fontSize: 16, fontWeight: '700' },
   dotsRow: { flexDirection: 'row', justifyContent: 'center', marginTop: 10 },
   dot: {
     width: 8,
-    height: 8,
+    height: 6,
     borderRadius: 4,
     backgroundColor: '#E0E0E0',
     marginHorizontal: 4,
   },
-  dotActive: { backgroundColor: '#AEB254', width: 18, borderRadius: 4 },
+  dotActive: { backgroundColor: '#AEB254', width: 25, borderRadius: 4 },
   nearCard: {
     flexDirection: 'row',
     alignItems: 'center',
     backgroundColor: '#fff',
     borderRadius: 12,
     padding: 10,
-    marginTop: 12,
   },
   microphone: {
     marginLeft: 8,
@@ -358,7 +353,7 @@ const styles = StyleSheet.create({
   },
   nearImage: { width: 70, height: 70, borderRadius: 8, marginRight: 12 },
   nearBody: { flex: 1, flexDirection: 'row', justifyContent: 'space-between' },
-  nearTitle: { fontSize: 14, fontWeight: '700', width: widthPercentageToDP(55), },
+  nearTitle: { fontSize: 14, fontWeight: '700', width: widthPercentageToDP(45), },
   nearMeta: { fontSize: 12, color: '#6B6B6B', marginTop: 6 },
   nearDate: { fontSize: 12, color: '#6B6B6B', marginTop: 0, marginLeft: 10 },
   iconSmall: { width: 14, height: 14 },
@@ -382,9 +377,9 @@ const modalStyles = StyleSheet.create({
   },
   content: {
     backgroundColor: '#fff',
-    padding: 16,
     borderTopLeftRadius: 12,
     borderTopRightRadius: 12,
     maxHeight: '80%',
+    padding: 15,
   },
 });
