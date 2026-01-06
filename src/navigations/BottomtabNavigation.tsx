@@ -8,6 +8,7 @@ import CategoryScreen from '../screens/CategoryTab/CategoryScreen';
 import EventScreen from '../screens/EventTab/EventScreen';
 import AccountScreen from '../screens/AccountTab/AccountScreen';
 import ArticleScreen from '../screens/ArticleTab/ArticleScreen';
+import HomeScreen1 from '../screens/HomeTab/HomeScreen1';
 
 const Tab = createBottomTabNavigator();
 
@@ -31,7 +32,7 @@ const CustomTabBarIcon: React.FC<CustomTabBarIconProps> = ({
       <Image
         source={source}
         style={[
-          styles.icon, 
+          styles.icon,
           { tintColor: focused ? undefined : Colors.text[300], },
         ]}
         resizeMode="contain"
@@ -66,15 +67,15 @@ const BottomTabScreen = () => {
           let iconSource;
 
           if (route.name === 'Home') {
-            iconSource = focused? Images.homeC: Images.home; // Replace with your image path
+            iconSource = focused ? Images.homeC : Images.home; // Replace with your image path
           } else if (route.name === 'Category') {
-            iconSource = focused? Images.shoppingc: Images.category; // Replace with your image path
+            iconSource = focused ? Images.shoppingc : Images.category; // Replace with your image path
           } else if (route.name === 'Events') {
-            iconSource = focused? Images.eventC: Images.event; // Updated image path for Events
+            iconSource = focused ? Images.eventC : Images.event; // Updated image path for Events
           } else if (route.name === 'Articles') {
-            iconSource = focused? Images.blogC: Images.article; // Updated image path for Articles
+            iconSource = focused ? Images.blogC : Images.article; // Updated image path for Articles
           } else if (route.name === 'Accounts') {
-            iconSource = focused? Images.GroupC: Images.account; // Updated image path for Accounts
+            iconSource = focused ? Images.GroupC : Images.account; // Updated image path for Accounts
           }
 
           return (
@@ -108,7 +109,7 @@ const BottomTabScreen = () => {
     >
       <Tab.Screen
         name="Home"
-        component={HomeScreen}
+        component={HomeScreen1}
         options={{ headerShown: false }}
       />
       <Tab.Screen
