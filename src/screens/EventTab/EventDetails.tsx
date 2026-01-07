@@ -21,6 +21,7 @@ import Toast from 'react-native-toast-message';
 import { HttpStatusCode } from 'axios';
 import { formatDate } from '../../helpers/helpers';
 import EmailModal from '../../components/EmailModal'
+import { Colors } from '../../constant';
 
 type EventDetail = {
   image?: string;
@@ -43,8 +44,7 @@ const EventDetails = ({ navigation, route }: any) => {
   const [isDescriptionTruncatable, setIsDescriptionTruncatable] = React.useState(false);
   const [isBottomSheetVisible, setBottomSheetVisible] = useState(false);
   const [selectedSeats, setSelectedSeats] = useState(0);
-  const [isLoading, setIsLoading] = useState(false);
-
+  
   const onDescriptionTextLayout = React.useCallback((e: any) => {
     const lines = e?.nativeEvent?.lines || [];
     if (lines.length > 5 && !isDescriptionTruncatable) {
@@ -315,13 +315,10 @@ const EventDetails = ({ navigation, route }: any) => {
               alignItems: 'center',
             }}
             onPress={handleSeatSelect}
-            disabled={isLoading}
           >
-            {isLoading ? (
-              <ActivityIndicator color="#fff" />
-            ) : (
-              <Text style={{ color: '#fff', fontSize: 16 }}>Confirm Registration</Text>
-            )}
+
+            <Text style={{ color: '#fff', fontSize: 16 }}>Confirm Registration</Text>
+
           </TouchableOpacity>
         </View>
       </Modal>
@@ -377,7 +374,7 @@ const styles = StyleSheet.create({
   agendaText: { color: '#333', marginLeft: 10 },
   registerBtn: {
     marginTop: '10%',
-    backgroundColor: '#E2E689',
+    backgroundColor: Colors.button[100],
     paddingVertical: 14,
     borderRadius: 27,
     alignItems: 'center',
@@ -428,14 +425,14 @@ const styles = StyleSheet.create({
   inputLabel: { fontSize: 13, color: '#333', marginBottom: 6, marginTop: 8 },
   input: {
     borderWidth: 1,
-    borderColor: '#D9D9D9',
+    borderColor: Colors.text[400],
     borderRadius: 8,
     padding: 12,
     marginBottom: 6,
   },
   confirmBtn: {
     marginTop: 12,
-    backgroundColor: '#E2E689',
+    backgroundColor: Colors.button[100],
     paddingVertical: 14,
     borderRadius: 24,
     alignItems: 'center',

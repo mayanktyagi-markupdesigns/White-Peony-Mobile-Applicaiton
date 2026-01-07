@@ -97,7 +97,7 @@ const ArticleScreen = ({ navigation }: any) => {
           <View style={{ flex: 1 }}>
             <View style={styles.nearBody}>
               <Text numberOfLines={2} style={styles.nearTitle}> {item.content} </Text>
-              <View style={{ backgroundColor: '#E2E689', width: 25, height: 25, borderRadius: 10, alignSelf: "center", justifyContent: 'center' }}>
+              <View style={{ backgroundColor: Colors.button[100], width: 25, height: 25, borderRadius: 10, alignSelf: "center", justifyContent: 'center' }}>
                 <Image source={require('../../assets/Png/bookmark.png')} style={{ width: 15, height: 15, alignSelf: 'center' }} />
               </View>
             </View>
@@ -106,14 +106,14 @@ const ArticleScreen = ({ navigation }: any) => {
               <Text style={styles.nearDate}>{formatDate(item.updated_at)}</Text>
             </View>
             <View style={{ flexDirection: 'row', alignItems: 'center', marginTop: 10 }}>
-              <Image source={require('../../assets/Png/eye.png')} tintColor={'#E2E689'} style={{ width: 15, height: 15, }} />
+              <Image source={require('../../assets/Png/eye.png')} tintColor={Colors.button[100]} style={{ width: 15, height: 15, }} />
               <Text style={styles.nearDate}>{item.views}</Text>
             </View>
           </View>
         </View>
       </TouchableOpacity>
 
-      <View style={{ borderBottomColor: '#D9D9D9', borderBottomWidth: 1, marginVertical: 10, width: '90%', alignSelf: 'center' }} />
+      <View style={{ borderBottomColor: Colors.text[400], borderBottomWidth: 1, marginVertical: 10, width: '90%', alignSelf: 'center' }} />
     </>
   );
 
@@ -236,7 +236,7 @@ const ArticleScreen = ({ navigation }: any) => {
             justifyContent: 'center',
             height: 'auto',
             borderWidth: 1,
-            borderColor: '#D9D9D9',
+            borderColor: Colors.text[400],
             borderRadius: 10,
             marginTop: 10,
           }}
@@ -284,7 +284,7 @@ const styles = StyleSheet.create({
     width: 44,
     height: 42,
     borderRadius: 20,
-    backgroundColor: '#E2E689',
+    backgroundColor: Colors.button[100],
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -303,7 +303,7 @@ const styles = StyleSheet.create({
     overflow: 'hidden',
     elevation: 2,
     borderWidth: 1,
-    borderColor: '#D9D9D9',
+    borderColor: Colors.text[400],
     height: 180,
   },
   upImage: { width: '100%', height: 120, borderRadius: 10 },
@@ -323,7 +323,7 @@ const styles = StyleSheet.create({
 
   },
   readBadgeText: { fontSize: 12, color: '#6B6B6B', padding: 10 },
-  bookmarkBtn: { backgroundColor: '#E2E689', padding: 6,alignSelf:'center', borderRadius: 20  },
+  bookmarkBtn: { backgroundColor: Colors.button[100], padding: 6,alignSelf:'center', borderRadius: 20  },
   upTitleWrap: { flex: 1, justifyContent: 'flex-end', padding: 12 },
   upTitleWhite: { color: '#fff', fontSize: 16, fontWeight: '700' },
   dotsRow: { flexDirection: 'row', justifyContent: 'center', marginTop: 10 },
@@ -347,7 +347,7 @@ const styles = StyleSheet.create({
     width: 60,
     height: 40,
     borderRadius: 20,
-    backgroundColor: '#E2E689',
+    backgroundColor: Colors.button[100],
     alignItems: 'center',
     justifyContent: 'center',
   },

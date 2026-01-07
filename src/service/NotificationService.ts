@@ -2,11 +2,10 @@
 import messaging from '@react-native-firebase/messaging';
 import { Alert, Platform } from 'react-native';
 import notifee, { AndroidImportance } from '@notifee/react-native';
-import { UserService } from './apiService';
 import { LocalStorage } from '../helpers/localstorage';
-import Toast from 'react-native-toast-message';
 import { EventType } from '@notifee/react-native';
 import firebase from '@react-native-firebase/app';
+
 const firebaseConfig = {
     // Only if you're using the web SDK or dynamic setup
     apiKey: "AIzaSyALkbP5wZxDQM2RZ-dl-TopkkgLIW_HVoA",

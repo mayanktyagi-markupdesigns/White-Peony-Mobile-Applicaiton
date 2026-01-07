@@ -19,15 +19,8 @@ import { Colors } from '../../constant';
 
 const EditProfile = ({ navigation, route }) => {
   const { userData, setUserData } = useContext<UserData>(UserDataContext);
-  const [statusOpen, setStatusOpen] = useState(false);
   const { showLoader, hideLoader } = CommonLoader();
-  // const [statusValue, setStatusValue] = useState(userData?.status || 'active');
   const [profileImage, setProfileImage] = useState<string | null>(null);
-
-  // const [statusItems, setStatusItems] = useState([
-  //   { label: 'Active', value: 'active' },
-  //   { label: 'Inactive', value: 'inactive' },
-  // ]);
 
   useEffect(() => {
 
@@ -484,12 +477,12 @@ const styles = StyleSheet.create({
     borderRadius: 20,
     padding: 6,
     borderWidth: 1,
-    borderColor: '#E2E689',
+    borderColor: Colors.button[100],
   },
   cameraIcon: {
     height: 15,
     width: 15,
-    color: '#E2E689',
+    color: Colors.button[100],
   },
   fieldContainer: {
     width: '100%',
@@ -521,7 +514,7 @@ const styles = StyleSheet.create({
   },
   editIcon: {
     fontSize: 12,
-    color: '#E2E689',
+    color: Colors.button[100],
     marginLeft: 8,
   },
   errorText: {
@@ -531,7 +524,7 @@ const styles = StyleSheet.create({
     marginLeft: 4,
   },
   saveButton: {
-    backgroundColor: '#E2E689',
+    backgroundColor: Colors.button[100],
     borderRadius: 25,
     paddingVertical: 14,
     alignItems: 'center',

@@ -5,7 +5,7 @@ import React, { useEffect } from 'react';
 import HomeStackNavigator from './src/navigations/HomeStackNavigation';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { useColorScheme } from 'react-native';
-import { CommonLoader, CommonLoaderProvider } from './src/components/CommonLoader/commonLoader';
+import {  CommonLoaderProvider } from './src/components/CommonLoader/commonLoader';
 import { UserDataContextProvider, WishlistProvider } from './src/context';
 import Toast from 'react-native-toast-message';
 import NetworkStatus from './components/NetworkStatus';

@@ -8,9 +8,13 @@ import {
   Share,
   ActivityIndicator,
 } from 'react-native';
+import { CommonLoader } from '../../components/CommonLoader/commonLoader';
+import { Colors } from '../../constant';
 
 
 const PaymentSuccess = ({ navigation }: any) => {
+    const { showLoader, hideLoader } = CommonLoader();
+  
   const [processing, setProcessing] = useState(false)
 
   const ref = useRef<any>(null)
@@ -23,7 +27,7 @@ const PaymentSuccess = ({ navigation }: any) => {
   }, [])
 
   const onDownload = async () => {
-    setProcessing(true)
+    showLoader();
     try {
       let viewShotModule: any = null
       try {
@@ -46,37 +50,10 @@ const PaymentSuccess = ({ navigation }: any) => {
     } catch (err) {
       console.warn('download error', err)
     } finally {
-      setProcessing(false)
+      showLoader();
     }
   }
 
-  const onDownloadCard = async () => {
-    setProcessing(true)
-    try {
-      let viewShotModule: any = null
-      try {
-        viewShotModule = await import('react-native-view-shot')
-      } catch (e) {
-        viewShotModule = null
-      }
-
-      if (viewShotModule && cardRef.current) {
-        const { captureRef } = viewShotModule
-        const uri = await captureRef(cardRef.current, { format: 'png', quality: 0.95 })
-        await Share.share({ url: uri, title: 'Booking Card' })
-      } else {
-        const img = require('../../assets/Png/product.png')
-        // @ts-ignore
-        const resolved = (Image as any).resolveAssetSource ? (Image as any).resolveAssetSource(img) : img
-        const uri = resolved?.uri || img
-        await Share.share({ url: uri, title: 'Booking Card' })
-      }
-    } catch (err) {
-      console.warn('download card error', err)
-    } finally {
-      setProcessing(false)
-    }
-  }
 
   return (
     <View style={styles.page} ref={ref} collapsable={false}>
@@ -127,7 +104,7 @@ const styles = StyleSheet.create({
   row: { flexDirection: 'row', justifyContent: 'space-between', paddingVertical: 6 },
   label: { color: '#666', width: '45%', paddingVertical: 4, paddingHorizontal: 10 },
   value: { color: '#222', width: '50%', textAlign: 'right', paddingVertical: 4, paddingHorizontal: 10 },
-  downloadBtn: { marginTop: 20, backgroundColor: '#E2E689', paddingVertical: 14, width: '100%', borderRadius: 24, alignItems: 'center' },
+  downloadBtn: { marginTop: 20, backgroundColor: Colors.button[100], paddingVertical: 14, width: '100%', borderRadius: 24, alignItems: 'center' },
   downloadText: { color: '#222', fontWeight: '600' },
   smallDownloadBtn: { marginTop: 12, backgroundColor: '#fff', paddingVertical: 10, width: '100%', borderRadius: 12, alignItems: 'center', borderWidth: 1, borderColor: '#ddd' },
   smallDownloadText: { color: '#222' },

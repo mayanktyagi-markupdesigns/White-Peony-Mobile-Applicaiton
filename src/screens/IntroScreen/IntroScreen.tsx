@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { View, Text, Platform, StatusBar, Image, ImageBackground, StyleSheet, TouchableOpacity } from 'react-native';
 import { heightPercentageToDP, widthPercentageToDP } from '../../constant/dimentions';
+import { Colors } from '../../constant';
 
 const IntroScreen = ({ navigation }) => {
     const [currentStep, setCurrentStep] = useState(0);
@@ -87,9 +88,9 @@ const IntroScreen = ({ navigation }) => {
                 {currentSlide?.id ===2?<Text style={[styles.text, { fontSize: 22, fontWeight: 'bold' }]}>
                     
                     {currentSlide.subtitle}
-                    <Text style={{ color: '#E2E689' }}>{currentSlide.highlight} </Text>
+                    <Text style={{ color: Colors.button[100] }}>{currentSlide.highlight} </Text>
                 </Text>:<Text style={[styles.text, { fontSize: 22, fontWeight: 'bold' }]}>
-                    <Text style={{ color: '#E2E689' }}>{currentSlide.highlight} </Text>
+                    <Text style={{ color: Colors.button[100] }}>{currentSlide.highlight} </Text>
                     {currentSlide.subtitle}
                 </Text>}
                 <Text style={[styles.text, { fontSize: 14 }]}>{currentSlide.description}</Text>
@@ -99,7 +100,7 @@ const IntroScreen = ({ navigation }) => {
                     <StepIndicator totalSteps={slides.length} currentStep={currentStep} />
 
                     <TouchableOpacity
-                        style={{ width: 50, borderRadius: 25, height: 50, justifyContent: 'center', backgroundColor: '#E2E689' }}
+                        style={{ width: 50, borderRadius: 25, height: 50, justifyContent: 'center', backgroundColor: Colors.button[100] }}
                         onPress={handleNext}
                     >
                         <Image style={{ width: 30, height: 30, alignSelf: 'center' }} source={require('../../assets/Png/right-up.png')} />

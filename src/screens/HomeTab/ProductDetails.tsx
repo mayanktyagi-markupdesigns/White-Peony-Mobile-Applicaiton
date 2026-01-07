@@ -12,17 +12,12 @@ import {
   TextInput,
   ActivityIndicator,
   Animated,
-  Alert
+  Alert,
+  StatusBar
 } from 'react-native';
 // gesture handling for custom zoom removed in favor of `react-native-image-viewing`
-import DropDownPicker from 'react-native-dropdown-picker';
 import { Colors } from '../../constant';
 import ImageView from 'react-native-image-viewing';
-
-
-const { width, height } = Dimensions.get('window');
-const HERO_HEIGHT = 300;
-
 import { useNavigation } from '@react-navigation/native';
 import { UserService } from '../../service/ApiService';
 import { HttpStatusCode } from 'axios';
@@ -32,75 +27,13 @@ import { formatDate } from '../../helpers/helpers';
 import { WishlistContext } from '../../context';
 import { useCart } from '../../context/CartContext';
 import RecommendedProductCard from './RecommendedProductCard';
+import { heightPercentageToDP, widthPercentageToDP } from '../../constant/dimentions';
+import LinearGradient from 'react-native-linear-gradient';
+import Video from 'react-native-video';
+import LoginModal from '../../components/LoginModal';
 
-// Lightweight skeleton placeholder (no external deps) - pulsing blocks
-const SkeletonPlaceholderFull: React.FC = () => {
-  const opacity = useRef(new Animated.Value(0.6)).current;
-
-  useEffect(() => {
-    const loop = Animated.loop(
-      Animated.sequence([
-        Animated.timing(opacity, {
-          toValue: 1,
-          duration: 600,
-          useNativeDriver: true,
-        }),
-        Animated.timing(opacity, {
-          toValue: 0.6,
-          duration: 600,
-          useNativeDriver: true,
-        }),
-      ]),
-    );
-    loop.start();
-    return () => loop.stop();
-  }, [opacity]);
-
-  return (
-    <Animated.View style={[styles.skelContainer, { opacity }]}>
-      <View style={styles.headerRow}>
-        <Animated.View style={styles.skelCircle} />
-        <Animated.View style={styles.skelRectSmall} />
-      </View>
-
-      <Animated.View style={styles.skelHero} />
-
-      <View style={{ padding: 16 }}>
-        <Animated.View style={styles.skelTitle} />
-        <Animated.View style={styles.skelTitleShort} />
-
-        <View
-          style={{
-            flexDirection: 'row',
-            marginTop: 12,
-            alignItems: 'center',
-            justifyContent: 'space-between',
-          }}
-        >
-          <Animated.View style={styles.skelPrice} />
-          <Animated.View style={styles.skelDropdown} />
-        </View>
-
-        <View style={{ height: 12 }} />
-        <Animated.View style={styles.skelDescLine} />
-        <Animated.View style={styles.skelDescLineShort} />
-
-        <View style={{ height: 20 }} />
-        <Animated.View style={styles.skelSectionTitle} />
-        <View style={{ height: 12 }} />
-
-        <ScrollView horizontal showsHorizontalScrollIndicator={false}>
-          {[0, 1, 2].map(i => (
-            <View key={i} style={styles.skelCard}>
-              <Animated.View style={styles.skelCardImage} />
-              <Animated.View style={styles.skelCardTitle} />
-            </View>
-          ))}
-        </ScrollView>
-      </View>
-    </Animated.View>
-  );
-};
+const { width, height } = Dimensions.get('window');
+const HERO_HEIGHT = 300;
 
 type ProductDetailsProps = {
   route: { params: { productId: string } };
@@ -111,14 +44,14 @@ const ProductDetails = ({ route }: ProductDetailsProps) => {
   const { addToCart, cart, isLoggedIn } = useCart(); // ✅ hook at top
   const { productId: proDuctID } = route.params;
   const navigation = useNavigation<any>();
-  const [isLoadingProduct, setIsLoadingProduct] = useState(true);
+  const { showLoader, hideLoader } = CommonLoader();
   const { toggleWishlist, isWishlisted } = useContext(WishlistContext);
   const [productData, setProductData] = useState<any>(null);
   const [relatedProducts, setRelatedProducts] = useState<any[]>([]);
-  //console.log('productData-------->', productData);
   const [baseUrl, setBaseUrl] = useState<string>(
     'https://www.markupdesigns.net/whitepeony/storage/',
   );
+  const [selectedIndex, setSelectedIndex] = useState(null);
   const [displayPrice, setDisplayPrice] = useState<any>('0');
   const [displayUnit, setDisplayUnit] = useState<string>('');
   const [selectedVariant, setSelectedVariant] = useState<any>(null);
@@ -126,7 +59,6 @@ const ProductDetails = ({ route }: ProductDetailsProps) => {
   const [cartLoading, setCartLoading] = useState(false);
 
 
-  // keep isInCart in sync with cart context and local flag (normalized check)
   useEffect(() => {
     try {
       if (!productData) return;
@@ -148,33 +80,30 @@ const ProductDetails = ({ route }: ProductDetailsProps) => {
     }
   }, [cart, selectedVariant, productData?.id]);
 
-  // Using `react-native-image-viewing` for pinch & double-tap zoom; custom gesture code removed
 
-  const GetProducts = async () => {
-    // kept for backward compatibility; use loadProduct for flexible loading
-    await loadProduct(proDuctID);
-  };
+
 
   // Load a product by id and set up state (images, variants, related products, reviews)
   const loadProduct = async (productId: any) => {
+    showLoader();
     try {
-      setIsLoadingProduct(true);
       const res = await UserService.productDetail(productId);
       if (res && res.data && res.status === HttpStatusCode.Ok) {
+        hideLoader();
         const fetchedProducts = res.data?.data || [];
         const resolvedBase = res.data?.base_url || baseUrl;
         setBaseUrl(resolvedBase);
 
-        const first = Array.isArray(fetchedProducts)
-          ? fetchedProducts[0]
-          : fetchedProducts;
+        const first = Array.isArray(fetchedProducts) ? fetchedProducts[0] : fetchedProducts;
 
         if (first) {
           const images = [first.front_image, first.back_image, first.side_image]
             .filter(Boolean)
             .map((img: string) => (img.startsWith('http') ? img : `${resolvedBase}${img}`));
 
-          const extraImgs = (first.images || []).map((img: string) => (img.startsWith('http') ? img : `${resolvedBase}${img}`));
+          const extraImgs = (first.images || []).map((img: string) =>
+            img.startsWith('http') ? img : `${resolvedBase}${img}`,
+          );
           const allImages = extraImgs.length ? extraImgs : images;
 
           const allVariants = first.variants || [];
@@ -201,8 +130,9 @@ const ProductDetails = ({ route }: ProductDetailsProps) => {
               ? normalized.category_id[0]
               : normalized.category_id;
             if (firstCategory) await CategorieProduct(firstCategory);
-          } catch (e) { }
-
+          } catch (e) {
+            hideLoader();
+          }
           try {
             const variantId = variant0?.id ?? null;
             const present = Array.isArray(cart)
@@ -212,7 +142,9 @@ const ProductDetails = ({ route }: ProductDetailsProps) => {
               ))
               : false;
             setIsInCart(Boolean(present || normalized?.is_cart));
-          } catch { }
+          } catch {
+            hideLoader();
+          }
 
           if (variant0) {
             setSelectedVariant(variant0);
@@ -228,14 +160,13 @@ const ProductDetails = ({ route }: ProductDetailsProps) => {
     } catch (err) {
       console.log('Product fetch error:', err);
     } finally {
-      setIsLoadingProduct(false);
+      hideLoader();
     }
   };
 
   const CategorieProduct = async (categoryIdParam?: any) => {
     // Accept either an array or a single id (string/number)
     try {
-      setIsLoadingProduct(true);
       const categoryIdRaw = categoryIdParam || productData?.category_id;
       let categoryId: any = null;
       if (Array.isArray(categoryIdRaw)) categoryId = categoryIdRaw[0];
@@ -247,7 +178,6 @@ const ProductDetails = ({ route }: ProductDetailsProps) => {
           categoryId = categoryIdRaw;
         }
       } else categoryId = categoryIdRaw;
-
       if (!categoryId) {
         setRelatedProducts([]);
         return;
@@ -277,17 +207,13 @@ const ProductDetails = ({ route }: ProductDetailsProps) => {
     } catch (err) {
       console.log('CategorieProduct error:', err);
       setRelatedProducts([]);
-    } finally {
-      setIsLoadingProduct(false);
     }
   };
 
   const ShowReview = async (productIdParam?: any) => {
     try {
-      showLoader();
       const idToUse = productIdParam || proDuctID;
       const res = await UserService.Reviewlist(idToUse);
-      hideLoader();
 
       if (res?.status === HttpStatusCode.Ok && res?.data) {
         const { data } = res.data;
@@ -300,7 +226,6 @@ const ProductDetails = ({ route }: ProductDetailsProps) => {
         });
       }
     } catch (err: any) {
-      hideLoader();
       console.log('Error in ShowReview:', JSON.stringify(err));
       Toast.show({
         type: 'error',
@@ -310,58 +235,8 @@ const ProductDetails = ({ route }: ProductDetailsProps) => {
   };
 
   useEffect(() => {
-    // load initial product using route param
-    GetProducts();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    loadProduct(proDuctID);
   }, []);
-
-  const PostReview = async () => {
-    try {
-      const payload = {
-        rating: newRating,
-        review: newComment || 'No comment',
-
-      };
-
-      showLoader();
-      await UserService.Review(payload, proDuctID)
-        .then(async res => {
-          hideLoader();
-          if (res && res?.data && res?.status === HttpStatusCode.Ok) {
-            Toast.show({
-              type: 'success',
-              text1: res?.data?.message,
-            });
-            console.log("Review", res.data)
-            Toast.show({ type: 'success', text1: res?.data?.message });
-            // setReviews(prev => [r, ...prev]);
-            ShowReview();
-            setNewComment('');
-            setNewRating(5);
-            // navigation.goBack();
-          } else {
-            Toast.show({
-              type: 'error',
-              text1: 'Something went wrong!',
-            });
-          }
-        })
-        .catch(err => {
-          hideLoader();
-          console.log('Error in Review:', err);
-          Toast.show({
-            type: 'error',
-            text1: err.response?.data?.message,
-          });
-        });
-    } catch (error) {
-      hideLoader();
-      Toast.show({
-        type: 'error',
-        text1: 'Something went wrong! Please try again.',
-      });
-    }
-  };
 
   const productImages: any[] =
     productData?.images && productData.images.length ? productData.images : [];
@@ -369,33 +244,17 @@ const ProductDetails = ({ route }: ProductDetailsProps) => {
   // helper to convert string URLs into image sources
   const resolveImageSource = (img: any) =>
     typeof img === 'string' ? { uri: img } : img;
-  const [quantities, setQuantities] = useState<{ [key: string]: number }>({});
-  const increaseQty = (id: string) => {
-    setQuantities(prev => ({ ...prev, [id]: (prev[id] || 0) + 1 }));
-  };
 
-  const decreaseQty = (id: string) => {
-    setQuantities(prev => {
-      const updated = { ...prev };
-      if (updated[id] > 1) {
-        updated[id] -= 1;
-      } else {
-        delete updated[id];
-      }
-      return updated;
-    });
-  };
+
   // Reviews modal state
   const [showModalVisible, setShowModalVisible] = useState(false);
   const [reviews, setReviews] = useState<Array<any>>([]);
-  const [newRating, setNewRating] = useState<number>(5);
-  const [newComment, setNewComment] = useState<string>('');
-  const [newQty, setNewQty] = useState<number>(0);
   // description expand/collapse
   const [descExpanded, setDescExpanded] = useState<boolean>(false);
   // weight dropdown state
-  const [weightOpen, setWeightOpen] = useState(false);
   const [weightValue, setWeightValue] = useState('0');
+  const [modalVisible, setModalVisible] = useState(false);
+
   const [weightItems, setWeightItems] = useState<any[]>([]);
   const [variants, setVariants] = useState<any[]>([]);
 
@@ -422,10 +281,9 @@ const ProductDetails = ({ route }: ProductDetailsProps) => {
   const flatListRef = useRef<FlatList<any> | null>(null);
   const animOpacity = useRef(new Animated.Value(1)).current;
   const autoplayRef = useRef<number | null>(null);
-  const [visible, setIsVisible] = useState(false);
 
   const [isInteracting, setIsInteracting] = useState(false);
-  const { showLoader, hideLoader } = CommonLoader();
+
   useEffect(() => {
     startAutoplay();
     return () => stopAutoplay();
@@ -480,8 +338,6 @@ const ProductDetails = ({ route }: ProductDetailsProps) => {
   const [zoomVisible, setZoomVisible] = useState<boolean>(false);
   const [zoomIndex, setZoomIndex] = useState<number>(0);
   const [zoomScale, setZoomScale] = useState<number>(1);
-  const doubleTapRef = useRef(null);
-  const pinchRef = useRef(null);
 
   const openZoom = (index: number) => {
     setZoomIndex(index);
@@ -489,124 +345,9 @@ const ProductDetails = ({ route }: ProductDetailsProps) => {
     setZoomVisible(true);
   };
 
-  const onPinchEvent = (event: any) => {
-    const scale = Math.min(4, Math.max(1, event.nativeEvent.scale));
-    setZoomScale(scale);
-  };
-
-  const onDoubleTapEvent = () => {
-    setZoomScale(s => (s > 1 ? 1 : 2)); // Toggle between normal and 2x zoom
-  };
-
   const closeZoom = () => {
     setZoomVisible(false);
     setZoomScale(1);
-  };
-
-  // inline loader will be used to switch product details when a recommended product is tapped
-  // use loadProduct(productId) to load a new product inline without navigation/modal
-
-  const increaseZoom = () =>
-    setZoomScale(s => Math.min(4, +(s + 0.5).toFixed(2)));
-  const decreaseZoom = () =>
-    setZoomScale(s => Math.max(1, +(s - 0.5).toFixed(2)));
-
-
-
-  const renderProduct = ({ item }: { item: any }) => {
-    // determine if this recommended product is in cart (normalized check)
-    const isItemInCart = Array.isArray(cart)
-      ? cart.some((c: any) => {
-        const cartProductId = c.product_id ?? c.id;
-        const cartVariantId = c.variant_id ?? null;
-        const itemVariantId = item.variant_id ?? item.variants?.[0]?.id ?? null;
-        return Number(cartProductId) === Number(item.id) && String(cartVariantId) === String(itemVariantId);
-      })
-      : false;
-
-    const [localLoading, setLocalLoading] = useState(false);
-
-    const handleItemCart = async () => {
-      try {
-        if (isItemInCart) {
-          navigation.navigate('CheckoutScreen');
-          return;
-        }
-
-        setLocalLoading(true);
-        await addToCart(item.id, item?.variants?.[0]?.id ?? null);
-
-        // immediate visual feedback
-        // NOTE: we don't directly mutate cart here; CartContext will update it.
-        // setLocalLoading will keep the spinner until the action completes.
-        setLocalLoading(false);
-        Toast.show({
-          type: 'success',
-          text1: 'Added to cart successfully!',
-        });
-      } catch (err) {
-        setLocalLoading(false);
-        console.log('Cart add error:', err);
-        Toast.show({
-          type: 'error',
-          text1: 'Failed to add to cart'
-        });
-      }
-    };
-
-    return (
-      <TouchableOpacity
-        style={styles.card}
-        onPress={() => loadProduct(item.id)}
-        activeOpacity={0.8}
-      >
-        <Image source={resolveImageSource(item.image || (item.images && item.images[0]))} style={styles.cardImage} />
-        <View style={styles.cardBody}>
-          <Text numberOfLines={1} style={styles.cardTitle}>
-            {item.name || item.title}
-          </Text>
-          <View style={{ flexDirection: 'row', marginTop: 8 }}>
-            {[1, 2, 3, 4, 5].map((r) => {
-              const isFull = item?.average_rating >= r;
-              const isHalf = item?.average_rating >= r - 0.5 && item?.average_rating < r;
-              return (
-                <View key={r} style={{ width: 18, height: 18, position: 'relative' }}>
-                  <Text style={{ color: '#ccc', fontSize: 18, position: 'absolute' }}>★</Text>
-                  <View
-                    style={{
-                      width: isFull ? '100%' : isHalf ? '50%' : '0%',
-                      overflow: 'hidden',
-                      position: 'absolute',
-                    }}
-                  >
-                    <Text style={{ color: '#F0C419', fontSize: 18 }}>★</Text>
-                  </View>
-                </View>
-              )
-            })}
-          </View>
-          <Text style={styles.cardPrice}>{Math.round(item.price)}</Text>
-
-          <TouchableOpacity
-            style={[
-              styles.cartButton,
-              isItemInCart && styles.cartButtonActive,
-              localLoading && styles.cartButtonDisabled
-            ]}
-            onPress={handleItemCart}
-            disabled={localLoading}
-          >
-            {localLoading ? (
-              <ActivityIndicator size="small" color="#fff" />
-            ) : (
-              <Text style={styles.cartButtonText}>
-                {isItemInCart ? 'Go to Cart' : 'Add to Bag'}
-              </Text>
-            )}
-          </TouchableOpacity>
-        </View>
-      </TouchableOpacity>
-    );
   };
 
   // Unified cart action handler for main product
@@ -649,32 +390,49 @@ const ProductDetails = ({ route }: ProductDetailsProps) => {
     }
 
     return (
-      <TouchableOpacity
-        style={[
-          styles.cartButton,
-          isInCart && styles.cartButtonActive,
-          cartLoading && styles.cartButtonDisabled
-        ]}
-        onPress={handleCartAction}
-        disabled={cartLoading}
-      >
-        {cartLoading ? (
-          <ActivityIndicator size="small" color="#fff" />
-        ) : (
-          <>
-            <Text style={styles.cartButtonText}>
-              {isInCart ? 'Go to Cart' : 'Add to Bag'}
-            </Text>
-          </>
-        )}
-      </TouchableOpacity>
+      <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginTop: heightPercentageToDP(3), width: '100%' }}>
+
+        <TouchableOpacity
+          style={[
+            styles.cartButton,
+            isInCart && styles.cartButtonActive,
+            cartLoading && styles.cartButtonDisabled
+          ]}
+          onPress={handleCartAction}
+          disabled={cartLoading}
+        >
+          {cartLoading ? (
+            <ActivityIndicator size="small" color="#fff" />
+          ) : (
+            <>
+              <Text style={styles.cartButtonText}>
+                {isInCart ? 'Go to Cart' : 'Add to Bag'}
+              </Text>
+            </>
+          )}
+        </TouchableOpacity>
+
+        <TouchableOpacity onPress={() => isLoggedIn ? handleCartAction : setModalVisible(true)} ><View style={{ borderWidth: 1, borderColor: '#999', borderRadius: 20, height: 45, justifyContent: 'center', width: widthPercentageToDP(40) }}>
+          <Text style={{ fontSize: 12, fontWeight: '700', alignSelf: 'center' }}>Check-Out</Text>
+        </View>
+        </TouchableOpacity>
+
+        <LoginModal
+          visible={modalVisible}
+          onClose={() => {
+            setModalVisible(false);
+          }}
+        />
+      </View>
+
+
     );
   };
 
   // Example review data (from backend)
   const reviewStats = {
     average_rating: productData?.average_rating || 0,
-    total_reviews: productData?.reviews.length,
+    total_reviews: productData?.reviews?.length || 0,
     breakdown: {
       5: 2,
       4: 1,
@@ -687,9 +445,7 @@ const ProductDetails = ({ route }: ProductDetailsProps) => {
   const total = Object.values(reviewStats.breakdown).reduce((a, b) => a + b, 0);
   const average = reviewStats.average_rating || 0;
 
-  return isLoadingProduct ? (
-    <SkeletonPlaceholderFull />
-  ) : (
+  return (
     <View style={styles.container}>
       <View style={styles.headerRow}>
         <TouchableOpacity
@@ -703,23 +459,28 @@ const ProductDetails = ({ route }: ProductDetailsProps) => {
         </TouchableOpacity>
 
         <View style={styles.headerRightVideo}>
-
           <TouchableOpacity
             onPress={() => toggleWishlist(productData?.id)}
             activeOpacity={0.7}
-            style={{ width: 30, height: 30, borderRadius: 15, backgroundColor: '#E2E689', justifyContent: 'center', alignItems: 'center', position: 'absolute', top: 10, right: 10 }}
+            style={{ position: 'absolute', top: 10, right: 10 }}
           >
             {isWishlisted(productData?.id) ? (
-              <Image
-                source={require('../../assets/Png/heart1.png')}
-                style={{ position: 'absolute', width: 15, height: 15, alignSelf: 'center' }}
+              <Video
+                source={require('../../assets/Png/splash.mp4')}
+                style={{ position: 'absolute', width: 20, height: 20, alignSelf: 'center' }}
+                muted={true}
+                repeat={true}
+                resizeMode="cover"
+                onError={(e) => console.log('Video error', e)}
               />
             ) : (
               // Use the outline heart image for non-wishlisted state so touch events are not intercepted
-              <Image
-                source={require('../../assets/Png/heart-1.png')}
-                style={{ position: 'absolute', width: 15, height: 15, alignSelf: 'center' }}
-              />
+              <View style={{ width: 30, height: 30, borderRadius: 15, backgroundColor: Colors.button[100], justifyContent: 'center', alignItems: 'center', }}>
+                <Image
+                  source={require('../../assets/Png/heart-1.png')}
+                  style={{ position: 'absolute', width: 15, height: 15, alignSelf: 'center' }}
+                />
+              </View>
             )}
           </TouchableOpacity>
         </View>
@@ -727,7 +488,7 @@ const ProductDetails = ({ route }: ProductDetailsProps) => {
 
       <ScrollView
         style={styles.content}
-        contentContainerStyle={{ padding: 12 }}
+        contentContainerStyle={{ paddingHorizontal: 12 }}
       >
         {/* Image carousel with dots. Tap an image to open zoom modal */}
         <View>
@@ -814,71 +575,96 @@ const ProductDetails = ({ route }: ProductDetailsProps) => {
           <Text style={styles.title}>
             {productData?.name !== null ? productData?.name : ''}
           </Text>
+          <Text style={{ color: '#F0C419', fontSize: 14, fontWeight: '700' }}>
+            ★ <Text style={{ color: '#000', fontWeight: '500' }}>({productData?.average_rating})</Text>
+          </Text>
+        </View>
 
-          <View style={{ flexDirection: 'row', }}>
-            {[1, 2, 3, 4, 5].map((r) => {
-              const isFull = productData?.average_rating >= r;
-              const isHalf = productData?.average_rating >= r - 0.5 && productData?.average_rating < r;
+        <Text style={styles.price}>{Math.round(displayPrice)}€ </Text>
+
+        <View style={{ marginTop: heightPercentageToDP(2) }}>
+          <Text style={{ fontWeight: '600', fontSize: 12 }}>
+            Select an Unit
+          </Text>
+
+          <View
+            style={{
+              flexDirection: 'row',
+              flexWrap: 'wrap',
+              justifyContent: 'space-between',
+              marginTop: heightPercentageToDP(1),
+            }}
+          >
+            {weightItems.map((item, index) => {
+              const isSelected = selectedIndex === index;
+
               return (
-                <View key={r} style={{ width: 18, height: 18, position: 'relative' }}>
-                  {/* base gray star */}
-                  <Text style={{ color: '#ccc', fontSize: 18, position: 'absolute' }}>★</Text>
-                  {/* overlay half or full star */}
-                  <View
+                <TouchableOpacity
+                  key={item.value}
+                  activeOpacity={0.8}
+                  onPress={() => {
+                    const v = variants[index];
+                    if (v) {
+                      setSelectedIndex(index);
+                      setDisplayPrice(v.price ?? productData.price ?? displayPrice);
+                      setDisplayUnit(v.unit ?? productData.unit ?? displayUnit);
+                      setSelectedVariant(v);
+                    }
+                  }}
+                  style={{
+                    borderColor: isSelected ? '#000' : Colors.text[400],
+                    borderWidth: 1,
+                    borderRadius: 8,
+                    height: 50,
+                    width: widthPercentageToDP(25),
+                    marginBottom: heightPercentageToDP(1),
+                    backgroundColor: '#FFF',
+                  }}
+                >
+                  {/* Discount badge */}
+                  {item.discount && (
+                    <LinearGradient
+                      colors={[Colors.button[100], '#ffffff']}
+                      start={{ x: 0, y: 0 }}
+                      end={{ x: 1, y: 0 }}
+                      style={{
+                        borderTopLeftRadius: 6,
+                        borderTopRightRadius: 6,
+                        paddingVertical: 2,
+                      }}
+                    >
+                      <Text
+                        style={{
+                          fontSize: 10,
+                          fontWeight: '500',
+                          paddingLeft: 8,
+                        }}
+                      >
+                        {item.discount}% OFF
+                      </Text>
+                    </LinearGradient>
+                  )}
+
+                  {/* Unit */}
+                  <Text
                     style={{
-                      width: isFull ? '100%' : isHalf ? '50%' : '0%',
-                      overflow: 'hidden',
-                      position: 'absolute',
+                      fontSize: 12,
+                      fontWeight: '700',
+                      alignSelf: 'center',
+                      marginTop: item.discount ? 8 : 15,
+                      color: isSelected ? '#000' : '#333',
                     }}
                   >
-                    <Text style={{ color: '#F0C419', fontSize: 18 }}>★</Text>
-                  </View>
-                </View>
-              )
+                    {item.label}
+                  </Text>
+                </TouchableOpacity>
+              );
             })}
           </View>
         </View>
-        <View style={styles.priceRow}>
-          <Text style={styles.price}>{Math.round(displayPrice)}€ </Text>
-          <View style={{ width: 12 }} />
-          <View style={styles.dropdownWrapper}>
-            <DropDownPicker
-              open={weightOpen}
-              value={weightValue}
-              items={weightItems}
-              placeholder='Select an Unit'
-              setOpen={setWeightOpen}
-              setValue={setWeightValue}
-              setItems={setWeightItems}
-              onChangeValue={(val: any) => {
-                // val is the index (string) of selected variant
-                const idx = Number(val);
-                const v = variants[idx];
-                if (v) {
-                  setDisplayPrice(v.price ?? productData.price ?? displayPrice);
-                  setDisplayUnit(v.unit ?? productData.unit ?? displayUnit);
-                  setSelectedVariant(v);
-                }
-              }}
 
-              containerStyle={{ height: 40 }}
-              style={{
-                backgroundColor: '#FFF',
-                borderRadius: 20,
-                // width: '45%',
-                alignItems: 'center',
-                borderWidth: 1,
-                height: 30,
-                borderColor: '#fff',
-              }}
-              dropDownContainerStyle={{ backgroundColor: '#fff' }}
-            />
-          </View>
-        </View>
+        <CartButton />
 
-        <View style={styles.headerRight}>
-          <CartButton />
-        </View>
         <Text style={{ marginTop: 20, fontWeight: '700', }}>
           Product Description
         </Text>
@@ -886,13 +672,13 @@ const ProductDetails = ({ route }: ProductDetailsProps) => {
           style={{ marginTop: 8, lineHeight: 20, color: '#333' }}
           numberOfLines={descExpanded ? undefined : 3}
         >
-          {productData.description != null ? productData.description : ''}
+          {productData?.description ?? ''}
         </Text>
         {descExpanded ? <TouchableOpacity
           onPress={() => setDescExpanded(prev => !prev)}
           activeOpacity={0.7}
         >
-          <Text style={{ marginTop: 8, color: '#E2E689', fontWeight: '700' }}>
+          <Text style={{ marginTop: 8, color: Colors.button[100], fontWeight: '700' }}>
             {descExpanded ? 'Read less' : 'Read more'}
           </Text>
         </TouchableOpacity> : null}
@@ -977,7 +763,7 @@ const ProductDetails = ({ route }: ProductDetailsProps) => {
           <View style={styles.reviewsButtons}>
             <TouchableOpacity
               style={styles.showBtn}
-              onPress={() => { reviews.length == 0 ? Alert.alert('', 'No Review Found') : setShowModalVisible(true) }}
+              onPress={() => { reviews.length == 0 ? Toast.show({ type: 'info', text1: 'No Review Found' }) : setShowModalVisible(true) }}
             >
               <Text style={styles.showBtnText}>Show Review</Text>
             </TouchableOpacity>
@@ -1064,10 +850,8 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
+    marginTop: StatusBar.currentHeight,
     paddingHorizontal: 12,
-    paddingTop: 12,
-    paddingBottom: 8,
-    marginTop: 10,
   },
   sideVideoWrapper: {
     width: 60,
@@ -1087,10 +871,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   backBtn: {
-    padding: 8,
-    borderRadius: 20,
-    width: 40,
-    height: 40,
+
     alignItems: 'center',
     justifyContent: 'center',
     backgroundColor: 'rgba(255,255,255,0.9)',
@@ -1105,7 +886,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   content: { flex: 1 },
-  title: { fontSize: 18, fontWeight: '700' },
+  title: { fontSize: 16, fontWeight: '700' },
   price: { fontSize: 16, fontWeight: '600', marginTop: 8 },
   actionsRow: { flexDirection: 'row', marginTop: 12, alignItems: 'center' },
 
@@ -1121,7 +902,7 @@ const styles = StyleSheet.create({
   CateView: {
     width: 'auto',
     height: 32,
-    backgroundColor: '#E2E689',
+    backgroundColor: Colors.button[100],
     borderRadius: 16,
     alignItems: 'center',
     justifyContent: 'center',
@@ -1141,7 +922,7 @@ const styles = StyleSheet.create({
 
   addBtn: {
     marginTop: 10,
-    backgroundColor: '#E2E689',
+    backgroundColor: Colors.button[100],
     paddingVertical: 6,
     paddingHorizontal: 18,
     borderRadius: 20,
@@ -1157,7 +938,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     marginTop: 10,
-    backgroundColor: '#E2E689',
+    backgroundColor: Colors.button[100],
     borderRadius: 20,
     paddingHorizontal: 6,
     paddingVertical: 4,
@@ -1166,7 +947,7 @@ const styles = StyleSheet.create({
     width: 28,
     height: 28,
     borderRadius: 14,
-    backgroundColor: '#E2E689',
+    backgroundColor: Colors.button[100],
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -1198,7 +979,7 @@ const styles = StyleSheet.create({
   filterBtn: {
     marginRight: 8,
     padding: 8,
-    backgroundColor: '#E2E689',
+    backgroundColor: Colors.button[100],
     borderRadius: 20,
     width: '45%',
     alignItems: 'center',
@@ -1250,7 +1031,7 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
   },
   writeBtn: {
-    backgroundColor: '#E2E689',
+    backgroundColor: Colors.button[100],
     padding: 12,
     borderRadius: 20,
     flex: 1,
@@ -1284,130 +1065,23 @@ const styles = StyleSheet.create({
     marginHorizontal: 4,
   },
   dotActive: { backgroundColor: '#fff' },
-  zoomModalBg: { flex: 1, backgroundColor: '#000' },
-  zoomHeader: {
-    height: 56,
-    paddingHorizontal: 12,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    backgroundColor: 'rgba(0,0,0,0.6)',
-    marginTop: '5%',
-  },
-  zoomClose: { padding: 8, marginTop: '5%' },
-  zoomControls: { flexDirection: 'row', alignItems: 'center', marginTop: '5%' },
-  zoomControlBtn: {
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: 6,
-    backgroundColor: 'rgba(255,255,255,0.12)',
-  },
-  zoomImage: {
-    width: '100%',
-    height: '100%',
-  },
-  // skeleton placeholder styles
-  skelContainer: { flex: 1, backgroundColor: '#fff' },
-  skelCircle: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    backgroundColor: '#eee',
-  },
-  skelRectSmall: {
-    width: 120,
-    height: 14,
-    backgroundColor: '#eee',
-    borderRadius: 8,
-  },
-  skelHero: {
-    width: '100%',
-    height: HERO_HEIGHT,
-    backgroundColor: '#eee',
-    marginTop: 12,
-  },
-  skelTitle: {
-    width: '70%',
-    height: 20,
-    backgroundColor: '#eee',
-    marginTop: 12,
-    borderRadius: 6,
-  },
-  skelTitleShort: {
-    width: '40%',
-    height: 16,
-    backgroundColor: '#eee',
-    marginTop: 8,
-    borderRadius: 6,
-  },
-  skelPrice: {
-    width: 100,
-    height: 28,
-    backgroundColor: '#eee',
-    borderRadius: 8,
-  },
-  skelDropdown: {
-    width: 120,
-    height: 36,
-    backgroundColor: '#eee',
-    borderRadius: 18,
-  },
-  skelDescLine: {
-    width: '100%',
-    height: 12,
-    backgroundColor: '#eee',
-    marginTop: 8,
-    borderRadius: 6,
-  },
-  skelDescLineShort: {
-    width: '70%',
-    height: 12,
-    backgroundColor: '#eee',
-    marginTop: 6,
-    borderRadius: 6,
-  },
-  skelSectionTitle: {
-    width: 140,
-    height: 18,
-    backgroundColor: '#eee',
-    borderRadius: 6,
-  },
-  skelCard: { width: 140, marginRight: 12 },
-  skelCardImage: {
-    width: 140,
-    height: 110,
-    backgroundColor: '#eee',
-    borderRadius: 8,
-  },
-  skelCardTitle: {
-    width: '80%',
-    height: 12,
-    backgroundColor: '#eee',
-    marginTop: 8,
-    borderRadius: 6,
-  },
-  cartButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: '#E2E689',
-    paddingVertical: 12,
-    paddingHorizontal: 24,
-    borderRadius: 24,
 
-    marginTop: 16,
+  cartButton: {
+    backgroundColor: Colors.button[100],
+    borderRadius: 20, height: 45, justifyContent: 'center', width: widthPercentageToDP(40)
+
   },
   cartButtonActive: {
-    backgroundColor: '#E2E689',
+    backgroundColor: Colors.button[100],
   },
   cartButtonDisabled: {
     opacity: 0.7,
   },
   cartButtonText: {
-    fontSize: 16,
-    fontWeight: '600',
+    fontSize: 12,
+    fontWeight: '700',
     color: '#000',
-    marginRight: 8,
+    alignSelf: 'center'
   },
   cartPrice: {
     fontSize: 14,

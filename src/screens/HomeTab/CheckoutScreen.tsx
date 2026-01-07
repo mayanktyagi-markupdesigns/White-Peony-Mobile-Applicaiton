@@ -26,7 +26,7 @@ import { useFocusEffect } from '@react-navigation/native';
 import { widthPercentageToDP } from '../../constant/dimentions';
 import { useCart } from '../../context/CartContext';
 import { WebView } from 'react-native-webview';
-import { Images } from '../../constant';
+import { Colors, Images } from '../../constant';
 
 
 const SCREEN_WIDTH = Dimensions.get('window').width;
@@ -67,12 +67,9 @@ const CheckoutScreen = ({ navigation }: { navigation: any }) => {
   const [modalVisible, setModalVisible] = useState(false);
   const [modalAddress, setModalAddress] = useState(false);
   const [modalAddressADD, setmodalAddressADD] = useState(false);
-  const [isLoadingProduct, setIsLoadingProduct] = useState(true);
   const [items, setItems] = useState<DisplayWishlistItem[]>([]);
   const [showWebView, setShowWebView] = useState(false);
   const [paymentUrl, setPaymentUrl] = useState('');
-
-
   const { showLoader, hideLoader } = CommonLoader();
   const [cartData, setApiCartData] = useState<CartItem[]>([]);
   const [cartid, setcartid] = useState<any>(null);
@@ -371,7 +368,7 @@ const CheckoutScreen = ({ navigation }: { navigation: any }) => {
 
   const GetCartDetails = async () => {
     try {
-      setIsLoadingProduct(true);
+      showLoader();
       const res = await UserService.viewCart();
       if (res && res.data && res.status === HttpStatusCode.Ok) {
         const fetchedProducts = res.data?.cart || [];
@@ -383,14 +380,14 @@ const CheckoutScreen = ({ navigation }: { navigation: any }) => {
       console.log("carterror", JSON.stringify(err))
       // handle network/error
     } finally {
-      setIsLoadingProduct(false);
+      hideLoader();
     }
   };
 
   const GetPromo = async () => {
     try {
       setIsFetchingPromo(true);
-      setIsLoadingProduct(true);
+      showLoader();
       const res = await UserService.GetPromo_Code();
       const data = Array.isArray(res?.data) ? res.data : (res?.data?.data ?? res?.data);
       const list = Array.isArray(data) ? data : [];
@@ -406,14 +403,14 @@ const CheckoutScreen = ({ navigation }: { navigation: any }) => {
       return [];
     } finally {
       setIsFetchingPromo(false);
-      setIsLoadingProduct(false);
+      hideLoader();
     }
   };
 
   const Getshiping = async () => {
     try {
       setIsFetchingShipping(true);
-      setIsLoadingProduct(true);
+      showLoader();
       const res = await UserService.Shiping();
       if (res && (res.status === HttpStatusCode.Ok || res.status === 200)) {
 
@@ -432,7 +429,7 @@ const CheckoutScreen = ({ navigation }: { navigation: any }) => {
       return [];
     } finally {
       setIsFetchingShipping(false);
-      setIsLoadingProduct(false);
+      hideLoader();
     }
   };
 
@@ -447,7 +444,7 @@ const CheckoutScreen = ({ navigation }: { navigation: any }) => {
       shipping_id: selectedShippingId || 1,
     };
     try {
-      setIsLoadingProduct(true);
+      showLoader();
       const res = await UserService.Placeorder(payload);
       if (res && res.data && (res.status === HttpStatusCode.Ok || res.status === 200)) {
         setShippingModalVisible(false);
@@ -461,7 +458,7 @@ const CheckoutScreen = ({ navigation }: { navigation: any }) => {
     } catch (err) {
       console.log('error', JSON.stringify(err));
     } finally {
-      setIsLoadingProduct(false);
+      hideLoader();
     }
   };
 
@@ -488,7 +485,7 @@ const CheckoutScreen = ({ navigation }: { navigation: any }) => {
           <View
             style={{
               borderWidth: 1,
-              borderColor: '#D9D9D9',
+              borderColor: Colors.text[400],
               borderRadius: 10,
               margin: 5,
               marginTop: 10,
@@ -512,7 +509,7 @@ const CheckoutScreen = ({ navigation }: { navigation: any }) => {
           {items.length !== 0 ? <View
             style={{
               borderWidth: 1,
-              borderColor: '#D9D9D9',
+              borderColor: Colors.text[400],
               borderRadius: 10,
               margin: 5,
               marginTop: 10,
@@ -668,7 +665,7 @@ const CheckoutScreen = ({ navigation }: { navigation: any }) => {
                       <TouchableOpacity onPress={() => setPromoModalVisible(false)} style={{ backgroundColor: '#eee', paddingVertical: 12, borderRadius: 28, alignItems: 'center', flex: 1, marginRight: 8 }}>
                         <Text style={{ color: '#333' }}>Cancel</Text>
                       </TouchableOpacity>
-                      <TouchableOpacity onPress={() => SetPromo()} disabled={isApplyingPromo} style={{ backgroundColor: '#E2E689', paddingVertical: 12, borderRadius: 28, alignItems: 'center', flex: 1 }}>
+                      <TouchableOpacity onPress={() => SetPromo()} disabled={isApplyingPromo} style={{ backgroundColor: Colors.button[100], paddingVertical: 12, borderRadius: 28, alignItems: 'center', flex: 1 }}>
                         <Text style={{ color: '#000', fontWeight: '700' }}>{isApplyingPromo ? 'Applying...' : 'Apply Coupon'}</Text>
                       </TouchableOpacity>
                     </View>
@@ -683,7 +680,7 @@ const CheckoutScreen = ({ navigation }: { navigation: any }) => {
             <View
               style={{
                 borderWidth: 1,
-                borderColor: '#D9D9D9',
+                borderColor: Colors.text[400],
                 borderRadius: 12,
                 margin: 10,
                 padding: 10,
@@ -699,7 +696,7 @@ const CheckoutScreen = ({ navigation }: { navigation: any }) => {
               {appliedPromo && (
                 <View style={styles.billRow}>
                   <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-                    <Text style={[styles.billLabel, { color: '#E2E689' }]}>
+                    <Text style={[styles.billLabel, { color: Colors.button[100] }]}>
                       Coupon ({appliedPromo.code ?? appliedPromo.promo_code})
                     </Text>
                     <TouchableOpacity onPress={removeCoupon} style={{ marginLeft: 6 }}>
@@ -709,7 +706,7 @@ const CheckoutScreen = ({ navigation }: { navigation: any }) => {
                   <Text
                     style={[
                       styles.billValue,
-                      { color: '#E2E689', fontWeight: '700' },
+                      { color: Colors.button[100], fontWeight: '700' },
                     ]}
                   >
                     -{discountAmount.toFixed(2)} €
@@ -731,7 +728,7 @@ const CheckoutScreen = ({ navigation }: { navigation: any }) => {
                 </Text>
               </View>
 
-              <View style={{ borderWidth: 0.6, width: '100%', borderColor: '#D9D9D9', marginVertical: 10 }}></View>
+              <View style={{ borderWidth: 0.6, width: '100%', borderColor: Colors.text[400], marginVertical: 10 }}></View>
 
               <View style={styles.billRow}>
                 <Text
@@ -808,7 +805,7 @@ const CheckoutScreen = ({ navigation }: { navigation: any }) => {
           <View style={{ justifyContent: "center", alignSelf: "center", flex: 1, }}>
             <Text style={[styles.headerTitle, { alignSelf: "center", marginBottom: 10 }]}>No Item Found</Text>
             <TouchableOpacity onPress={() => navigation.navigate('BottomTabScreen')}>
-              <View style={{ width: widthPercentageToDP(70), borderRadius: 12, backgroundColor: '#E2E689', paddingVertical: 12, alignSelf: "center" }}>
+              <View style={{ width: widthPercentageToDP(70), borderRadius: 12, backgroundColor: Colors.button[100], paddingVertical: 12, alignSelf: "center" }}>
                 <Text style={{ fontSize: 14, alignSelf: "center" }}>Continue For shopping</Text>
               </View>
             </TouchableOpacity>
@@ -1010,15 +1007,15 @@ const styles = StyleSheet.create({
   moveToWishlistText: {
     fontSize: 12,
     fontWeight: '500',
-    color: '#E2E689',
+    color: Colors.button[100],
   },
   qtyControlContainer: {
     flexDirection: 'row',
     alignItems: 'center',
     borderRadius: 7,
     borderWidth: 1,
-    borderColor: '#E2E689',
-    backgroundColor: '#E2E689',
+    borderColor: Colors.button[100],
+    backgroundColor: Colors.button[100],
     width: 100,
     justifyContent: 'center',
     marginTop: 4,
@@ -1068,7 +1065,7 @@ const styles = StyleSheet.create({
     borderRadius: 20,
     width: 120,
     padding: 10,
-    borderWidth: 1, borderColor: '#D9D9D9',
+    borderWidth: 1, borderColor: Colors.text[400],
   },
   suggestionImage: {
     width: 84,
@@ -1086,7 +1083,7 @@ const styles = StyleSheet.create({
   suggestionPrice: {
     fontSize: 12,
     fontWeight: '600',
-    color: '#E2E689',
+    color: Colors.button[100],
     marginTop: 2,
   },
   seeAllBtn: {
@@ -1110,7 +1107,7 @@ const styles = StyleSheet.create({
     marginVertical: 12,
     borderRadius: 12,
     borderWidth: 1,
-    borderColor: '#D9D9D9',
+    borderColor: Colors.text[400],
     backgroundColor: '#FFF',
     justifyContent: 'space-between',
     paddingVertical: 12,
@@ -1151,7 +1148,7 @@ const styles = StyleSheet.create({
     alignSelf: 'center',
     width: SCREEN_WIDTH - 0,
     borderTopWidth: 1,
-    borderColor: '#D9D9D9',
+    borderColor: Colors.text[400],
   },
   deliveryAddressTitle: {
     fontWeight: '600',
@@ -1174,7 +1171,7 @@ const styles = StyleSheet.create({
     bottom: 20,
     marginVertical: 20,
     alignSelf: 'center',
-    backgroundColor: '#E2E689',
+    backgroundColor: Colors.button[100],
     paddingHorizontal: 32,
     paddingVertical: 14,
     borderRadius: 32,

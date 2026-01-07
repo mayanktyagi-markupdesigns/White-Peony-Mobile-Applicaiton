@@ -15,11 +15,12 @@ import {
 import { UserService } from '../../service/ApiService';
 import { HttpStatusCode } from 'axios';
 import { Colors } from '../../constant';
-
-const { width } = Dimensions.get('window');
-
+import { CommonLoader } from '../../components/CommonLoader/commonLoader';
 
 const CategoryScreen = ({ navigation }) => {
+
+  const { showLoader, hideLoader } = CommonLoader();
+
 
   const renderItem = ({ item }: { item: any }) => (
     <TouchableOpacity style={styles.tile} activeOpacity={0.9} onPress={() => navigation.navigate('CategoryDetailsList', { categoryId: item.id, categoryTitle: item.name })}>
@@ -34,7 +35,7 @@ const CategoryScreen = ({ navigation }) => {
       </ImageBackground>
     </TouchableOpacity>
   );
-  const [isLoadingProduct, setIsLoadingProduct] = useState(true);
+
   const [category, setApiCateProducts] = useState([]);
   useEffect(() => {
 
@@ -43,7 +44,7 @@ const CategoryScreen = ({ navigation }) => {
 
   const GetCategoryProducts = async () => {
     try {
-      setIsLoadingProduct(true);
+      showLoader();
       const res = await UserService.GetCategory();
       if (res && res.data && res.status === HttpStatusCode.Ok) {
         const fetchedProducts = res.data?.categories || [];
@@ -55,7 +56,7 @@ const CategoryScreen = ({ navigation }) => {
       // handle network/error
 
     } finally {
-      setIsLoadingProduct(false);
+      hideLoader();
     }
   };
   return (
@@ -126,7 +127,7 @@ const styles = StyleSheet.create({
     width: 44,
     height: 40,
     borderRadius: 20,
-    backgroundColor: '#E2E689',
+    backgroundColor: Colors.button[100],
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -144,7 +145,7 @@ const styles = StyleSheet.create({
     width: 60,
     height: 40,
     borderRadius: 20,
-    backgroundColor: '#E2E689',
+    backgroundColor: Colors.button[100],
     alignItems: 'center',
     justifyContent: 'center',
   },

@@ -7,6 +7,7 @@ import { Colors } from '../../constant';
 import LinearGradient from 'react-native-linear-gradient';
 import Toast from 'react-native-toast-message';
 import { HttpStatusCode } from 'axios';
+import { CommonLoader } from '../../components/CommonLoader/commonLoader';
 
 const { width } = Dimensions.get('window');
 const ITEM_WIDTH = (width - 48) / 2;
@@ -19,9 +20,9 @@ const sampleData = new Array(8).fill(null).map((_, i) => ({
 }));
 
 const CategoryDetailsList = ({ navigation, route }: any) => {
-  const { addToCart, removeFromCart, isLoggedIn, cart } = useCart();
+  const { addToCart, cart } = useCart();
   const [apiProducts, setApiProducts] = useState<any[]>([]);
-  const [loading, setLoading] = useState(false);
+  const { showLoader, hideLoader } = CommonLoader();
   const { categoryId, categoryTitle, mode } = route.params || {};
   const [filterVisible, setFilterVisible] = useState(false);
   const [sortVisible, setSortVisible] = useState(false);
@@ -72,7 +73,7 @@ const CategoryDetailsList = ({ navigation, route }: any) => {
   // 🧩 Fetch products based on mode
   const fetchProducts = async (filterParams: any = {}) => {
     console.log(mode)
-    setLoading(true);
+    showLoader();
     try {
       let response: any = [];
       if (mode === 'recommended') response = await UserService.recommended();
@@ -113,7 +114,7 @@ const CategoryDetailsList = ({ navigation, route }: any) => {
     } catch (err) {
       console.log('Error fetching products:', err);
     } finally {
-      setLoading(false);
+      hideLoader();
     }
   };
 
@@ -154,7 +155,7 @@ const CategoryDetailsList = ({ navigation, route }: any) => {
   // 🧩 Handle sorting of products
   const ApiSorting = async (sortType: string) => {
     try {
-      setLoading(true);
+      showLoader();;
       const res = await UserService.Sorting(sortType);
 
       if (res?.status === HttpStatusCode.Ok) {
@@ -188,7 +189,7 @@ const CategoryDetailsList = ({ navigation, route }: any) => {
         text1: 'Failed to sort products'
       });
     } finally {
-      setLoading(false);
+      hideLoader();;
     }
   };
 
@@ -507,7 +508,7 @@ const styles = StyleSheet.create({
   CategoryView: {
     width: 'auto',
     height: 32,
-    // backgroundColor: '#E2E689',
+    // backgroundColor: Colors.button[100],
     borderRadius: 16,
     alignItems: 'center',
     justifyContent: 'center',
@@ -516,7 +517,7 @@ const styles = StyleSheet.create({
     margin: 5,
 
   },
-  cardImage: { width: 177, height: 245, borderRadius: 9, borderWidth: 1, borderColor: '#D9D9D9' },
+  cardImage: { width: 177, height: 245, borderRadius: 9, borderWidth: 1, borderColor: Colors.text[400] },
   cardBody: { padding: 8, alignItems: 'center', justifyContent: 'center' },
   cardTitle: { fontSize: 13, fontWeight: '600' },
   cardPrice: {
@@ -554,7 +555,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: '#E2E689',
+    backgroundColor: Colors.button[100],
     paddingVertical: 12,
     paddingHorizontal: 24,
     borderRadius: 24,

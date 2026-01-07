@@ -178,7 +178,7 @@ const EventScreen = ({ navigation }: any) => {
   };
 
   const renderUpcoming = ({ item }: { item: any }) => (
-    <TouchableOpacity style={{ borderWidth: 1, borderRadius: 12, borderColor: '#D9D9D9', padding: 10,marginLeft: 5 }} onPress={() => { navigation.navigate('EventDetails', { event: item.id }), setUpcomingModalVisible(false) }} activeOpacity={0.8}>
+    <TouchableOpacity style={{ borderWidth: 1, borderRadius: 12, borderColor: Colors.text[400], padding: 10,marginLeft: 5 }} onPress={() => { navigation.navigate('EventDetails', { event: item.id }), setUpcomingModalVisible(false) }} activeOpacity={0.8}>
       <Image
         source={{ uri: Image_url + item.image }}
         style={[styles.upCard,]}
@@ -451,7 +451,7 @@ const styles = StyleSheet.create({
     width: 44,
     height: 42,
     borderRadius: 20,
-    backgroundColor: '#E2E689',
+    backgroundColor: Colors.button[100],
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -473,7 +473,7 @@ const styles = StyleSheet.create({
   upBadgeRow: { flexDirection: 'row', justifyContent: 'space-between', padding: 12 },
   readBadge: { backgroundColor: 'rgba(255,255,255,0.85)', borderRadius: 12 },
   readBadgeText: { fontSize: 12, color: '#000' },
-  bookmarkBtn: { backgroundColor: '#E2E689', borderRadius: 18, width: 30, height: 30, position: 'absolute', top: 20, right: 20, alignItems: 'center', justifyContent: 'center', },
+  bookmarkBtn: { backgroundColor: Colors.button[100], borderRadius: 18, width: 30, height: 30, position: 'absolute', top: 20, right: 20, alignItems: 'center', justifyContent: 'center', },
   upTitleWrap: { flex: 1, justifyContent: 'flex-end', padding: 12 },
   upTitleWhite: { color: '#000', fontSize: 16, fontWeight: '700' },
   upMetaWhite: { color: '#000', fontSize: 12, opacity: 0.95 },
@@ -489,14 +489,14 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     padding: 10,
     marginTop: 15,
-    borderBottomWidth: 0.9, borderBottomColor: '#D9D9D9', width: widthPercentageToDP(95)
+    borderBottomWidth: 0.9, borderBottomColor: Colors.text[400], width: widthPercentageToDP(95)
   },
   microphone: {
     marginLeft: 8,
     width: 60,
     height: 40,
     borderRadius: 20,
-    backgroundColor: '#E2E689',
+    backgroundColor: Colors.button[100],
     alignItems: 'center',
     justifyContent: 'center',
   },

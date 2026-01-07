@@ -17,13 +17,11 @@ import {
   StatusBar,
 } from 'react-native';
 import { Image_url, UserService } from '../../service/ApiService';
-import SkeletonPlaceholder from 'react-native-skeleton-placeholder';
 import { CommonLoader } from '../../components/CommonLoader/commonLoader';
 import Toast from 'react-native-toast-message';
 import { UserData, UserDataContext } from '../../context/userDataContext';
 import { WishlistContext } from '../../context/wishlistContext';
 import LoginModal from '../../components/LoginModal';
-import { useCart } from '../../context/CartContext';
 import { Colors, Fonts } from '../../constant';
 const { width } = Dimensions.get('window');
 
@@ -89,7 +87,6 @@ const ProductImageCarousel = ({ images }: { images: any[] }) => {
 
 const HomeScreen = ({ navigation }: any) => {
   const bannerRef = useRef<any>(null);
-  const [isLoadingProduct, setIsLoadingProduct] = useState(true);
   const [sellingProducts, setsellingProducts] = useState<any[]>(products);
   const [apiRecommend, setApiRecommend] = useState<any[]>(products);
   const [category, setApiCateProducts] = useState([]);
@@ -195,7 +192,7 @@ const HomeScreen = ({ navigation }: any) => {
 
   const sellingproduct = async () => {
     try {
-      setIsLoadingProduct(true);
+      showLoader();
       const res = await UserService.mostsellingproduct();
       if (res && res.data && res.status === HttpStatusCode.Ok) {
         const fetchedProducts = res.data?.data || [];
@@ -209,13 +206,13 @@ const HomeScreen = ({ navigation }: any) => {
       console.log("sellingerror", err)
       // handle network/error
     } finally {
-      setIsLoadingProduct(false);
+      hideLoader();
     }
   };
 
   const RecommendProducts = async () => {
     try {
-      setIsLoadingProduct(true);
+      showLoader();
       const res = await UserService.recommended();
       if (res && res.data && res.status === HttpStatusCode.Ok) {
         const fetchedProducts = res.data?.data || [];
@@ -229,13 +226,13 @@ const HomeScreen = ({ navigation }: any) => {
       console.log("recommenderror", err)
       // handle network/error
     } finally {
-      setIsLoadingProduct(false);
+      hideLoader();
     }
   };
 
   const GetHeader = async () => {
     try {
-      setIsLoadingProduct(true);
+      showLoader();
       const res = await UserService.header();
       if (res && res.data && res.status === HttpStatusCode.Ok) {
         const banners = res.data?.banners || [];
@@ -260,13 +257,13 @@ const HomeScreen = ({ navigation }: any) => {
     } catch (err) {
       // handle network/error
     } finally {
-      setIsLoadingProduct(false);
+      hideLoader();
     }
   };
 
   const GetCategoryProducts = async () => {
     try {
-      setIsLoadingProduct(true);
+      showLoader();
       const res = await UserService.GetCategory();
       if (res && res.data && res.status === HttpStatusCode.Ok) {
         const fetchedProducts = res.data?.categories || [];
@@ -277,7 +274,7 @@ const HomeScreen = ({ navigation }: any) => {
     } catch (err) {
       // handle network/error
     } finally {
-      setIsLoadingProduct(false);
+      hideLoader();
     }
   };
 
@@ -385,7 +382,6 @@ const HomeScreen = ({ navigation }: any) => {
                     Toast.show({ type: 'success', text1: 'Added to wishlist' });
                     return;
                   }
-                  hideLoader();
                 } catch (err) {
                   hideLoader();
                   console.log('Wishlist add error:', err);
@@ -398,7 +394,7 @@ const HomeScreen = ({ navigation }: any) => {
               width: 30,
               height: 30,
               borderRadius: 15,
-              backgroundColor: '#E2E689',
+              backgroundColor: Colors.button[100],
               justifyContent: 'center',
               alignItems: 'center',
               position: 'absolute',
@@ -500,7 +496,6 @@ const HomeScreen = ({ navigation }: any) => {
                     Toast.show({ type: 'success', text1: 'Added to wishlist' });
                     return;
                   }
-                  hideLoader();
                 } catch (err) {
                   hideLoader();
                   console.log('Wishlist add error:', err);
@@ -513,7 +508,7 @@ const HomeScreen = ({ navigation }: any) => {
               width: 30,
               height: 30,
               borderRadius: 15,
-              backgroundColor: '#E2E689',
+              backgroundColor: Colors.button[100],
               justifyContent: 'center',
               alignItems: 'center',
               position: 'absolute',
@@ -573,7 +568,7 @@ const HomeScreen = ({ navigation }: any) => {
       style={{
         width: 'auto',
         height: 32,
-        backgroundColor: indexs === index ? '#E2E689' : '#FFF',
+        backgroundColor: indexs === index ? Colors.button[100] : '#FFF',
         borderRadius: 16,
         alignItems: 'center',
         paddingHorizontal: 10,
@@ -706,53 +701,22 @@ const HomeScreen = ({ navigation }: any) => {
           </TouchableOpacity>
         </View>
 
-        {isLoadingProduct ? (
-          <SkeletonPlaceholder>
-            <SkeletonPlaceholder.Item flexDirection="row" paddingLeft={16}>
-              {new Array(4).fill(0).map((_, i) => (
-                <SkeletonPlaceholder.Item
-                  key={i}
-                  width={177}
-                  marginRight={8}
-                  marginBottom={12}
-                >
-                  <SkeletonPlaceholder.Item
-                    width={177}
-                    height={245}
-                    borderRadius={9}
-                  />
-                  <SkeletonPlaceholder.Item
-                    marginTop={8}
-                    width={120}
-                    height={12}
-                    borderRadius={4}
-                  />
-                  <SkeletonPlaceholder.Item
-                    marginTop={6}
-                    width={80}
-                    height={12}
-                    borderRadius={4}
-                  />
-                </SkeletonPlaceholder.Item>
-              ))}
-            </SkeletonPlaceholder.Item>
-          </SkeletonPlaceholder>
-        ) : (
-          <FlatList
-            data={searchQuery.trim() ? searchResults : sellingProducts}
-            keyExtractor={i => i.id}
-            renderItem={BestProduct}
-            horizontal={true}
-            showsHorizontalScrollIndicator={false}
-            ListEmptyComponent={() =>
-              searchQuery.trim() ? (
-                <View style={{ padding: 20 }}>
-                  <Text style={{ color: '#666' }}>No results for "{searchQuery}"</Text>
-                </View>
-              ) : null
-            }
-          />
-        )}
+
+        <FlatList
+          data={searchQuery.trim() ? searchResults : sellingProducts}
+          keyExtractor={i => i.id}
+          renderItem={BestProduct}
+          horizontal={true}
+          showsHorizontalScrollIndicator={false}
+          ListEmptyComponent={() =>
+            searchQuery.trim() ? (
+              <View style={{ padding: 20 }}>
+                <Text style={{ color: '#666' }}>No results for "{searchQuery}"</Text>
+              </View>
+            ) : null
+          }
+        />
+
 
         <PromotionalBanner promotional={Promotional} />
 
@@ -823,46 +787,15 @@ const HomeScreen = ({ navigation }: any) => {
             </TouchableOpacity>
           </View>
 
-          {isLoadingProduct ? (
-            <SkeletonPlaceholder>
-              <SkeletonPlaceholder.Item flexDirection="row" paddingLeft={16}>
-                {new Array(4).fill(0).map((_, i) => (
-                  <SkeletonPlaceholder.Item
-                    key={i}
-                    width={177}
-                    marginRight={8}
-                    marginBottom={12}
-                  >
-                    <SkeletonPlaceholder.Item
-                      width={177}
-                      height={245}
-                      borderRadius={9}
-                    />
-                    <SkeletonPlaceholder.Item
-                      marginTop={8}
-                      width={120}
-                      height={12}
-                      borderRadius={4}
-                    />
-                    <SkeletonPlaceholder.Item
-                      marginTop={6}
-                      width={80}
-                      height={12}
-                      borderRadius={4}
-                    />
-                  </SkeletonPlaceholder.Item>
-                ))}
-              </SkeletonPlaceholder.Item>
-            </SkeletonPlaceholder>
-          ) : (
-            <FlatList
-              data={apiRecommend}
-              keyExtractor={i => i.id}
-              renderItem={renderProduct}
-              horizontal={true}
-              showsHorizontalScrollIndicator={false}
-            />
-          )}
+
+          <FlatList
+            data={apiRecommend}
+            keyExtractor={i => i.id}
+            renderItem={renderProduct}
+            horizontal={true}
+            showsHorizontalScrollIndicator={false}
+          />
+
         </View>
       </ScrollView>
     </View>
@@ -908,7 +841,7 @@ const styles = StyleSheet.create({
     width: 60,
     height: 40,
     borderRadius: 20,
-    backgroundColor: '#E2E689',
+    backgroundColor: Colors.button[100],
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -966,7 +899,7 @@ const styles = StyleSheet.create({
   CateView: {
     width: 'auto',
     height: 32,
-    backgroundColor: '#E2E689',
+    backgroundColor: Colors.button[100],
     borderRadius: 16,
     alignItems: 'center',
     justifyContent: 'center',
@@ -1026,7 +959,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     marginTop: 10,
-    backgroundColor: '#E2E689',
+    backgroundColor: Colors.button[100],
     borderRadius: 20,
     paddingHorizontal: 6,
     paddingVertical: 4,

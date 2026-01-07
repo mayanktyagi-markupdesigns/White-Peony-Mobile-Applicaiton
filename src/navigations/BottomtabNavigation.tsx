@@ -109,7 +109,7 @@ const BottomTabScreen = () => {
     >
       <Tab.Screen
         name="Home"
-        component={HomeScreen1}
+        component={HomeScreen}
         options={{ headerShown: false }}
       />
       <Tab.Screen
@@ -178,6 +178,6 @@ const styles = StyleSheet.create({
   icon: {
     width: 24,
     height: 24,
-    tintColor: '#E2E689', // Updated icon color to use button color
+    tintColor: Colors.button[100], // Updated icon color to use button color
   },
 });

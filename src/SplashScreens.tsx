@@ -1,35 +1,31 @@
 import React, { useEffect } from 'react'
 import { StyleSheet, Text, View, StatusBar, Platform, Image } from 'react-native'
 import { useNavigation } from '@react-navigation/native'
-
-/*
-  Splash screen showing a centered PNG logo and app name below.
-
-  Uses: src/assets/Png/splashlogo.png
-*/
+import { CommonLoader } from './components/CommonLoader/commonLoader'
 
 const SplashScreens = () => {
-  // Update path if you move the image
+  const { showLoader, hideLoader } = CommonLoader()
   const logo = require('../src/assets/Png/splashlogo.png')
   const navigation = useNavigation<any>()
 
   useEffect(() => {
+    showLoader()
     const t = setTimeout(() => {
+      hideLoader()
       navigation.replace('SelectLanguageScreen')
     }, 3000)
 
-    return () => clearTimeout(t)
-  }, [navigation])
+    return () => {
+      clearTimeout(t)
+      hideLoader()
+    }
+  }, [navigation, showLoader, hideLoader]);
 
   return (
     <View style={styles.container}>
-      <StatusBar barStyle={Platform.OS === 'ios' ? 'dark-content' : 'default'}/>
+      <StatusBar barStyle={Platform.OS === 'ios' ? 'dark-content' : 'default'} />
 
       <Image source={logo} style={styles.logo} resizeMode="contain" />
-
-      <View style={styles.appNameContainer}>
-        {/* <Text style={styles.appName}>White Peony</Text> */}
-      </View>
     </View>
   )
 }

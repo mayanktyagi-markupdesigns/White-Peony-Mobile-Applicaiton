@@ -386,14 +386,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingHorizontal: 20,
   },
-  searchInput: {
-    height: 40,
-    borderColor: '#ccc',
-    borderWidth: 1,
-    borderRadius: 8,
-    paddingHorizontal: 10,
-    marginBottom: 16,
-  },
+
   button: {
     marginTop: 20,
     backgroundColor: '#007bff',
@@ -433,7 +426,7 @@ const styles = StyleSheet.create({
     borderWidth: 1
   },
   searchButton: {
-    backgroundColor: '#E2E689',
+    backgroundColor: Colors.button[100],
     marginLeft: 10,
     borderRadius: 20,
     width: 40,

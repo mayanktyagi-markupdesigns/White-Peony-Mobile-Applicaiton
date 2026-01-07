@@ -23,6 +23,7 @@ import LoginModal from '../../components/LoginModal';
 import { CommonLoader } from '../../components/CommonLoader/commonLoader';
 import { HttpStatusCode } from 'axios';
 import { LocalStorage } from '../../helpers/localstorage';
+import { Colors } from '../../constant';
 
 type AccountScreenProps = {
   navigation: StackNavigationProp<any>;
@@ -176,7 +177,7 @@ const AccountScreen = ({ navigation }: AccountScreenProps) => {
             </View>
             {userData?.type !== 'b2c' ?
               <>
-                <View style={{ borderColor: '#E2E689', borderWidth: 1, width: '90%', marginVertical: 12, alignSelf: 'center' }}></View>
+                <View style={{ borderColor: Colors.button[100], borderWidth: 1, width: '90%', marginVertical: 12, alignSelf: 'center' }}></View>
                 <View style={{ paddingHorizontal: 12 }}>
                   <Text style={{ fontWeight: '700', fontSize: 14 }}>Super Shiny</Text>
                   <Text style={{ fontSize: 10, color: '#000', fontWeight: '700', marginTop: 5 }}>
@@ -186,7 +187,7 @@ const AccountScreen = ({ navigation }: AccountScreenProps) => {
                     <View style={[styles.progressFill, { width: '30%' }]} />
                   </View>
                 </View>
-                <View style={{ backgroundColor: '#E2E689', marginTop: 12, borderBottomLeftRadius: 11, borderBottomRightRadius: 11 }}>
+                <View style={{ backgroundColor: Colors.button[100], marginTop: 12, borderBottomLeftRadius: 11, borderBottomRightRadius: 11 }}>
                   <Text style={{ fontSize: 12, padding: 12 }}>
                     4 Privileges In Total, 1 Unlocked
                   </Text>

@@ -311,7 +311,7 @@ const styles = StyleSheet.create({
         fontSize: 16,
     },
     confirmButton: {
-        backgroundColor: '#E2E689',
+        backgroundColor: Colors.button[100],
         paddingVertical: 12,
         borderRadius: 5,
         marginTop: 10,
@@ -346,7 +346,7 @@ const styles = StyleSheet.create({
         backgroundColor: '#fff',
     },
     addressTypeButtonSelected: {
-        borderColor: '#E2E689',
+        borderColor: Colors.button[100],
         backgroundColor: '#f8fbe5',
     },
     addressTypeIcon: {
@@ -358,7 +358,7 @@ const styles = StyleSheet.create({
         color: '#666',
     },
     addressTypeLabelSelected: {
-        color: '#E2E689',
+        color: Colors.button[100],
         fontWeight: 'bold',
     },
 });

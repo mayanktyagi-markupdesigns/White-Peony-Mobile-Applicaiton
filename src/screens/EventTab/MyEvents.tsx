@@ -16,6 +16,7 @@ import { CommonLoader } from '../../components/CommonLoader/commonLoader';
 import { UserService } from '../../service/ApiService';
 import { HttpStatusCode } from 'axios';
 import { formatDate } from '../../helpers/helpers';
+import { Colors } from '../../constant';
 
 const MyEventsScreen = ({ navigation }) => {
     const [events, setEvents] = useState([]);
@@ -262,7 +263,7 @@ const styles = StyleSheet.create({
         marginTop: 12,
     },
     detailBtn: {
-        backgroundColor: '#E2E689',
+        backgroundColor: Colors.button[100],
         paddingVertical: 8,
         paddingHorizontal: 18,
         borderRadius: 8,
@@ -272,7 +273,7 @@ const styles = StyleSheet.create({
         fontWeight: '400',
     },
     cancelBtn: {
-        borderColor: '#E2E689',
+        borderColor: Colors.button[100],
         paddingVertical: 8,
         paddingHorizontal: 18,
         borderRadius: 8,

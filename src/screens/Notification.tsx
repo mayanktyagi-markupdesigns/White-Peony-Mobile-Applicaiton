@@ -8,11 +8,11 @@ import {
     Image,
 } from 'react-native';
 import LinearGradient from 'react-native-linear-gradient';
-import Icon from 'react-native-vector-icons/Ionicons'; // for back arrow icon, install if needed
 import { UserService } from '../service/ApiService';
 import { CommonLoader } from '../components/CommonLoader/commonLoader';
 import { HttpStatusCode } from 'axios';
 import Toast from 'react-native-toast-message';
+import { Colors } from '../constant';
 
 const notificationsData = [
     {
@@ -96,7 +96,7 @@ const NotificationScreen = ({ navigation }) => {
             >
                 {isActive ? (
                     <LinearGradient
-                        colors={['#E2E689', '#E2E689']}
+                        colors={[Colors.button[100], Colors.button[100]]}
                         start={{ x: 0, y: 0 }}
                         end={{ x: 1, y: 0 }}
                         style={styles.activeTabGradient}
@@ -287,7 +287,7 @@ const styles = StyleSheet.create({
         height: 3,
         width: 40,
         borderRadius: 2,
-        backgroundColor: '#E2E689',
+        backgroundColor: Colors.button[100],
     },
     notificationCard: {
         backgroundColor: '#fff',

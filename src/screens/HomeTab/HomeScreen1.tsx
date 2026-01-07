@@ -1,6 +1,7 @@
 import { View, Text, StatusBar, Image, FlatList, Dimensions, StyleSheet, ScrollView, Platform, NativeSyntheticEvent, NativeScrollEvent, TouchableOpacity } from 'react-native'
 import React, { useRef, useState } from 'react'
 import { heightPercentageToDP, widthPercentageToDP } from '../../constant/dimentions';
+import { Colors } from '../../constant';
 
 const { width } = Dimensions.get('window');
 const CARD_WIDTH = (width - 48) / 2;
@@ -170,7 +171,7 @@ const HomeScreen1 = ({ navigation }: any) => {
                         columnWrapperStyle={{ justifyContent: 'space-between', marginBottom: 10 }}
                         renderItem={({ item }) => (
                             <View style={styles.freqCard}>
-                                <View style={{ flexDirection: 'row', }}>
+                                <View style={{ flexDirection: 'row',justifyContent:'center' }}>
                                     <Image source={item.image} style={styles.freqImage} />
                                     <View style={{ marginLeft: 5 }}></View>
                                     <Image source={item.image} style={styles.freqImage} />
@@ -308,7 +309,7 @@ const HomeScreen1 = ({ navigation }: any) => {
                                     {item.oldPrice && <Text style={styles.smallOldPrice}>{item.oldPrice}</Text>}
                                 </View>
 
-                                <View style={{ position: 'absolute', top: 8, right: 8, backgroundColor: '#E2E689', padding: 6, borderRadius: 12, width: 20, height: 20, justifyContent: 'center' }}>
+                                <View style={{ position: 'absolute', top: 8, right: 8, backgroundColor: Colors.button[100], padding: 6, borderRadius: 12, width: 20, height: 20, justifyContent: 'center' }}>
                                     <Image
                                         source={require('../../assets/Png/heart-1.png')}
                                         style={{ position: 'absolute', width: 12, height: 12, alignSelf: 'center' }}

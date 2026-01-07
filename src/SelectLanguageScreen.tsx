@@ -120,7 +120,7 @@ const styles = StyleSheet.create({
     height: 50,
     borderRadius: 12,
     borderWidth: 1,
-    borderColor: '#E2E689',
+    borderColor: Colors.button[100],
     backgroundColor: Colors.text[100],
     flexDirection: "row",
     alignItems: "center",
@@ -130,7 +130,7 @@ const styles = StyleSheet.create({
 
   languageCardSelected: {
     backgroundColor: Colors.text[100],
-    borderColor: '#E2E689',
+    borderColor: Colors.button[100],
     borderWidth: 2,
     shadowColor: "#000",
     shadowOpacity: 0.1,
@@ -143,7 +143,7 @@ const styles = StyleSheet.create({
     height: 24,
     borderRadius: 12,
     borderWidth: 2,
-    borderColor: '#E2E689',
+    borderColor: Colors.button[100],
     alignItems: "center",
     justifyContent: "center",
     alignSelf: "center",
@@ -154,7 +154,7 @@ const styles = StyleSheet.create({
     width: 12,
     height: 12,
     borderRadius: 6,
-    backgroundColor: '#E2E689',
+    backgroundColor: Colors.button[100],
   },
 
   languageText: {
@@ -166,7 +166,7 @@ const styles = StyleSheet.create({
 
   nextButton: {
     top: hp(3),
-    backgroundColor: '#E2E689',
+    backgroundColor: Colors.button[100],
     borderRadius: 12,
     paddingHorizontal: 40,
     paddingVertical: 8,
