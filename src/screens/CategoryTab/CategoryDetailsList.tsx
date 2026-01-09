@@ -12,12 +12,6 @@ import { CommonLoader } from '../../components/CommonLoader/commonLoader';
 const { width } = Dimensions.get('window');
 const ITEM_WIDTH = (width - 48) / 2;
 
-const sampleData = new Array(8).fill(null).map((_, i) => ({
-  id: String(i + 1),
-  title: `Maple Queen Oolong`,
-  price: '24 €',
-  image: require('../../assets/Png/banner.png'),
-}));
 
 const CategoryDetailsList = ({ navigation, route }: any) => {
   const { addToCart, cart } = useCart();

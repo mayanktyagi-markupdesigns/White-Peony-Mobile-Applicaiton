@@ -17,6 +17,7 @@ import { Image_url, UserService } from '../../service/ApiService';
 import { HttpStatusCode } from 'axios';
 import Toast from 'react-native-toast-message';
 import { formatDate } from '../../helpers/helpers';
+import { Colors, Images } from '../../constant';
 
 const getTimeAgo = (dateString?: string) => {
   if (!dateString) return '';
@@ -83,7 +84,6 @@ const ArticleDetails = ({ navigation, route }: any) => {
   const ArticleDetail = async (id: string) => {
     try {
       showLoader();
-
       const res = await UserService.articleDetail(id);
       hideLoader();
 
@@ -109,25 +109,40 @@ const ArticleDetails = ({ navigation, route }: any) => {
 
   return (
     <View style={styles.container}>
-
       <View style={styles.card}>
         <Image
           source={{ uri: Image_url + airtcleDetails?.image }}
           style={styles.headerImage}
           resizeMode="cover"
         />
-        <View style={styles.headerOverlay} ><Text style={{ color: '#fff', fontSize: 18, textAlign: 'center', width: '70%' }}>The Health Benefits Of Organic Vs Regular Tea</Text></View>
-        <TouchableOpacity style={styles.backBtn} onPress={() => navigation.goBack()}>
+        <View style={styles.headerOverlay} >
+          <Text style={{ color: '#ffffff', fontSize: 14, fontWeight: '700', textAlign: 'center', width: '70%' }}>{airtcleDetails?.title}</Text>
+        </View>
+        <TouchableOpacity style={[styles.backBtn, { left: 18 }]} onPress={() => navigation.goBack()}>
           <Image source={require('../../assets/Png/back.png')} style={{ width: 20, height: 20, tintColor: '#fff' }} />
         </TouchableOpacity>
+        <View style={{ right: 10, position: 'absolute', top: 18, backgroundColor: Colors.button[100], width: 30, height: 30, borderRadius: 15, justifyContent:'center' }}>
+          <Image source={require('../../assets/Png/bookmark.png')} style={{ width: 20, height: 20, tintColor: '#000', alignSelf: "center" }} />
+        </View>
+
         <View style={styles.titleWrap}>
           <Text style={styles.title}>{airtcleDetails?.title}</Text>
         </View>
         <ScrollView contentContainerStyle={styles.scroll}>
           <View style={styles.metaRow}>
-            <Text style={styles.metaText}>{getTimeAgo(airtcleDetails?.created_at)}</Text>
-            <Text style={styles.metaText}>{formatDate(airtcleDetails?.created_at)}</Text>
-            <Text style={styles.metaText}>{airtcleDetails?.views} views</Text>
+            <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+              <View style={{ width: 10, height: 10, backgroundColor: Colors.button[100], borderRadius: 5, }}></View>
+              <Text style={styles.metaText}>{getTimeAgo(airtcleDetails?.created_at)}</Text>
+            </View>
+            <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+              <Image source={Images.date} style={{ width: 15, height: 15, }} />
+              <Text style={styles.metaText}>{formatDate(airtcleDetails?.created_at)?.slice(0, -9)}</Text>
+            </View>
+            <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+              <Image source={Images.views} style={{ width: 15, height: 15, }} />
+
+              <Text style={styles.metaText}>{airtcleDetails?.views} views</Text>
+            </View>
           </View>
 
           <View style={styles.body}>
@@ -167,17 +182,17 @@ const styles = StyleSheet.create({
     borderBottomLeftRadius: 20, borderBottomRightRadius: 20,
     justifyContent: 'center', alignItems: 'center'
   },
-  backBtn: { position: 'absolute', top: 18, left: 12, padding: 8, borderRadius: 20, backgroundColor: 'rgba(0,0,0,0.3)' },
+  backBtn: { position: 'absolute', top: 18, },
   titleWrap: { position: 'absolute', left: 20, right: 20, bottom: 20 },
   title: { color: '#fff', fontSize: 20, fontWeight: '600', textAlign: 'center' },
   metaRow: { flexDirection: 'row', justifyContent: 'space-between', padding: 14, paddingTop: 18 },
-  metaText: { color: '#8b8b8b', fontSize: 12 },
+  metaText: { color: '#999', fontSize: 12, marginLeft: 7 },
   body: { paddingHorizontal: 12, paddingBottom: 20 },
   lead: { fontSize: 16, fontWeight: '700', marginBottom: 8 },
   paragraph: { fontSize: 14, color: '#333', lineHeight: 20, marginBottom: 10 },
   paragraphSmall: { fontSize: 13, color: '#333', marginBottom: 6 },
   blockquote: { borderLeftWidth: 3, borderLeftColor: '#e0e0e0', paddingLeft: 10, marginVertical: 8, backgroundColor: '#fafafa', padding: 10, borderRadius: 6 },
-  blockquoteText: { color: '#555', fontStyle: 'italic' },
+  blockquoteText: { color: '#999', fontStyle: 'italic' },
   subhead: { fontSize: 15, fontWeight: '600', marginTop: 10, marginBottom: 6 },
   fab: {
     position: 'absolute',

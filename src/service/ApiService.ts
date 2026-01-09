@@ -57,6 +57,7 @@ export const UserService = {
         Authorization: `Bearer ${token}`,
       },
     };
+    console.log("payload", payload);
     return APIKit.post("update/profile", payload, apiHeaders);
   },
 
@@ -118,6 +119,30 @@ export const UserService = {
     return APIKit.get(`products/category/${id}`, apiHeaders);
   },
 
+  bigsales: async () => {
+    const token = await LocalStorage.read("@token");
+    const apiHeaders = {
+      headers: {
+        "Content-Type": "application/json",
+        Accept: "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+    };
+    return APIKit.get(`big-sales`, apiHeaders);
+  },
+
+  featuredproducts: async () => {
+    const token = await LocalStorage.read("@token");
+    const apiHeaders = {
+      headers: {
+        "Content-Type": "application/json",
+        Accept: "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+    };
+    return APIKit.get(`featured-products`, apiHeaders);
+  },
+
   Shiping: async () => {
     const token = await LocalStorage.read("@token");
     const apiHeaders = {
@@ -175,6 +200,8 @@ export const UserService = {
         Authorization: `Bearer ${token}`,
       },
     };
+        console.log("payload", token)
+
     return APIKit.get("order", apiHeaders);
   },
 
@@ -362,7 +389,7 @@ export const UserService = {
       if (val !== undefined && val !== null && val !== '') parts.push(`${encodeURIComponent(key)}=${encodeURIComponent(String(val))}`);
     }
     const query = parts.length ? `?${parts.join('&')}` : '';
-    console.log('FilterProducts params:', params,query );
+    console.log('FilterProducts params:', params, query);
 
     return APIKit.get(`products/filter${query}`, apiHeaders);
   },

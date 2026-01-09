@@ -66,7 +66,7 @@ export const checkFirstLaunch = async () => {
   return value === null; // true means first time
 };
 
-export const formatDate = async (dateString) => {
+export const formatDate =  (dateString) => {
   const date = new Date(dateString);
 
   const options = {

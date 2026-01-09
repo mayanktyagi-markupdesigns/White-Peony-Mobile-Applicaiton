@@ -12,7 +12,7 @@ import {
   StatusBar,
   Platform,
 } from 'react-native';
-import { UserService } from '../../service/ApiService';
+import { Image_url, UserService } from '../../service/ApiService';
 import { HttpStatusCode } from 'axios';
 import { Colors } from '../../constant';
 import { CommonLoader } from '../../components/CommonLoader/commonLoader';
@@ -25,7 +25,7 @@ const CategoryScreen = ({ navigation }) => {
   const renderItem = ({ item }: { item: any }) => (
     <TouchableOpacity style={styles.tile} activeOpacity={0.9} onPress={() => navigation.navigate('CategoryDetailsList', { categoryId: item.id, categoryTitle: item.name })}>
       <ImageBackground
-        source={require('../../assets/Png/product.png')}
+        source={{uri: Image_url + item?.image}}
         style={styles.tileImage}
         imageStyle={{ borderRadius: 10 }}
       >
@@ -132,7 +132,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   tile: { width: '100%', height: 72, borderRadius: 10, overflow: 'hidden' },
-  tileImage: { flex: 1, justifyContent: 'center' },
+  tileImage: { flex: 1, justifyContent: 'center', resizeMode:'stretch', width: '100%', height: 72 },
   tileOverlay: {
     backgroundColor: 'rgba(0,0,0,0.25)',
     alignItems: 'center',

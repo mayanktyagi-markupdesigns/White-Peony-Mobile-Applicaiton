@@ -109,7 +109,7 @@ const BottomTabScreen = () => {
     >
       <Tab.Screen
         name="Home"
-        component={HomeScreen}
+        component={HomeScreen1}
         options={{ headerShown: false }}
       />
       <Tab.Screen

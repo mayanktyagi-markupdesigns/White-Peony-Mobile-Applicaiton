@@ -15,13 +15,13 @@ import {
   Alert,
   StatusBar,
 } from 'react-native';
-import { CommonLoader } from '../../components/CommonLoader/commonLoader';
 import { Image_url, UserService } from '../../service/ApiService';
 import Toast from 'react-native-toast-message';
 import { HttpStatusCode } from 'axios';
 import { formatDate } from '../../helpers/helpers';
 import EmailModal from '../../components/EmailModal'
 import { Colors } from '../../constant';
+// import { CommonLoader } from '../../components/CommonLoader/commonLoader';
 
 type EventDetail = {
   image?: string;
@@ -36,8 +36,6 @@ type EventDetail = {
 const EventDetails = ({ navigation, route }: any) => {
   const viewRef = useRef<any>(null);
   const eventid = route?.params?.event || '';
-  const slugs = route?.params?.upcoming || '';
-  const { showLoader, hideLoader } = CommonLoader();
   const [isModalVisible, setModalVisible] = React.useState(false);
   const [eventDetails, setEventDetails] = React.useState<EventDetail | null>(null);
   const [isDescriptionExpanded, setIsDescriptionExpanded] = React.useState(false);
@@ -59,10 +57,8 @@ const EventDetails = ({ navigation, route }: any) => {
 
   const EventDetail = async (id: string) => {
     try {
-      showLoader();
 
       const res = await UserService.eventupdate(id);
-      hideLoader();
 
       if (res?.status === HttpStatusCode.Ok && res?.data) {
         const { message, event } = res.data;
@@ -79,7 +75,6 @@ const EventDetails = ({ navigation, route }: any) => {
         });
       }
     } catch (err: any) {
-      hideLoader();
       console.log("Error in EventList:", JSON.stringify(err));
       Toast.show({
         type: "error",

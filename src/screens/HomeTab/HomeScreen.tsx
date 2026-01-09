@@ -34,17 +34,7 @@ type DisplayWishlistItem = {
   image: string | null;
 };
 
-const products = new Array(6).fill(0).map((_, i) => ({
-  id: String(i + 1),
-  title: `Magic Queen Oolong ${i + 1}`,
-  price: '24 €',
-  stock: i === 2 ? 0 : 10,
-  images: [
-    require('../../assets/Png/product.png'),
-    require('../../assets/Png/product3.png'),
-    require('../../assets/Png/product.png'),
-  ],
-}));
+
 
 // Small product image carousel used inside product cards
 const ProductImageCarousel = ({ images }: { images: any[] }) => {
@@ -87,8 +77,8 @@ const ProductImageCarousel = ({ images }: { images: any[] }) => {
 
 const HomeScreen = ({ navigation }: any) => {
   const bannerRef = useRef<any>(null);
-  const [sellingProducts, setsellingProducts] = useState<any[]>(products);
-  const [apiRecommend, setApiRecommend] = useState<any[]>(products);
+  const [sellingProducts, setsellingProducts] = useState<any[]>();
+  const [apiRecommend, setApiRecommend] = useState<any[]>();
   const [category, setApiCateProducts] = useState([]);
   const { showLoader, hideLoader } = CommonLoader();
   const { setUserData, isLoggedIn } = useContext<UserData>(UserDataContext);

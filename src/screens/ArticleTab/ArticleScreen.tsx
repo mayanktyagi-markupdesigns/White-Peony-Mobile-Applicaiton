@@ -20,8 +20,27 @@ import { Image_url, UserService } from '../../service/ApiService';
 import { HttpStatusCode } from 'axios';
 import { formatDate } from '../../helpers/helpers';
 import { widthPercentageToDP } from '../../constant/dimentions';
-import { Colors } from '../../constant';
+import { Colors, Images } from '../../constant';
 const { width } = Dimensions.get('window');
+
+const getTimeAgo = (dateString?: string) => {
+  if (!dateString) return '';
+  const then = new Date(dateString).getTime();
+  const now = Date.now();
+  const diffSec = Math.max(0, Math.floor((now - then) / 1000));
+
+  if (diffSec < 60) return 'Just now';
+  const diffMin = Math.floor(diffSec / 60);
+  if (diffMin < 60) return `${diffMin} ${diffMin === 1 ? 'minute' : 'minutes'} ago`;
+  const diffHr = Math.floor(diffMin / 60);
+  if (diffHr < 24) return `${diffHr} ${diffHr === 1 ? 'Hour' : 'Hours'} Ago`;
+  const diffDay = Math.floor(diffHr / 24);
+  if (diffDay < 30) return `${diffDay} ${diffDay === 1 ? 'day' : 'days'} ago`;
+  const diffMon = Math.floor(diffDay / 30);
+  if (diffMon < 12) return `${diffMon} ${diffMon === 1 ? 'month' : 'months'} ago`;
+  const diffYr = Math.floor(diffMon / 12);
+  return `${diffYr} ${diffYr === 1 ? 'year' : 'years'} ago`;
+};
 
 
 const ArticleScreen = ({ navigation }: any) => {
@@ -101,12 +120,12 @@ const ArticleScreen = ({ navigation }: any) => {
                 <Image source={require('../../assets/Png/bookmark.png')} style={{ width: 15, height: 15, alignSelf: 'center' }} />
               </View>
             </View>
-            <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-              <Image source={require('../../assets/Png/clock.png')} style={{ width: 15, height: 15, }} />
-              <Text style={styles.nearDate}>{formatDate(item.updated_at)}</Text>
+            <View style={{ flexDirection: 'row', alignItems: 'center', marginTop: 6 }}>
+              <Image source={Images.clock_3} style={{ width: 15, height: 15, tintColor: Colors.button[100], }} />
+              <Text style={styles.nearDate}>{getTimeAgo(item.updated_at)}</Text>
             </View>
-            <View style={{ flexDirection: 'row', alignItems: 'center', marginTop: 10 }}>
-              <Image source={require('../../assets/Png/eye.png')} tintColor={Colors.button[100]} style={{ width: 15, height: 15, }} />
+            <View style={{ flexDirection: 'row', alignItems: 'center', marginTop: 6 }}>
+              <Image source={Images.views} tintColor={Colors.button[100]} style={{ width: 15, height: 15, }} />
               <Text style={styles.nearDate}>{item.views}</Text>
             </View>
           </View>
@@ -323,7 +342,7 @@ const styles = StyleSheet.create({
 
   },
   readBadgeText: { fontSize: 12, color: '#6B6B6B', padding: 10 },
-  bookmarkBtn: { backgroundColor: Colors.button[100], padding: 6,alignSelf:'center', borderRadius: 20  },
+  bookmarkBtn: { backgroundColor: Colors.button[100], padding: 6, alignSelf: 'center', borderRadius: 20 },
   upTitleWrap: { flex: 1, justifyContent: 'flex-end', padding: 12 },
   upTitleWhite: { color: '#fff', fontSize: 16, fontWeight: '700' },
   dotsRow: { flexDirection: 'row', justifyContent: 'center', marginTop: 10 },
@@ -354,8 +373,8 @@ const styles = StyleSheet.create({
   nearImage: { width: 70, height: 70, borderRadius: 8, marginRight: 12 },
   nearBody: { flex: 1, flexDirection: 'row', justifyContent: 'space-between' },
   nearTitle: { fontSize: 14, fontWeight: '700', width: widthPercentageToDP(45), },
-  nearMeta: { fontSize: 12, color: '#6B6B6B', marginTop: 6 },
-  nearDate: { fontSize: 12, color: '#6B6B6B', marginTop: 0, marginLeft: 10 },
+  nearMeta: { fontSize: 12, color: '#999', marginTop: 6 },
+  nearDate: { fontSize: 12, color: '#999', marginLeft: 10 },
   iconSmall: { width: 14, height: 14 },
   bookBtn: {
     width: 48,

@@ -2,6 +2,9 @@ const Images = {
   home: require("../assets/Png/hometab.png"),
   category: require("../assets/Png/shopping-bag.png"),
   event: require("../assets/Png/events.png"),
+  eye: require("../assets/Png/eye.png"),
+  views: require("../assets/Png/views.png"),
+  date: require("../assets/Png/date.png"),
   article: require("../assets/Png/blog.png"),
   account: require("../assets/Png/user.png"),
   langbg: require("../assets/Png/ChatGPT.png"),
@@ -14,8 +17,7 @@ const Images = {
   GroupC: require("../assets/Png/colored/Group-c.png"),
   eventC: require("../assets/Png/colored/event-c.png"),
   shoppingc: require("../assets/Png/colored/shopping-bag-c.png"),
-  blogC: require("../assets/Png/colored/blog-c.png"),
-  
+  blogC: require("../assets/Png/colored/blog-c.png"),  
 
 };
 export default Images;

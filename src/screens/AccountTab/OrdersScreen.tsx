@@ -39,11 +39,11 @@ type UiOrder = {
 
 const OrdersScreen = ({ navigation }: { navigation: any }) => {
   const { showLoader, hideLoader } = CommonLoader();
-  const [activeTab, setActiveTab] = useState('completed');
+  const [activeTab, setActiveTab] = useState('placed');
   const [searchText, setSearchText] = useState('');
   const [order, setOrder] = useState<UiOrder[]>([]);
   const [writeModalVisible, setWriteModalVisible] = useState(false);
-  const [newRating, setNewRating] = useState<number>(5);
+  const [newRating, setNewRating] = useState<number>(0);
   const [newComment, setNewComment] = useState<string>('');
   const [ratingID, setRatingID] = useState<string>('');
   const [expandedIds, setExpandedIds] = useState<Array<string | number>>([]);
@@ -70,6 +70,7 @@ const OrdersScreen = ({ navigation }: { navigation: any }) => {
   };
 
   const PostReview = async () => {
+
     try {
       const payload = {
         rating: newRating,
@@ -134,6 +135,7 @@ const OrdersScreen = ({ navigation }: { navigation: any }) => {
     const itemsList = getItemsList(item?.items);
     const product0 = itemsList?.[0]?.product || itemsList?.[0] || null;
     const isExpanded = expandedIds.includes(item.id);
+    const formData= formatDate(item?.created_at || item?.updated_at);
 
     return (
       <TouchableOpacity
@@ -153,7 +155,7 @@ const OrdersScreen = ({ navigation }: { navigation: any }) => {
           />
           <View style={{ marginLeft: 6 }}>
             <Text style={styles.deliveryDate}>
-              {item?.status ? item.status.charAt(0).toUpperCase() + item.status.slice(1) : 'Order'} • {formatDate(item?.created_at || item?.updated_at)}
+              {item?.status ? item.status.charAt(0).toUpperCase() + item.status.slice(1) : 'Order'} • {formData}
             </Text>
             <Text style={styles.deliveryStatus}>
               {item?.tracking_number ? `${item.tracking_number}` : (item?.payment_status ? item.payment_status : 'No tracking info')}
@@ -184,7 +186,7 @@ const OrdersScreen = ({ navigation }: { navigation: any }) => {
               {product0?.name || 'Item'}
             </Text>
             <Text style={styles.productName}>{item?.total_amount ? `${item.total_amount} €` : ''}</Text>
-            <Text style={styles.productQty}>Qty : {itemsList?.reduce((sum: number, it: any) => sum + (it?.quantity || it?.qty || 1), 0)}</Text>
+            <Text style={styles.productQty}>Qty : {itemsList?.reduce((sum: number, it: any) => sum + (it?.quantity || it?.qty || 1), 1)}</Text>
           </View>
         </View>
 
@@ -232,13 +234,7 @@ const OrdersScreen = ({ navigation }: { navigation: any }) => {
           </View>
         </TouchableOpacity>
 
-
-        {/* <View style={styles.rateReviewRow}>
-          <Text style={styles.rateReviewLabel}>Status: {item?.status || '—'}</Text>
-          <Text style={{ color: '#666' }}>{item?.payment_status ? item.payment_status : ''}</Text>
-        </View> */}
-
-        {isExpanded && (
+        {/* {isExpanded && (
           <View style={styles.orderDetails}>
             <Text style={styles.detailLabel}>Order ID: <Text style={styles.detailValue}>{item?.id}</Text></Text>
             <Text style={styles.detailLabel}>Tracking: <Text style={styles.detailValue}>{item?.tracking_number || '—'}</Text></Text>
@@ -268,7 +264,7 @@ const OrdersScreen = ({ navigation }: { navigation: any }) => {
               <Text style={{ color: '#666' }}>No items available</Text>
             )}
           </View>
-        )}
+        )} */}
       </TouchableOpacity>
     );
   };
@@ -356,9 +352,9 @@ const OrdersScreen = ({ navigation }: { navigation: any }) => {
                   style={{ borderWidth: 1, borderColor: '#eee', borderRadius: 8, padding: 8, marginTop: 12 }}
                   multiline
                 />
-                <View style={{ flexDirection: 'row', justifyContent: 'flex-end', marginTop: 12 }}>
-                  <TouchableOpacity onPress={() => setWriteModalVisible(false)} style={{ marginRight: 8 }}>
-                    <Text>Cancel</Text>
+                <View style={{ flexDirection: 'row', justifyContent: 'flex-end', marginTop: 12, alignItems:'center' }}>
+                  <TouchableOpacity onPress={() => {setWriteModalVisible(false), setNewComment(''), setNewRating(0) }} style={{ marginRight: 8 }}>
+                    <Text style={{fontWeight:'500', fontSize:12, }}>Cancel</Text>
                   </TouchableOpacity>
                   <TouchableOpacity onPress={PostReview}>
                     <Text style={{ color: '#007AFF' }}>Submit</Text>

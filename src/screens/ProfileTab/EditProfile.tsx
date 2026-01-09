@@ -192,6 +192,7 @@ const EditProfile = ({ navigation, route }) => {
     fullName: string;
     address: string;
     status: string;
+    email: string;
   }) => {
     try {
       const payload = {
@@ -202,6 +203,7 @@ const EditProfile = ({ navigation, route }) => {
         status: values.status,
         address: values.address,
         zip_code: values.zip,
+        email: values.email,
 
       };
       const formData = new FormData();

@@ -16,6 +16,7 @@ import { CommonLoader } from '../../components/CommonLoader/commonLoader';
 import { UserData, UserDataContext } from '../../context/userDataContext';
 import { HttpStatusCode } from 'axios';
 import { useCart } from '../../context/CartContext';
+import { Colors } from '../../constant';
 
 type DisplayWishlistItem = {
     id: string; // product id as string (used as key)
@@ -64,8 +65,8 @@ const WishlistScreen = ({ navigation }: { navigation: any }) => {
         try {
             showLoader();
             const res = await UserService.wishlist();
-            // API may expose items at different paths: try both shapes
             const apiItems = res?.data?.items || res?.data?.wishlist?.items || [];
+            // console.log('Wishlist API items:', JSON.stringify(apiItems));
             const mapped: DisplayWishlistItem[] = (Array.isArray(apiItems) ? apiItems : []).map((p: any) => {
                 const productId = Number(p.product_id ?? p.id ?? p.productId ?? 0);
                 const front = p.front_image ?? p.image ?? null;
@@ -73,8 +74,8 @@ const WishlistScreen = ({ navigation }: { navigation: any }) => {
                     id: String(productId || (p.id ?? p.product_id ?? p.product_id ?? '')),
                     wishlistItemId: String(p.wishlist_item_id ?? p.id ?? p.product_id ?? ''),
                     name: p.name ?? p.product_name ?? p.product_name ?? '',
-                    price: p.product_price ? `${p.product_price} €` : p.price ? `${p.price} €` : '0 €',
-                    price_numeric: Number(p.product_price ?? p.price ?? 0),
+                    price: p.variants[0]?.price ? `${p.variants[0]?.price} €` : p.variants[0]?.price ? `${p.variants[0]?.price} €` : '0 €',
+                    price_numeric: Number(p.variants[0]?.price ?? p.variants[0]?.price ?? 0),
                     image: front ? Image_url + front : null,
                     product_id: productId,
                     variants: p.variants ?? [],
@@ -85,14 +86,13 @@ const WishlistScreen = ({ navigation }: { navigation: any }) => {
 
             setItems(mapped);
         } catch (e) {
+            hideLoader();
             const error = e as any;
             if (error.status === 401) {
                 console.log('Unauthorized access - perhaps token expired');
             } else {
                 Toast.show({ type: 'error', text1: 'Failed to load wishlist' });
             }
-        } finally {
-            hideLoader();
         }
     };
 
@@ -151,7 +151,7 @@ const WishlistScreen = ({ navigation }: { navigation: any }) => {
         }
     };
 
-   const handleRemove = async (productId: string) => {
+    const handleRemove = async (productId: string) => {
         try {
             showLoader();
             if (isLoggedIn) {
@@ -172,7 +172,7 @@ const WishlistScreen = ({ navigation }: { navigation: any }) => {
                     });
                 }
             } else {
-                console.log("removeglobal",productId)
+                console.log("removeglobal", productId)
                 // Remove locally for guests
                 await removeFromWishlist(productId);
                 setItems(prev => prev.filter(i => i.id !== productId));
@@ -203,7 +203,7 @@ const WishlistScreen = ({ navigation }: { navigation: any }) => {
             <View style={styles.details}>
                 <Text style={styles.productName}>{item.name}</Text>
 
-                <View style={{ flexDirection: 'row', marginTop: 8 }}>
+                <View style={{ flexDirection: 'row', marginTop: 0 }}>
                     {[1, 2, 3, 4, 5].map(r => {
                         const avg = item.average_rating ?? 0;
                         const isFull = avg >= r;
@@ -225,12 +225,14 @@ const WishlistScreen = ({ navigation }: { navigation: any }) => {
                     })}
                 </View>
 
+                <Text style={styles.price}>{item.price}</Text>
+
                 <View style={styles.actionsRow}>
                     <TouchableOpacity
                         style={[styles.addToBagBtn, item.isInCart && styles.goToCartBtn]}
                         activeOpacity={0.7}
-                        onPress={() => (item.isInCart ? navigation.navigate('CheckoutScreen') : handleAddToBag(item))}
-                    >
+                        onPress={() => (item.isInCart ? navigation.navigate('CheckoutScreen') : handleAddToBag(item))}>
+
                         <Image source={require('../../assets/Png/bag.png')} style={{ width: 16, height: 16, marginRight: 5 }} />
                         <Text style={[styles.addToBagText, item.isInCart && styles.goToCartText]}>
                             {item.isInCart ? ' Go To Cart' : ' Add To Bag'}
@@ -339,10 +341,10 @@ const styles = StyleSheet.create({
         color: '#444',
     },
     price: {
-        marginTop: 6,
+        marginTop: 10,
         fontSize: 14,
-        fontWeight: '600',
-        color: '#111',
+        fontWeight: '700',
+        color: '#000',
     },
     actionsRow: {
         marginTop: 12,
@@ -351,7 +353,7 @@ const styles = StyleSheet.create({
     },
     addToBagBtn: {
         flexDirection: 'row',
-        backgroundColor: '#DEE9A0',
+        backgroundColor: Colors.button[100],
         borderRadius: 20,
         paddingHorizontal: 14,
         paddingVertical: 10,
@@ -367,7 +369,8 @@ const styles = StyleSheet.create({
         padding: 6,
         borderRadius: 12,
         borderWidth: 1,
-        borderColor: '#BFD56C',
+        borderColor: Colors.button[100],
+        backgroundColor: Colors.button[100],
         justifyContent: 'center',
         alignItems: 'center',
     },

@@ -178,7 +178,7 @@ const EventScreen = ({ navigation }: any) => {
   };
 
   const renderUpcoming = ({ item }: { item: any }) => (
-    <TouchableOpacity style={{ borderWidth: 1, borderRadius: 12, borderColor: Colors.text[400], padding: 10,marginLeft: 5 }} onPress={() => { navigation.navigate('EventDetails', { event: item.id }), setUpcomingModalVisible(false) }} activeOpacity={0.8}>
+    <TouchableOpacity style={{ borderWidth: 1, borderRadius: 12, borderColor: Colors.text[400], padding: 10, marginLeft: 5 }} onPress={() => { navigation.navigate('EventDetails', { event: item.id }), setUpcomingModalVisible(false) }} activeOpacity={0.8}>
       <Image
         source={{ uri: Image_url + item.image }}
         style={[styles.upCard,]}
@@ -186,6 +186,7 @@ const EventScreen = ({ navigation }: any) => {
       <TouchableOpacity style={styles.bookmarkBtn}>
         <Image source={require('../../assets/Png/bookmark.png')} style={{ width: 16, height: 16, alignItems: 'center', alignSelf: 'center' }} />
       </TouchableOpacity>
+
       <View style={styles.upBadgeRow}>
         <View style={styles.readBadge}>
           <Text numberOfLines={2} style={styles.upTitleWhite}>
@@ -216,9 +217,17 @@ const EventScreen = ({ navigation }: any) => {
           {item.title}
         </Text>
 
-        <View style={{ flexDirection: 'row', alignItems: 'center', marginTop: 6 }}>
-          <Image source={Images.location} style={{ width: 14, height: 14, marginRight: 6 }} />
-          <Text numberOfLines={1} style={styles.nearMeta}>{item.address} • {item.remaining_seats} Seats Left</Text>
+        <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginTop: 6 }}>
+
+          <View style={{ flexDirection: 'row', alignItems: "center" }}>
+            <Image source={Images.location} style={{ width: 14, height: 14, marginRight: 6 }} />
+            <Text numberOfLines={1} style={styles.nearMeta}> {item.address?.split(' ')[0]}</Text>
+          </View>
+
+          <View style={{ flexDirection: 'row', alignItems: "center" }}>
+            <Image source={Images.officechair2} style={{ width: 14, height: 14, marginRight: 6 }} />
+            <Text numberOfLines={1} style={styles.nearMeta}>{item.remaining_seats} Seats Left</Text>
+          </View>
         </View>
 
         <View style={{ flexDirection: 'row', alignItems: 'center', marginTop: 6 }}>
@@ -226,8 +235,9 @@ const EventScreen = ({ navigation }: any) => {
           <Text style={styles.nearDate}>{formatDate(item.event_date)}</Text>
         </View>
       </View>
-      <TouchableOpacity style={{ marginLeft: 8 }}>
-        <Image source={require('../../assets/Png/bookmark.png')} style={{ width: 20, height: 20, tintColor: '#AEB254' }} />
+
+      <TouchableOpacity style={{ backgroundColor: Colors.button[100], borderRadius: 12, width: 25, height: 25, alignItems: "center", justifyContent: 'center' }}>
+        <Image source={require('../../assets/Png/bookmark.png')} style={{ width: 15, height: 15, alignSelf: 'center' }} />
       </TouchableOpacity>
     </TouchableOpacity>
   );
@@ -316,7 +326,7 @@ const EventScreen = ({ navigation }: any) => {
           )}
         </View>
       </View>
-      
+
       <FlatList
         data={searchQuery.trim() ? searchResults : NearbyEvents}
         keyExtractor={(i) => String(i.id)}
@@ -353,7 +363,7 @@ const EventScreen = ({ navigation }: any) => {
                     renderItem={renderUpcoming}
                     horizontal
                     showsHorizontalScrollIndicator={false}
-                    contentContainerStyle={{ paddingLeft: 12,  }}
+                    contentContainerStyle={{ paddingLeft: 12, }}
                   />
                 </View>
 
@@ -503,8 +513,8 @@ const styles = StyleSheet.create({
   nearImage: { width: 70, height: 70, borderRadius: 8, marginRight: 12 },
   nearBody: { flex: 1 },
   nearTitle: { fontSize: 14, fontWeight: '700', width: widthPercentageToDP(60), },
-  nearMeta: { fontSize: 12, color: '#6B6B6B', marginTop: 6 },
-  nearDate: { fontSize: 12, color: '#6B6B6B', marginTop: 4 },
+  nearMeta: { fontSize: 12, color: '#6B6B6B', },
+  nearDate: { fontSize: 12, color: '#6B6B6B', },
   iconSmall: { width: 14, height: 14 },
   bookBtn: {
     width: 48,
