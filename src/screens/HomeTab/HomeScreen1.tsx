@@ -8,6 +8,7 @@ import { HttpStatusCode } from 'axios';
 import { formatDate } from '../../helpers/helpers';
 import { WishlistContext } from '../../context';
 import Toast from 'react-native-toast-message';
+import LinearGradient from 'react-native-linear-gradient';
 
 const { width } = Dimensions.get('window');
 const CARD_WIDTH = (width - 48) / 2;
@@ -23,6 +24,7 @@ const HomeScreen1 = ({ navigation }: any) => {
     const { toggleWishlist, isWishlisted, removeFromWishlist } = React.useContext(WishlistContext);
     const [category, setApiCateProducts] = useState([]);
     const [categoryProduct, setcategoryProduct] = useState([]);
+    const [selectedCategoryId, setSelectedCategoryId] = useState<number | null>(1);
     const [FeaturesProduct, setFeaturesProduct] = useState([]);
     const [salesProduct, setsalesProduct] = useState([]);
     const [apiRecommend, setApiRecommend] = useState<any[]>();
@@ -80,21 +82,19 @@ const HomeScreen1 = ({ navigation }: any) => {
             if (res && res.data && res.status === HttpStatusCode.Ok) {
                 hideLoader();
                 const fetchedProducts = res.data?.categories || [];
-                // console.log("catorgry", fetchedProducts)
                 setApiCateProducts(fetchedProducts);
-                GetCategoryID(1);
-            } else {
-                // handle non-OK response if needed
+                const defaultId = fetchedProducts?.[0]?.id ?? 1;
+                setSelectedCategoryId(defaultId);
+                GetCategoryID(defaultId);
             }
         } catch (err) {
             console.log("error catogry", err)
             hideLoader();
-            // handle network/error
         }
     };
 
     const GetCategoryID = async (categoryId: any) => {
-       // console.log("itemid", categoryId)
+        // console.log("itemid", categoryId)
         try {
             showLoader();
             const res = await UserService.GetCategoryByID(categoryId);
@@ -238,17 +238,15 @@ const HomeScreen1 = ({ navigation }: any) => {
 
     const PromotionalBanner: React.FC<{ promotional: any[] }> = ({ promotional = [] as any[] }) => {
         if (!promotional.length) return null;
-
         return (
             <View style={{ marginVertical: 12 }}>
-
                 {promotional.map((item: any, index: number) => (
                     <View key={String(index)} style={styles.page}>
                         <ImageBackground
                             source={{ uri: Image_url + item.image_url }}
                             style={styles.imageBackground}
-                            resizeMode='cover'
-                        >
+                            resizeMode='cover'>
+
                             <View style={{ position: 'absolute', top: '20%', left: 0, right: 0, bottom: 0, paddingHorizontal: 20 }}>
                                 <Text style={styles.title}>White Peony Tea Co</Text>
                                 <Text style={[styles.title, { fontSize: 18, marginTop: 7 }]}>{item?.title}</Text>
@@ -260,10 +258,9 @@ const HomeScreen1 = ({ navigation }: any) => {
                                 </TouchableOpacity>
                             </View>
                         </ImageBackground>
-                    </View >
+                    </View>
                 ))}
-
-            </View >
+            </View>
         );
     };
 
@@ -295,62 +292,112 @@ const HomeScreen1 = ({ navigation }: any) => {
                             horizontal
                             showsHorizontalScrollIndicator={false}
                             keyExtractor={(item) => String(item.id)}
-                            renderItem={(item) => {
+                            renderItem={({ item }) => {
+                                const isActive = item?.id === selectedCategoryId;
                                 return (
-                                    <TouchableOpacity onPress={() => GetCategoryID(item?.item?.id)}>
-                                        <View style={{ flexDirection: 'column', alignItems: 'center', marginHorizontal: 10 }}>
-                                            <Image source={{ uri: Image_url + item?.item?.image }} style={{ width: 25, height: 25, resizeMode: "contain" }} />
-                                            <Text style={{ fontWeight: '700', fontSize: 12, marginTop: heightPercentageToDP(1) }}>{item?.item?.name}</Text>
-                                        </View>
+                                    <TouchableOpacity
+                                        onPress={() => {
+                                            setSelectedCategoryId(item.id);
+                                            GetCategoryID(item.id);
+                                        }}
+                                        style={{ alignItems: 'center', marginHorizontal: 10 }}
+                                    >
+                                        <Image
+                                            source={{ uri: Image_url + item?.image }}
+                                            style={{
+                                                width: 28,
+                                                height: 28,
+                                                resizeMode: 'contain',
+                                                opacity: isActive ? 1 : 0.35,
+                                                transform: [{ scale: isActive ? 1.05 : 1 }],
+                                            }}
+                                        />
+                                        <Text style={{
+                                            fontWeight: '700',
+                                            fontSize: 12,
+                                            marginTop: heightPercentageToDP(1),
+                                            color: isActive ? '#000' : '#A7A7A7'
+                                        }}>
+                                            {item?.name}
+                                        </Text>
+
+                                        <View style={{
+                                            marginTop: 6,
+                                            height: 3,
+                                            width: 30,
+                                            borderRadius: 4,
+                                            backgroundColor: isActive ? '#2E2E2E' : 'transparent'
+                                        }} />
                                     </TouchableOpacity>
                                 )
                             }}
                         />
                     </View>
-                    <View style={{ borderWidth: 0.7, borderColor: '#A7A7A7', width: widthPercentageToDP(95) }} />
+                    <View style={{ borderWidth: 0.7, borderColor: '#A7A7A7', width: widthPercentageToDP(95), marginTop: heightPercentageToDP(-2.2) }} />
 
                     {/* Categories as 2-column grid */}
                     {categoryProduct.length !== 0 ? (
                         <View style={styles.container}>
                             <View style={styles.row}>
                                 {/* BIG CARD */}
-                                <TouchableOpacity onPress={() =>
-                                    navigation.navigate('ProductDetails', { productId: categoryProduct[0].id })}>
-                                    <View style={[styles.card, { height: BIG_HEIGHT }]}>
-                                        <Image source={{ uri: Image_url + categoryProduct[0].front_image }} style={styles.imageBig} />
-                                        <Text numberOfLines={2} style={styles.title}>{categoryProduct[0].name}</Text>
-                                        <View style={{ borderRadius: 4, backgroundColor: '#5f621a', width: 35, alignSelf: 'center', marginTop: 10 }}>
-                                            <Text style={{ fontWeight: '700', fontSize: 12, alignSelf: 'center', padding: 5, color: '#fff', textDecorationLine: 'line-through', }}>{Math.round(categoryProduct[0]?.variants[0]?.price)}</Text>
+                                <LinearGradient
+                                    colors={['#EFEFCA', '#E2E689']}
+                                    start={{ x: 0.5, y: 0 }}   // top
+                                    end={{ x: 0.5, y: 1 }}     // bottom
+                                    style={{ flex: 1 }}
+                                >
+                                    <TouchableOpacity onPress={() =>
+                                        navigation.navigate('ProductDetails', { productId: categoryProduct[0].id })}>
+                                        <View style={[styles.card, { height: BIG_HEIGHT }]}>
+                                            <Image source={{ uri: Image_url + categoryProduct[0].front_image }} style={styles.imageBig} />
+                                            <Text numberOfLines={2} style={styles.title}>{categoryProduct[0].name}</Text>
+                                            <View style={{ borderRadius: 4, backgroundColor: '#5f621a', width: 40, alignSelf: 'center', marginTop: 10, justifyContent: 'center' }}>
+                                                <Text style={{ fontWeight: '700', fontSize: 12, alignSelf: 'center', color: '#fff', textDecorationLine: 'line-through', textAlignVertical: "center" }}>{Math.round(categoryProduct[0]?.variants[0]?.price)} €</Text>
+                                            </View>
+                                            <View style={{ borderRadius: 4, backgroundColor: '#E0CB54', width: 50, alignSelf: 'center' }}>
+                                                <Text style={{ fontWeight: '700', fontSize: 12, alignSelf: 'center', padding: 5, color: '#000', }}>{Math.round(categoryProduct[0]?.variants[0]?.price)} €</Text>
+                                            </View>
                                         </View>
-                                        <View style={{ borderRadius: 4, backgroundColor: '#E0CB54', width: 50, alignSelf: 'center' }}>
-                                            <Text style={{ fontWeight: '700', fontSize: 12, alignSelf: 'center', padding: 5, color: '#000', }}>{Math.round(categoryProduct[0]?.variants[0]?.price)}</Text>
-                                        </View>
-                                    </View>
-                                </TouchableOpacity>
+                                    </TouchableOpacity>
+                                </LinearGradient>
 
                                 {/* RIGHT STACK: render one small card per item */}
                                 <View style={styles.stack}>
                                     <View style={{ justifyContent: 'space-between', }}>
                                         {categoryProduct.slice(1, 3).map((item) => (
-                                            <TouchableOpacity onPress={() =>
-                                                navigation.navigate('ProductDetails', { productId: item.id })}>
-                                                <View key={`${item.id}`} style={[styles.card, { height: SMALL_HEIGHT }]}>
-                                                    <Image source={{ uri: Image_url + item.front_image }} style={styles.imageSmall} />
-                                                    <Text numberOfLines={2} style={styles.title}>{item.name}</Text>
-                                                </View>
-                                            </TouchableOpacity>
+                                            <LinearGradient
+                                                colors={['#EFEFCA', '#E2E689']}
+                                                start={{ x: 0.5, y: 0 }}   // top
+                                                end={{ x: 0.5, y: 1 }}     // bottom
+                                                style={{ flex: 1 }}
+                                            >
+                                                <TouchableOpacity onPress={() =>
+                                                    navigation.navigate('ProductDetails', { productId: item.id })}>
+                                                    <View key={`${item.id}`} style={[styles.card, { height: SMALL_HEIGHT }]}>
+                                                        <Image source={{ uri: Image_url + item.front_image }} style={styles.imageSmall} />
+                                                        <Text numberOfLines={2} style={styles.title}>{item.name}</Text>
+                                                    </View>
+                                                </TouchableOpacity>
+                                            </LinearGradient>
                                         ))}
                                     </View>
 
                                     <View style={{ justifyContent: 'space-between', }}>
                                         {categoryProduct.slice(3, 5).map((item) => (
-                                            <TouchableOpacity onPress={() =>
-                                                navigation.navigate('ProductDetails', { productId: item.id })}>
-                                                <View key={`${item.id}`} style={[styles.card, { height: SMALL_HEIGHT }]}>
-                                                    <Image source={{ uri: Image_url + item.side_image }} style={styles.imageSmall} />
-                                                    <Text style={styles.title}>{item.name}</Text>
-                                                </View>
-                                            </TouchableOpacity>
+                                            <LinearGradient
+                                                colors={['#EFEFCA', '#E2E689']}
+                                                start={{ x: 0.5, y: 0 }}   // top
+                                                end={{ x: 0.5, y: 1 }}     // bottom
+                                                style={{ flex: 1 }}
+                                            >
+                                                <TouchableOpacity onPress={() =>
+                                                    navigation.navigate('ProductDetails', { productId: item.id })}>
+                                                    <View key={`${item.id}`} style={[styles.card, { height: SMALL_HEIGHT }]}>
+                                                        <Image source={{ uri: Image_url + item.side_image }} style={styles.imageSmall} />
+                                                        <Text numberOfLines={2} style={styles.title}>{item.name}</Text>
+                                                    </View>
+                                                </TouchableOpacity>
+                                            </LinearGradient>
                                         ))}
                                     </View>
                                 </View>
@@ -364,7 +411,7 @@ const HomeScreen1 = ({ navigation }: any) => {
                 </View>
 
                 {/* FREQUENTLY BOUGHT */}
-                <View style={{ paddingHorizontal: widthPercentageToDP(3), backgroundColor: '#fff', }}>
+                {orderitem?.length != null ? <View style={{ paddingHorizontal: widthPercentageToDP(3), backgroundColor: '#fff', }}>
                     <Text style={styles.sectionTitle}>Frequently Bought</Text>
 
                     <FlatList
@@ -418,7 +465,8 @@ const HomeScreen1 = ({ navigation }: any) => {
                         }}
                     />
 
-                </View>
+                </View> :
+                    <View></View>}
 
                 <View style={{ width: '100%', height: heightPercentageToDP(30), marginTop: 20, justifyContent: 'center', alignItems: 'center', backgroundColor: '#fecf5d' }}>
                     <Image source={require('../../assets/bg3x.png')} style={{ width: '100%', height: '100%' }} />
@@ -449,10 +497,10 @@ const HomeScreen1 = ({ navigation }: any) => {
                 </View>
 
                 {/* Lowest Prices Ever - horizontal small cards */}
-                <View style={{ width: '100%', height: heightPercentageToDP(35), marginTop: -5, justifyContent: 'center', alignItems: 'center' }}>
+                <View style={{ width: '100%', height: heightPercentageToDP(35), marginTop: heightPercentageToDP(-1), justifyContent: 'center', alignItems: 'center' }}>
                     <Image source={require('../../assets/Subtraction2.png')} style={{ width: '100%', height: '100%', }} />
                     <View style={{ position: 'absolute', top: 10, paddingHorizontal: widthPercentageToDP(3), }}>
-                        <Text style={[styles.sectionTitle, { alignSelf: 'center' }]}>Lowest Prices Ever</Text>
+                        <Text style={[styles.sectionTitle, { alignSelf: 'center' }]}>LOWEST PRICES EVER</Text>
                         <FlatList
                             data={lowestitem}
                             horizontal
@@ -515,7 +563,7 @@ const HomeScreen1 = ({ navigation }: any) => {
                 </View>
 
                 {/* Your Wishlist - horizontal scroll with slightly larger cards */}
-                <View style={{ paddingHorizontal: widthPercentageToDP(3), marginTop: heightPercentageToDP(2) }}>
+                {wishlistitem?.length != null ? <View style={{ paddingHorizontal: widthPercentageToDP(3), marginTop: heightPercentageToDP(2) }}>
                     <Text style={styles.sectionTitle}>Your Wishlist</Text>
                     <FlatList
                         data={wishlistitem}
@@ -544,7 +592,8 @@ const HomeScreen1 = ({ navigation }: any) => {
                             </TouchableOpacity>
                         )}
                     />
-                </View>
+                </View> :
+                    <View></View>}
 
                 <PromotionalBanner promotional={Promotional} />
 
@@ -620,7 +669,6 @@ const styles = StyleSheet.create({
 
     card: {
         width: widthPercentageToDP(30),
-        backgroundColor: '#F4F6C8',
         borderRadius: 14,
         padding: 8,
     },
@@ -641,7 +689,9 @@ const styles = StyleSheet.create({
         fontSize: 16,
         fontWeight: '700',
         color: '#2E2E2E',
-        width: '70%'
+        width: '70%',
+        alignSelf: 'center',
+        marginTop: heightPercentageToDP(0.5)
     },
     button: {
         width: '30%',
