@@ -23,6 +23,7 @@ import { checkFirstLaunch, setFirstLaunch } from "../helpers/helpers";
 import MyEventsScreen from "../screens/EventTab/MyEvents";
 import Slugs from "../screens/ProfileTab/Slugs";
 import SelectLanguageScreen from "../SelectLanguageScreen";
+import Searchpage from "../screens/HomeTab/Searchpage";
 
 
 
@@ -70,6 +71,7 @@ const HomeStackNavigator: FC = () => {
       <Stack.Screen name="IntroScreen" component={IntroScreen} />
       <Stack.Screen name="PaymentSuccess" component={PaymentSuccess} />
       <Stack.Screen name="MyEventsScreen" component={MyEventsScreen} />
+      <Stack.Screen name="Searchpage" component={Searchpage} />
       <Stack.Screen name="Slugs" component={Slugs} />
     </Stack.Navigator>
   );

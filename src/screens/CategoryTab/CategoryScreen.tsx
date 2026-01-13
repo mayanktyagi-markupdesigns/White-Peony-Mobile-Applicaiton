@@ -25,7 +25,7 @@ const CategoryScreen = ({ navigation }) => {
   const renderItem = ({ item }: { item: any }) => (
     <TouchableOpacity style={styles.tile} activeOpacity={0.9} onPress={() => navigation.navigate('CategoryDetailsList', { categoryId: item.id, categoryTitle: item.name })}>
       <ImageBackground
-        source={{uri: Image_url + item?.image}}
+        source={{ uri: Image_url + item?.image }}
         style={styles.tileImage}
         imageStyle={{ borderRadius: 10 }}
       >
@@ -66,19 +66,17 @@ const CategoryScreen = ({ navigation }) => {
         <View style={styles.header}>
           <Text style={styles.headerTitle}>Categories</Text>
         </View>
-        <View style={styles.searchRow}>
-          <TextInput
-            placeholder="Search Products...."
-            placeholderTextColor={Colors.text[200]}
-            style={styles.searchInput}
-          />
-          <TouchableOpacity style={styles.microphone}>
-            <Image
-              source={require('../../assets/Png/search.png')}
-              style={styles.iconSmall}
-            />
-          </TouchableOpacity>
-        </View>
+        <TouchableOpacity onPress={() => navigation.navigate('Searchpage')}>
+          <View style={styles.searchRow}>
+            <Text style={[styles.searchInput, { color: Colors.text[200], textAlignVertical:"center" }]}>Search Products....</Text>
+            <TouchableOpacity style={styles.microphone}>
+              <Image
+                source={require('../../assets/Png/search.png')}
+                style={styles.iconSmall}
+              />
+            </TouchableOpacity>
+          </View>
+        </TouchableOpacity>
       </View>
 
       <View style={{ marginTop: 16, marginBottom: 8 }}>
@@ -132,7 +130,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   tile: { width: '100%', height: 72, borderRadius: 10, overflow: 'hidden' },
-  tileImage: { flex: 1, justifyContent: 'center', resizeMode:'stretch', width: '100%', height: 72 },
+  tileImage: { flex: 1, justifyContent: 'center', resizeMode: 'stretch', width: '100%', height: 72 },
   tileOverlay: {
     backgroundColor: 'rgba(0,0,0,0.25)',
     alignItems: 'center',

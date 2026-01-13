@@ -32,8 +32,6 @@ const EmailInput = memo(({ index, value, onChange }) => (
 
 const EmailModal = ({ visible, onClose, seatCount, onSubmit }) => {
   const [emails, setEmails] = useState([]);
-    const { showLoader, hideLoader } = CommonLoader();
-  
   const [loading, setLoading] = useState(false);
 
   // reset when seatCount changes
@@ -60,9 +58,9 @@ const EmailModal = ({ visible, onClose, seatCount, onSubmit }) => {
         return;
       }
     }
-    showLoader();
+    setLoading(true);
     await onSubmit(emails);
-    hideLoader();;
+    setLoading(false);
     onClose();
   };
 

@@ -65,8 +65,8 @@ const WishlistScreen = ({ navigation }: { navigation: any }) => {
         try {
             showLoader();
             const res = await UserService.wishlist();
-            const apiItems = res?.data?.items || res?.data?.wishlist?.items || [];
-            // console.log('Wishlist API items:', JSON.stringify(apiItems));
+            const apiItems = res?.data?.data || [];
+             console.log('Wishlist API items:', apiItems);
             const mapped: DisplayWishlistItem[] = (Array.isArray(apiItems) ? apiItems : []).map((p: any) => {
                 const productId = Number(p.product_id ?? p.id ?? p.productId ?? 0);
                 const front = p.front_image ?? p.image ?? null;
@@ -83,7 +83,7 @@ const WishlistScreen = ({ navigation }: { navigation: any }) => {
                     isInCart: cart ? cart.some((ci: any) => String(ci.id) === String(productId)) : false,
                 };
             });
-
+            hideLoader();
             setItems(mapped);
         } catch (e) {
             hideLoader();
@@ -115,22 +115,21 @@ const WishlistScreen = ({ navigation }: { navigation: any }) => {
                     isInCart: cart ? cart.some(cartItem => String(cartItem.id) === String(id)) : false,
                 };
             });
+            hideLoader();
             setItems(mapped);
         } catch (e) {
+            hideLoader();
             const error = e as any;
             if (error.status === 401) {
                 console.log('Unauthorized access - perhaps token expired');
             } else {
                 Toast.show({ type: 'error', text1: 'Failed to load wishlist' });
             }
-        } finally {
-            hideLoader();
         }
     };
 
     const handleAddToBag = async (item: DisplayWishlistItem) => {
         try {
-            showLoader();
             const productId = item.product_id ?? Number(item.id);
             const variantId = item.variants?.[0]?.variant_id ?? null;
             await addToCart(productId, variantId);
@@ -144,10 +143,9 @@ const WishlistScreen = ({ navigation }: { navigation: any }) => {
 
             Toast.show({ type: 'success', text1: 'Added to cart successfully' });
         } catch (error) {
+
             console.error('Failed to add to cart:', error);
             Toast.show({ type: 'error', text1: 'Failed to add to cart' });
-        } finally {
-            hideLoader();
         }
     };
 
@@ -158,6 +156,7 @@ const WishlistScreen = ({ navigation }: { navigation: any }) => {
                 // Remove from server for logged-in users
                 const res = await UserService.wishlistDelete(productId);
                 if (res?.status === HttpStatusCode.Ok) {
+                    hideLoader();
                     setItems(prev => prev.filter(i => i.id !== productId));
                     await removeFromWishlist(productId);
                     Toast.show({
@@ -182,13 +181,13 @@ const WishlistScreen = ({ navigation }: { navigation: any }) => {
                 });
             }
         } catch (err) {
+            hideLoader();
+
             console.log('Wishlist remove error:', JSON.stringify(err));
             Toast.show({
                 type: 'error',
                 text1: 'Failed to remove from wishlist'
             });
-        } finally {
-            hideLoader();
         }
     };
 

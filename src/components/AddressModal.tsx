@@ -17,6 +17,7 @@ import { UserService } from "../service/ApiService";
 import { HttpStatusCode } from "axios";
 import Toast from "react-native-toast-message";
 import AddressDetailModal from "./AddressDetailModal";
+import { Images } from "../constant";
 
 type Address = {
     id: string | number;
@@ -54,7 +55,7 @@ const AddressModal: React.FC<AddressModalProps> = ({
             if (visible) {
                 Addresses().then(() => {
                     if (!isActive) return;
-                     Addresses();
+                    Addresses();
                 });
             }
 
@@ -155,7 +156,8 @@ const AddressModal: React.FC<AddressModalProps> = ({
                         <Text style={styles.header}>Select Address</Text>
 
                         <TouchableOpacity style={styles.addButton} onPress={() => handleAddressSelect(null)}>
-                            <Text style={styles.addText}>+ Add New Address</Text>
+                            <Image source={Images.plus1} style={{ width: 15, height: 15 }} />
+                            <Text style={styles.addText}>   Add New Address</Text>
                         </TouchableOpacity>
 
                         <ScrollView style={{ maxHeight: 300, marginTop: 15 }}>
@@ -164,22 +166,31 @@ const AddressModal: React.FC<AddressModalProps> = ({
                                     <TouchableOpacity
                                         key={addr.id}
                                         style={styles.addressCard}
-                                        onLongPress={() => {
-                                            setSelectedAddress(addr);
-                                            setShowAddressDetail(true);
-                                        }}
+                                        // onLongPress={() => {
+                                        //     setSelectedAddress(addr);
+                                        //     setShowAddressDetail(true);
+                                        // }}
                                         onPress={() => handleAddressSelect(addr)} // ✅ Send address to parent
                                     >
-                                        <View style={{ marginBottom: 5, flexDirection: 'row', justifyContent: 'space-between' }}>
-                                            <Text style={styles.addressLabel}>{addr.address_type}</Text>
-                                            <TouchableOpacity onPress={() => DeleteAlert(addr.id)}>
-                                                <Image source={require('../assets/Png/delete.png')} style={{ width: 20, height: 20 }} />
+                                        <View style={{ flexDirection: 'row', justifyContent: 'space-between', borderBottomWidth: 1, borderBottomColor: '#D9D9D9', height: 40, alignItems: 'center' }}>
+                                            <View style={{ flexDirection: 'row', }}>
+                                                <Image source={Images.home} style={{ width: 18, height: 18 }} />
+                                                <Text style={styles.addressLabel}>{addr.address_type}</Text>
+                                            </View>
+                                            {/* <TouchableOpacity onPress={() => DeleteAlert(addr.id)}> */}
+                                            <TouchableOpacity onPress={() => {
+                                                setSelectedAddress(addr);
+                                                setShowAddressDetail(true);
+                                            }}>
+                                                <Image source={Images.clock} style={{ width: 20, height: 20 }} />
                                             </TouchableOpacity>
                                         </View>
-                                        <Text style={styles.addressName}>{addr.name}</Text>
-                                        <Text style={styles.addressLine}>{addr.full_address}</Text>
-                                        <Text style={styles.addressLine}>{addr.phone}</Text>
-                                        <Text style={styles.addressLine}>{addr.postal_code}</Text>
+                                        <View style={{ marginTop: 10 }}>
+                                            <Text style={styles.addressName}>{addr.name}</Text>
+                                            <Text style={styles.addressLine}>{addr.full_address}</Text>
+                                            <Text style={styles.addressLine}>{addr.phone}</Text>
+                                            <Text style={styles.addressLine}>{addr.postal_code}</Text>
+                                        </View>
                                     </TouchableOpacity>
                                 ))
                             ) : (
@@ -234,14 +245,17 @@ const styles = StyleSheet.create({
     },
     addButton: {
         borderWidth: 1,
-        borderColor: "#C9C9C9",
-        borderRadius: 10,
+        borderColor: "#AEB254",
+        borderRadius: 13,
         padding: 12,
         alignItems: "center",
+        flexDirection: 'row',
+        justifyContent: 'center'
     },
     addText: {
-        color: "#E2E689",
+        color: "#000",
         fontWeight: "600",
+        fontSize: 14
     },
     addressCard: {
         borderWidth: 1,
@@ -254,6 +268,8 @@ const styles = StyleSheet.create({
         fontSize: 14,
         fontWeight: "600",
         color: "#AEB254",
+        opacity: 1,
+        left: 10
     },
     addressName: {
         fontSize: 15,

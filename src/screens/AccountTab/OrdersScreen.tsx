@@ -234,7 +234,7 @@ const OrdersScreen = ({ navigation }: { navigation: any }) => {
           </View>
         </TouchableOpacity>
 
-        {/* {isExpanded && (
+        {isExpanded && (
           <View style={styles.orderDetails}>
             <Text style={styles.detailLabel}>Order ID: <Text style={styles.detailValue}>{item?.id}</Text></Text>
             <Text style={styles.detailLabel}>Tracking: <Text style={styles.detailValue}>{item?.tracking_number || '—'}</Text></Text>
@@ -264,7 +264,7 @@ const OrdersScreen = ({ navigation }: { navigation: any }) => {
               <Text style={{ color: '#666' }}>No items available</Text>
             )}
           </View>
-        )} */}
+        )}
       </TouchableOpacity>
     );
   };

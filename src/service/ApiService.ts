@@ -57,7 +57,7 @@ export const UserService = {
         Authorization: `Bearer ${token}`,
       },
     };
-    console.log("payload", payload);
+    //console.log("payload", payload);
     return APIKit.post("update/profile", payload, apiHeaders);
   },
 
@@ -200,7 +200,7 @@ export const UserService = {
         Authorization: `Bearer ${token}`,
       },
     };
-        console.log("payload", token)
+        //console.log("payload", token)
 
     return APIKit.get("order", apiHeaders);
   },
@@ -426,13 +426,13 @@ export const UserService = {
         Authorization: `Bearer ${token}`,
       },
     };
-    console.log("payload", payload)
+    //console.log("payload", payload)
     return APIKit.post("addtocart", payload, apiHeaders);
   },
 
   viewCart: async () => {
     const token = await LocalStorage.read("@token");
-    console.log("token", token);
+   // console.log("token", token);
     const apiHeaders = {
       headers: {
         "Content-Type": "application/json",
@@ -476,7 +476,7 @@ export const UserService = {
         Authorization: `Bearer ${token}`,
       },
     };
-    console.log("payload", payload, apiHeaders);
+    //console.log("payload", payload, apiHeaders);
     return APIKit.post('updatecart', payload, apiHeaders);
   },
 
@@ -501,7 +501,7 @@ export const UserService = {
         Authorization: `Bearer ${token}`,
       },
     };
-    console.log("payload", payload)
+   // console.log("payload", payload)
     return APIKit.post("placeorder", payload, apiHeaders);
   },
 
@@ -629,7 +629,7 @@ export const UserService = {
         Authorization: `Bearer ${token}`,
       },
     };
-    console.log('payload', payload)
+   // console.log('payload', payload)
     return APIKit.post(`wishlist/add`, payload, apiHeaders);
   },
 

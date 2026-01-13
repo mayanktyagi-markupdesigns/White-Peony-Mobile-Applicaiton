@@ -21,7 +21,6 @@ import { HttpStatusCode } from 'axios';
 import { formatDate } from '../../helpers/helpers';
 import EmailModal from '../../components/EmailModal'
 import { Colors } from '../../constant';
-// import { CommonLoader } from '../../components/CommonLoader/commonLoader';
 
 type EventDetail = {
   image?: string;

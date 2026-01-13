@@ -112,8 +112,10 @@ const ProductDetails = ({ route }: ProductDetailsProps) => {
           const variantItems = allVariants.map((v: any, index: number) => ({
             label: `${v.weight || v.unit || v.name} - ₹${v.price}`,
             value: v.id,
+            discount: v.percentage
           }));
-          setWeightItems(variantItems);
+          setWeightItems(allVariants);
+          console.log('varients', allVariants)
 
           const variant0 = allVariants.length ? allVariants[0] : null;
           const price = variant0?.price || first.main_price || '0';
@@ -159,8 +161,6 @@ const ProductDetails = ({ route }: ProductDetailsProps) => {
       }
     } catch (err) {
       console.log('Product fetch error:', err);
-    } finally {
-      hideLoader();
     }
   };
 
@@ -225,12 +225,17 @@ const ProductDetails = ({ route }: ProductDetailsProps) => {
           text1: res?.data?.message || 'Something went wrong!',
         });
       }
-    } catch (err: any) {
-      console.log('Error in ShowReview:', JSON.stringify(err));
-      Toast.show({
-        type: 'error',
-        text1: err?.response?.data?.message || 'Something went wrong! Please try again.',
-      });
+    } catch (e) {
+      hideLoader();
+      const error = e as any;
+      if (error.status === 401) {
+        console.log('Unauthorized access - perhaps token expired');
+      } else {
+        // Toast.show({
+        //   type: 'error',
+        //   text1: error || 'Something went wrong!',
+        // });
+      }
     }
   };
 
@@ -263,9 +268,10 @@ const ProductDetails = ({ route }: ProductDetailsProps) => {
     if (productData && Array.isArray(productData.variants)) {
       const items = productData.variants.map((v: any, i: number) => ({
         label: v.unit || v.weight || `Option ${i + 1}`,
-        value: String(i),
         price: v.price,
         unit: v.unit,
+        value: v.id,
+        discount: v.percentage
       }));
       setWeightItems(items);
       setVariants(productData.variants);
@@ -360,28 +366,60 @@ const ProductDetails = ({ route }: ProductDetailsProps) => {
     }
 
     try {
-      setCartLoading(true);
       await addToCart(productData.id, selectedVariant?.id);
-
       // mark in-cart immediately without waiting for API flag
-      setIsInCart(true);
       setProductData((prev: any) => (prev ? { ...prev, is_cart: true } : prev));
-
       // Show success message
       Toast.show({
         type: 'success',
         text1: 'Added to cart successfully!'
       });
-    } catch (err) {
-      console.log('Cart action error:', err);
-      Toast.show({
-        type: 'error',
-        text1: 'Failed to update cart'
-      });
-    } finally {
-      setCartLoading(false);
+    } catch (e) {
+      const error = e as any;
+      if (error.status === 401) {
+        console.log('Unauthorized access - perhaps token expired');
+      } else {
+        Toast.show({
+          type: 'error',
+          text1: error || 'Something went wrong!',
+        });
+      }
     }
   };
+
+  const checkoutAction = async () => {
+    if (!productData) return;
+
+    if (isInCart) {
+      navigation.navigate('CheckoutScreen');
+      return;
+    }
+
+    try {
+      await addToCart(productData.id, selectedVariant?.id);
+      // mark in-cart immediately without waiting for API flag
+      setProductData((prev: any) => (prev ? { ...prev, is_cart: true } : prev));
+      // Show success message
+      Toast.show({
+        type: 'success',
+        text1: 'Added to cart successfully!'
+      });
+      navigation.navigate('CheckoutScreen');
+
+    } catch (e) {
+      const error = e as any;
+      if (error.status === 401) {
+        console.log('Unauthorized access - perhaps token expired');
+      } else {
+        Toast.show({
+          type: 'error',
+          text1: error || 'Something went wrong!',
+        });
+      }
+    }
+  };
+
+
 
   // Replace existing cart button with new component
   const CartButton = () => {
@@ -396,34 +434,30 @@ const ProductDetails = ({ route }: ProductDetailsProps) => {
           style={[
             styles.cartButton,
             isInCart && styles.cartButtonActive,
-            cartLoading && styles.cartButtonDisabled
           ]}
           onPress={handleCartAction}
-          disabled={cartLoading}
         >
-          {cartLoading ? (
-            <ActivityIndicator size="small" color="#fff" />
-          ) : (
-            <>
-              <Text style={styles.cartButtonText}>
-                {isInCart ? 'Go to Cart' : 'Add to Bag'}
-              </Text>
-            </>
-          )}
+          <Text style={styles.cartButtonText}>
+            {isInCart ? 'Go to Cart' : 'Add to Bag'}
+          </Text>
         </TouchableOpacity>
 
-        <TouchableOpacity onPress={() => isLoggedIn ? handleCartAction : setModalVisible(true)} ><View style={{ borderWidth: 1, borderColor: '#999', borderRadius: 20, height: 45, justifyContent: 'center', width: widthPercentageToDP(40) }}>
-          <Text style={{ fontSize: 12, fontWeight: '700', alignSelf: 'center' }}>Check-Out</Text>
-        </View>
-        </TouchableOpacity>
-
-        <LoginModal
-          visible={modalVisible}
-          onClose={() => {
-            setModalVisible(false);
+        <TouchableOpacity
+          onPress={() => {
+            if (isLoggedIn) {
+              checkoutAction();
+            } else {
+              setModalVisible(true);
+            }
           }}
-        />
-      </View>
+        >
+          <View style={{ borderWidth: 1, borderColor: '#999', borderRadius: 20, height: 45, justifyContent: 'center', width: widthPercentageToDP(40) }}>
+            <Text style={{ fontSize: 12, fontWeight: '700', alignSelf: 'center' }}>Check-Out</Text>
+          </View>
+        </TouchableOpacity>
+
+
+      </View >
 
 
     );
@@ -467,7 +501,7 @@ const ProductDetails = ({ route }: ProductDetailsProps) => {
             {isWishlisted(productData?.id) ? (
               <Video
                 source={require('../../assets/Png/splash.mp4')}
-                style={{ position: 'absolute', width: 20, height: 20, alignSelf: 'center' }}
+                style={{  width: 25, height: 25, borderRadius: 15, justifyContent: 'center', alignItems: 'center', }}
                 muted={true}
                 repeat={true}
                 resizeMode="cover"
@@ -569,6 +603,14 @@ const ProductDetails = ({ route }: ProductDetailsProps) => {
           doubleTapToZoomEnabled={true}
         />
 
+        <LoginModal
+          visible={modalVisible}
+          onClose={() => setModalVisible(false)}
+          onGoogleLogin={() => Alert.alert("Google Login")}
+          onFacebookLogin={() => Alert.alert("Facebook Login")}
+          phoneNumber="email or phone number"
+        />
+
 
 
         <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginTop: 16 }}>
@@ -591,7 +633,7 @@ const ProductDetails = ({ route }: ProductDetailsProps) => {
             style={{
               flexDirection: 'row',
               flexWrap: 'wrap',
-              justifyContent: 'space-between',
+              gap: 10,
               marginTop: heightPercentageToDP(1),
             }}
           >
@@ -615,14 +657,14 @@ const ProductDetails = ({ route }: ProductDetailsProps) => {
                     borderColor: isSelected ? '#000' : Colors.text[400],
                     borderWidth: 1,
                     borderRadius: 8,
-                    height: 50,
+                    height: item.discount != 0 || null ? 50: 40,
                     width: widthPercentageToDP(25),
                     marginBottom: heightPercentageToDP(1),
                     backgroundColor: '#FFF',
                   }}
                 >
-                  {/* Discount badge */}
-                  {item.discount && (
+                  {/* percentage badge */}
+                  {item.discount != 0 || null ?
                     <LinearGradient
                       colors={[Colors.button[100], '#ffffff']}
                       start={{ x: 0, y: 0 }}
@@ -642,8 +684,8 @@ const ProductDetails = ({ route }: ProductDetailsProps) => {
                       >
                         {item.discount}% OFF
                       </Text>
-                    </LinearGradient>
-                  )}
+                    </LinearGradient> : null
+                  }
 
                   {/* Unit */}
                   <Text
@@ -651,7 +693,7 @@ const ProductDetails = ({ route }: ProductDetailsProps) => {
                       fontSize: 12,
                       fontWeight: '700',
                       alignSelf: 'center',
-                      marginTop: item.discount ? 8 : 15,
+                      marginTop: item.discount != 0 || null ? 6 : 10,
                       color: isSelected ? '#000' : '#333',
                     }}
                   >
@@ -890,12 +932,6 @@ const styles = StyleSheet.create({
   price: { fontSize: 16, fontWeight: '600', marginTop: 8 },
   actionsRow: { flexDirection: 'row', marginTop: 12, alignItems: 'center' },
 
-  checkoutBtn: {
-    borderWidth: 1,
-    borderColor: '#ddd',
-    padding: 12,
-    borderRadius: 20,
-  },
   card: {
     paddingHorizontal: 8,
   },

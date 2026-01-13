@@ -23,10 +23,12 @@ import { CommonLoader } from '../../components/CommonLoader/commonLoader';
 import Toast from 'react-native-toast-message';
 import AddressModal from '../../components/AddressModal';
 import { useFocusEffect } from '@react-navigation/native';
-import { widthPercentageToDP } from '../../constant/dimentions';
+import { heightPercentageToDP, widthPercentageToDP } from '../../constant/dimentions';
 import { useCart } from '../../context/CartContext';
 import { WebView } from 'react-native-webview';
 import { Colors, Images } from '../../constant';
+import { Swipeable } from 'react-native-gesture-handler';
+
 
 
 const SCREEN_WIDTH = Dimensions.get('window').width;
@@ -96,7 +98,8 @@ const CheckoutScreen = ({ navigation }: { navigation: any }) => {
       try {
         showLoader();
         const res = await UserService.wishlist();
-        const apiWishlist = res?.data?.items || [];
+        const apiWishlist = res?.data?.data || [];
+        hideLoader();
 
         setItems(apiWishlist);
         //console.log('Wishlist fetched:', apiWishlist[0]?.variants);
@@ -107,10 +110,9 @@ const CheckoutScreen = ({ navigation }: { navigation: any }) => {
           console.log('Unauthorized access - perhaps token expired');
         }
         else {
-          Toast.show({ type: 'error', text1: 'Failed to load wishlist' });
+          console.log("error", error)
+          // Toast.show({ type: 'error', text1: 'Failed to load wishlist' });
         }
-      } finally {
-        hideLoader();
       }
     };
     fetchWishlist();
@@ -164,99 +166,76 @@ const CheckoutScreen = ({ navigation }: { navigation: any }) => {
     }
   };
 
-  const renderShipmentItem = ({ item }: { item: CartItem }) => (
-    <View style={styles.shipmentItemCard}>
+  const renderRightActions = (item: CartItem) => {
+    return (
       <TouchableOpacity
-        style={{ position: 'absolute', top: 6, right: 6 }}
         onPress={async () => {
           try {
             showLoader();
-            // await removal from cart (handles both guest/local and server flows)
             await removeFromCart(Number(item.product_id));
-            // refresh cart after successful removal
             await GetCartDetails();
           } catch (err) {
-            console.log('removeFromCart error', err);
             Toast.show({ type: 'error', text1: 'Failed to remove item' });
           } finally {
             hideLoader();
           }
         }}
+        style={styles.deleteBox}
       >
         <Image
           source={require('../../assets/Png/delete.png')}
-          style={{ width: 30, height: 30 }}
+          style={{ width: 28, height: 28, tintColor: '#000' }}
         />
       </TouchableOpacity>
-      <Image
-        source={{ uri: Image_url + item.front_image }}
-        style={styles.shipmentImage}
-      />
-      <View style={{ flex: 1, marginLeft: 12 }}>
-        <Text style={styles.shipmentName}>{item.name}</Text>
-        <Text style={styles.shipmentWeight}>{item?.unit || null} </Text>
-        <TouchableOpacity
-          onPress={() => moveToWishlist(item.id)}
-          style={styles.moveToWishlistBtn}
-          activeOpacity={0.7}
-        >
-          <Text style={styles.moveToWishlistText}>Move to wishlist</Text>
-        </TouchableOpacity>
+    );
+  };
 
-        <View style={{ flexDirection: 'row', marginVertical: 5 }}>
-          {[1, 2, 3, 4, 5].map((r) => {
-            const isFull = item?.average_rating >= r;
-            const isHalf = item?.average_rating >= r - 0.5 && item?.average_rating < r;
-            return (
-              <View key={r} style={{ width: 18, height: 18, position: 'relative' }}>
-                {/* base gray star */}
-                <Text style={{ color: '#ccc', fontSize: 18, position: 'absolute' }}>★</Text>
-                {/* overlay half or full star */}
-                <View
-                  style={{
-                    width: isFull ? '100%' : isHalf ? '50%' : '0%',
-                    overflow: 'hidden',
-                    position: 'absolute',
-                  }}
-                >
-                  <Text style={{ color: '#F0C419', fontSize: 18 }}>★</Text>
-                </View>
-              </View>
-            )
-          })}
-        </View>
-        <Text style={styles.shipmentPrice}>{item?.total_price} €</Text>
+  const renderShipmentItem = ({ item }: { item: CartItem }) => (
+    <Swipeable
+      renderRightActions={() => renderRightActions(item)}
+      overshootRight={false}
+    >
+      <View style={styles.shipmentItemCard}>
+        <Image
+          source={{ uri: Image_url + item.front_image }}
+          style={styles.shipmentImage}
+        />
 
-        <View style={styles.qtyControlContainer}>
+        <View style={{ width: widthPercentageToDP(65), left: widthPercentageToDP(5) }}>
+          <Text style={styles.shipmentName}>{item.name}</Text>
+          <Text style={styles.shipmentWeight}>{item?.unit || null}</Text>
+
           <TouchableOpacity
-            onPress={() => UpdateCart(item, -1)}
-            style={styles.qtyBtn}
-            activeOpacity={0.7}
-            disabled={item.quantity <= 1}
+            onPress={() => moveToWishlist(item.id)}
+            style={styles.moveToWishlistBtn}
           >
-            <Image
-              source={require('../../assets/Png/minus.png')}
-              style={{ width: 20, height: 20 }}
-            />
+            <Text style={styles.moveToWishlistText}>Move to wishlist</Text>
           </TouchableOpacity>
 
-          <Text style={styles.qtyText}>{item.quantity}</Text>
+          <Text style={styles.shipmentPrice}>{item?.total_price} €</Text>
 
-          <TouchableOpacity
-            onPress={() => UpdateCart(item, +1)}
-            style={styles.qtyBtn}
-            activeOpacity={0.7}>
-            <Image
-              source={require('../../assets/Png/add.png')}
-              style={{ width: 20, height: 20 }}
-            />
-          </TouchableOpacity>
+          <View style={styles.qtyControlContainer}>
+            <TouchableOpacity
+              onPress={() => UpdateCart(item, -1)}
+              disabled={item.quantity <= 1}
+              style={styles.qtyBtn}
+            >
+              <Image source={require('../../assets/Png/minus.png')} style={{ width: 20, height: 20 }} />
+            </TouchableOpacity>
+
+            <Text style={styles.qtyText}>{item.quantity}</Text>
+
+            <TouchableOpacity
+              onPress={() => UpdateCart(item, +1)}
+              style={styles.qtyBtn}
+            >
+              <Image source={require('../../assets/Png/add.png')} style={{ width: 20, height: 20 }} />
+            </TouchableOpacity>
+          </View>
         </View>
-
       </View>
-    </View>
+    </Swipeable>
   );
-
   const renderSuggestionItem = ({ item }: { item: any }) => (
     <TouchableOpacity onPress={() =>
       navigation.navigate('ProductDetails', { productId: item.product_id })
@@ -267,7 +246,7 @@ const CheckoutScreen = ({ navigation }: { navigation: any }) => {
         <Text style={styles.suggestionName} numberOfLines={1}>
           {item.name}
         </Text>
-        <View style={{ flexDirection: 'row', marginTop: 8 }}>
+        <View style={{ flexDirection: 'row', marginTop: 0 }}>
           {[1, 2, 3, 4, 5].map((r) => {
             const isFull = item?.average_rating >= r;
             const isHalf = item?.average_rating >= r - 0.5 && item?.average_rating < r;
@@ -321,8 +300,7 @@ const CheckoutScreen = ({ navigation }: { navigation: any }) => {
       const discountValue = parseFloat(selectedPromoCode.code.replace(/[^\d.]/g, '')) || 0;
       const maxDiscount = Number(selectedPromo.max_discount ?? 0);
 
-      console.log('Applying promo:', total, discountType, discountValue, maxDiscount);
-
+      // console.log('Applying promo:', total, discountType, discountValue, maxDiscount);
       let calculatedDiscount = 0;
 
       if (discountType === 'percentage') {
@@ -352,6 +330,7 @@ const CheckoutScreen = ({ navigation }: { navigation: any }) => {
   };
 
   const removeCoupon = () => {
+    setSelectedPromoCode({ code: '' });
     setAppliedPromo(null);
     setDiscountAmount(0);
     Toast.show({ type: 'info', text1: 'Coupon removed.' });
@@ -576,7 +555,11 @@ const CheckoutScreen = ({ navigation }: { navigation: any }) => {
                   alignSelf: 'center',
                 }}
               />
-              <Text style={styles.couponText}>Use Coupons</Text>
+              <Text style={styles.couponText}>
+                {selectedPromoCode?.code?.trim()
+                  ? selectedPromoCode.code
+                  : 'Use Coupons'}
+              </Text>
             </View>
             <Image
               source={require('../../assets/Png/next.png')}
@@ -609,7 +592,6 @@ const CheckoutScreen = ({ navigation }: { navigation: any }) => {
                           (it.id ?? it.code ?? it.promo_code ?? idx).toString()
                         }
                         renderItem={({ item }) => {
-                          // 🧠 Safely get the promo code value
                           const code =
                             item?.code ??
                             item?.promo_code ??
@@ -662,7 +644,7 @@ const CheckoutScreen = ({ navigation }: { navigation: any }) => {
                       />
                     )}
                     <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginTop: 8 }}>
-                      <TouchableOpacity onPress={() => setPromoModalVisible(false)} style={{ backgroundColor: '#eee', paddingVertical: 12, borderRadius: 28, alignItems: 'center', flex: 1, marginRight: 8 }}>
+                      <TouchableOpacity onPress={() => { setPromoModalVisible(false), setSelectedPromoCode({ code: '' }) }} style={{ backgroundColor: '#eee', paddingVertical: 12, borderRadius: 28, alignItems: 'center', flex: 1, marginRight: 8 }}>
                         <Text style={{ color: '#333' }}>Cancel</Text>
                       </TouchableOpacity>
                       <TouchableOpacity onPress={() => SetPromo()} disabled={isApplyingPromo} style={{ backgroundColor: Colors.button[100], paddingVertical: 12, borderRadius: 28, alignItems: 'center', flex: 1 }}>
@@ -752,18 +734,20 @@ const CheckoutScreen = ({ navigation }: { navigation: any }) => {
 
           {/* Delivery address */}
           <View style={styles.deliveryAddressCard}>
-            <Image
-              source={Images.home}
-              style={{ width: 20, height: 20, alignSelf: 'center', tintColor: '#878B2F' }}
-            />
+            <View style={{ alignSelf: 'center', flexDirection: 'row' }}>
 
-            <View style={{ alignSelf: 'center', }}>
-              <Text style={styles.deliveryAddressTitle}>
-                {selectedAddress?.address_type ? `Delivering to ${selectedAddress.address_type?.toString().charAt(0).toUpperCase()}${selectedAddress.address_type?.toString().slice(1)}` : 'Delivering to Home'}
-              </Text>
-              <Text style={styles.deliveryAddress}>
-                {selectedAddress ? `${selectedAddress.name}, ${selectedAddress.full_address}${selectedAddress.city ? `, ${selectedAddress.city}` : ''}${selectedAddress.postal_code ? `, ${selectedAddress.postal_code}` : ''}${selectedAddress.phone ? ` • ${selectedAddress.phone}` : ''}` : 'Please Select Delivery Address'}
-              </Text>
+              <Image
+                source={Images.home}
+                style={{ width: 25, height: 25, alignSelf: 'center', resizeMode: 'cover', tintColor: '#878B2F' }}
+              />
+              <View style={{ alignSelf: 'center', marginLeft: 20 }}>
+                <Text style={styles.deliveryAddressTitle}>
+                  {selectedAddress?.address_type ? `Delivering to ${selectedAddress.address_type?.toString().charAt(0).toUpperCase()}${selectedAddress.address_type?.toString().slice(1)}` : 'Delivering to Home'}
+                </Text>
+                <Text style={styles.deliveryAddress}>
+                  {selectedAddress ? `${selectedAddress.name}, ${selectedAddress.full_address}${selectedAddress.city ? `, ${selectedAddress.city}` : ''}${selectedAddress.postal_code ? `, ${selectedAddress.postal_code}` : ''}${selectedAddress.phone ? ` • ${selectedAddress.phone}` : ''}` : 'Please Select Delivery Address'}
+                </Text>
+              </View>
             </View>
 
 
@@ -958,37 +942,32 @@ const styles = StyleSheet.create({
     color: '#111',
   },
   sectionTitle: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: '#999',
+    fontSize: 14,
+    fontWeight: '700',
+    color: '#000',
     marginHorizontal: 20,
     marginBottom: 12,
     marginTop: 10,
   },
   shipmentItemCard: {
     flexDirection: 'row',
-    backgroundColor: '#fff',
-    borderRadius: 16,
-    marginHorizontal: 20,
     marginBottom: 12,
     padding: 10,
     alignItems: 'center',
-    shadowColor: '#000',
-    shadowOpacity: 0.06,
-    shadowRadius: 6,
-    shadowOffset: { width: 0, height: 3 },
-    elevation: 2,
+    justifyContent: 'space-between',
   },
   shipmentImage: {
-    width: 72,
-    height: 72,
+    width: widthPercentageToDP(35),
+    height: heightPercentageToDP(15),
     borderRadius: 16,
     resizeMode: 'cover',
   },
   shipmentName: {
-    fontWeight: '600',
+    fontWeight: '500',
     fontSize: 14,
     color: '#444',
+    textTransform: 'capitalize'
+
   },
   shipmentWeight: {
     fontSize: 12,
@@ -1007,7 +986,7 @@ const styles = StyleSheet.create({
   moveToWishlistText: {
     fontSize: 12,
     fontWeight: '500',
-    color: Colors.button[100],
+    color: '#5f621a',
   },
   qtyControlContainer: {
     flexDirection: 'row',
@@ -1016,12 +995,21 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: Colors.button[100],
     backgroundColor: Colors.button[100],
-    width: 100,
+    width: widthPercentageToDP(27),
     justifyContent: 'center',
     marginTop: 4,
+    height: heightPercentageToDP(3.5)
   },
   qtyBtn: {
     paddingHorizontal: 0,
+  },
+  deleteBox: {
+    backgroundColor: Colors.button[100],
+    justifyContent: 'center',
+    alignItems: 'center',
+    width: 80,
+    marginVertical: 8,
+    borderRadius: 12,
   },
   qtyText: {
     paddingHorizontal: 12,
@@ -1083,8 +1071,8 @@ const styles = StyleSheet.create({
   suggestionPrice: {
     fontSize: 12,
     fontWeight: '600',
-    color: Colors.button[100],
-    marginTop: 2,
+    color: '#5f621a',
+    marginTop: 5,
   },
   seeAllBtn: {
     marginHorizontal: 20,
@@ -1140,7 +1128,7 @@ const styles = StyleSheet.create({
   },
   deliveryAddressCard: {
     backgroundColor: '#fff',
-    marginTop: 12,
+    marginVertical: 12,
     borderRadius: 12,
     padding: 12,
     flexDirection: 'row',
@@ -1168,7 +1156,7 @@ const styles = StyleSheet.create({
     textDecorationLine: 'underline',
   },
   checkoutButton: {
-    bottom: 20,
+    top: -30,
     marginVertical: 20,
     alignSelf: 'center',
     backgroundColor: Colors.button[100],

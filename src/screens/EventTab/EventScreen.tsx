@@ -19,7 +19,6 @@ import { CommonLoader } from '../../components/CommonLoader/commonLoader';
 import { Image_url, UserService } from '../../service/ApiService';
 import { HttpStatusCode } from 'axios';
 import Toast from 'react-native-toast-message';
-import { LocalStorage } from '../../helpers/localstorage';
 import { formatDate } from '../../helpers/helpers';
 import Geolocation from 'react-native-geolocation-service';
 import { check, request, RESULTS, PERMISSIONS } from 'react-native-permissions';
@@ -137,13 +136,17 @@ const EventScreen = ({ navigation }: any) => {
           text1: res?.data?.message || 'Something went wrong!',
         });
       }
-    } catch (err: any) {
+    } catch (e) {
       hideLoader();
-      console.log('Error in EventList:', JSON.stringify(err));
-      Toast.show({
-        type: 'error',
-        text1: err?.response?.data?.message || 'Something went wrong! Please try again.',
-      });
+      const error = e as any;
+      if (error.status === 401) {
+        console.log('Unauthorized access - perhaps token expired');
+      } else {
+        Toast.show({
+          type: 'error',
+          text1: error || 'Something went wrong!',
+        });
+      }
     }
   };
 
@@ -162,18 +165,20 @@ const EventScreen = ({ navigation }: any) => {
         const { events } = res.data;
         setNearbyEvents(events || []);
       } else {
-        Toast.show({
-          type: 'error',
-          text1: res?.data?.message || 'Something went wrong!',
-        });
+        // Toast.show({
+        //   type: 'error',
+        //   text1: res?.data?.message || 'Something went wrong!',
+        // });
       }
-    } catch (err: any) {
+    }
+    catch (e) {
       hideLoader();
-      console.log('Error in EventNearbyList:', JSON.stringify(err));
-      Toast.show({
-        type: 'error',
-        text1: err?.response?.data?.message || 'Something went wrong! Please try again.',
-      });
+      const error = e as any;
+      if (error.status === 401) {
+        console.log('Unauthorized access - perhaps token expired');
+      } else {
+        console.log('Unauthorized access - error', error);
+      }
     }
   };
 

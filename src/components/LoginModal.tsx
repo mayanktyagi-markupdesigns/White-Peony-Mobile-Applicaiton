@@ -6,11 +6,11 @@ import {
   TextInput,
   TouchableOpacity,
   StyleSheet,
-  TouchableWithoutFeedback,
   Image,
   Alert,
   BackHandler,
   Platform,
+  Pressable,
 } from "react-native";
 import { CommonLoader } from "./CommonLoader/commonLoader";
 import { UserService } from "../service/ApiService";
@@ -21,6 +21,7 @@ import { LocalStorage } from "../helpers/localstorage";
 import { UserData, UserDataContext } from "../context/userDataContext";
 import { useCart } from '../context/CartContext';
 import { Colors } from "../constant";
+import { heightPercentageToDP } from "../constant/dimentions";
 
 
 interface AuthModalProps {
@@ -247,113 +248,111 @@ const LoginModal: React.FC<AuthModalProps> = ({
       animationType="slide"
       onRequestClose={handleBackPress}
     >
-      <TouchableWithoutFeedback onPress={onClose}>
-        <View style={styles.overlay}>
-          <View style={styles.modalContainer}>
-            {/* Header */}
-            <Text style={styles.title}>Log in to white Peony! 👋</Text>
-            {step === "login" && (
-              <Text style={styles.subtitle}>Hello again, you’ve been missed!</Text>
-            )}
-            {step === "otp" && (
-              <Text style={styles.subtitle}>
-                Enter the OTP sent to <Text style={styles.bold}>{emailOrPhone}</Text>
-              </Text>
-            )}
+      <View style={styles.overlay}>
+        <Pressable style={styles.flexFill} onPress={onClose} />
+        <View style={styles.modalContainer}>
+          {/* Header */}
+          <Text style={styles.title}>Log in to white Peony! 👋</Text>
+          {step === "login" && (
+            <Text style={styles.subtitle}>Hello again, you’ve been missed!</Text>
+          )}
+          {step === "otp" && (
+            <Text style={styles.subtitle}>
+              Enter the OTP sent to <Text style={styles.bold}>{emailOrPhone}</Text>
+            </Text>
+          )}
 
-            {/* LOGIN VIEW */}
-            {step === "login" && (
-              <>
-                <Text style={styles.label}>Email/Phone Number *</Text>
-                <View style={styles.inputWrapper}>
+          {/* LOGIN VIEW */}
+          {step === "login" && (
+            <>
+              <Text style={styles.label}>Email/Phone Number *</Text>
+              <View style={styles.inputWrapper}>
+                <TextInput
+                  style={styles.input}
+                  placeholder="+420 605 476 490"
+                  placeholderTextColor={Colors.text[200]}
+                  value={emailOrPhone}
+                  onChangeText={setEmailOrPhone}
+                  keyboardType='name-phone-pad'
+                />
+              </View>
+
+              <TouchableOpacity
+                style={styles.loginButton}
+                onPress={() => requestOTP()}
+              >
+                <Text style={styles.loginText}>Login</Text>
+              </TouchableOpacity>
+
+              {error ? <Text style={{ color: 'red', marginTop: 5 }}>{error}</Text> : null}
+
+
+              <Text style={styles.orText}>Or</Text>
+              <View style={styles.socialRow}>
+                <TouchableOpacity style={styles.socialButton} onPress={onGoogleLogin}>
+                  <Image source={require('../assets/Png/google.png')} style={{ width: 24, height: 24 }} />
+                  {/* <Ionicons name="logo-google" size={24} color="red" /> */}
+                </TouchableOpacity>
+                <TouchableOpacity style={styles.socialButton} onPress={onFacebookLogin}>
+                  <Image source={require('../assets/Png/facebook.png')} style={{ width: 24, height: 24 }} />
+                </TouchableOpacity>
+              </View>
+            </>
+          )}
+
+          {/* OTP VIEW */}
+          {step === "otp" && (
+            <>
+              <View style={styles.otpRow}>
+                {otp.map((digit, index) => (
                   <TextInput
-                    style={styles.input}
-                    placeholder="+420 605 476 490"
+                    key={index}
+                    style={styles.otpInput}
+                    keyboardType="number-pad"
+                    maxLength={1}
+                    value={digit}
                     placeholderTextColor={Colors.text[200]}
-                    value={emailOrPhone}
-                    onChangeText={setEmailOrPhone}
-                    keyboardType='name-phone-pad'
+                    onChangeText={(text) => handleChangeOtp(text, index)}
+                    onKeyPress={(e) => handleKeyPress(e, index)}
+                    ref={(ref) => (inputRefs.current[index] = ref)}
+                    autoFocus={index === 0}
+                    returnKeyLabel="Done"
+                    returnKeyType="done"
                   />
-                </View>
+                ))}
+              </View>
+              {error ? <Text style={{ color: 'red', marginTop: -10, bottom: 10 }}>{error}</Text> : null}
 
-                <TouchableOpacity
-                  style={styles.loginButton}
-                  onPress={() => requestOTP()}
-                >
-                  <Text style={styles.loginText}>Login</Text>
-                </TouchableOpacity>
+              <Text style={styles.resendText}>
+                Didn’t receive the code?{" "}
+                {timer > 0 ? (
+                  <Text style={styles.disabled}>Resend in {timer}s</Text>
+                ) : (
+                  <Text
+                    style={styles.resendLink}
+                    onPress={() => {
+                      setTimer(60);
+                      requestOTP()
+                    }}
+                  >
+                    Resend
+                  </Text>
+                )}
+              </Text>
 
-                {error ? <Text style={{ color: 'red', marginTop: 5 }}>{error}</Text> : null}
+              <TouchableOpacity
+                style={styles.loginButton}
+                onPress={() => verifyOTP()}
+              >
+                <Text style={styles.loginText}>Login</Text>
+              </TouchableOpacity>
+            </>
+          )}
 
-
-                <Text style={styles.orText}>Or</Text>
-                <View style={styles.socialRow}>
-                  <TouchableOpacity style={styles.socialButton} onPress={onGoogleLogin}>
-                    <Image source={require('../assets/Png/google.png')} style={{ width: 24, height: 24 }} />
-                    {/* <Ionicons name="logo-google" size={24} color="red" /> */}
-                  </TouchableOpacity>
-                  <TouchableOpacity style={styles.socialButton} onPress={onFacebookLogin}>
-                    <Image source={require('../assets/Png/facebook.png')} style={{ width: 24, height: 24 }} />
-                  </TouchableOpacity>
-                </View>
-              </>
-            )}
-
-            {/* OTP VIEW */}
-            {step === "otp" && (
-              <>
-                <View style={styles.otpRow}>
-                  {otp.map((digit, index) => (
-                    <TextInput
-                      key={index}
-                      style={styles.otpInput}
-                      keyboardType="number-pad"
-                      maxLength={1}
-                      value={digit}
-                      placeholderTextColor={Colors.text[200]}
-                      onChangeText={(text) => handleChangeOtp(text, index)}
-                      onKeyPress={(e) => handleKeyPress(e, index)}
-                      ref={(ref) => (inputRefs.current[index] = ref)}
-                      autoFocus={index === 0}
-                      returnKeyLabel="Done"
-                      returnKeyType="done"
-                    />
-                  ))}
-                </View>
-                {error ? <Text style={{ color: 'red', marginTop: -10, bottom: 10 }}>{error}</Text> : null}
-
-                <Text style={styles.resendText}>
-                  Didn’t receive the code?{" "}
-                  {timer > 0 ? (
-                    <Text style={styles.disabled}>Resend in {timer}s</Text>
-                  ) : (
-                    <Text
-                      style={styles.resendLink}
-                      onPress={() => {
-                        setTimer(60);
-                        requestOTP()
-                      }}
-                    >
-                      Resend
-                    </Text>
-                  )}
-                </Text>
-
-                <TouchableOpacity
-                  style={styles.loginButton}
-                  onPress={() => verifyOTP()}
-                >
-                  <Text style={styles.loginText}>Login</Text>
-                </TouchableOpacity>
-              </>
-            )}
-
-          </View>
         </View>
-
-      </TouchableWithoutFeedback>
+      </View>
     </Modal>
-  );
+  )
 };
 
 export default LoginModal;
@@ -364,22 +363,22 @@ const styles = StyleSheet.create({
     justifyContent: "flex-end",
     backgroundColor: "rgba(0,0,0,0.5)",
   },
+  flexFill: { flex: 1 },
   modalContainer: {
     backgroundColor: '#fff', borderTopLeftRadius: 16, borderRadius: 27, padding: 16, maxHeight: '90%', width: '95%', alignSelf: 'center', bottom: 20
   },
   title: {
-    fontSize: 20,
+    fontSize: 18,
     fontWeight: "700",
-    textAlign: "center",
   },
   subtitle: {
     fontSize: 14,
     color: "#666",
-    textAlign: "center",
+    fontWeight: '500',
     marginVertical: 10,
   },
   bold: { fontWeight: "600", color: "#000" },
-  label: { fontSize: 14, fontWeight: "500", marginBottom: 6 },
+  label: { fontSize: 14, fontWeight: "500", marginBottom: 6, marginTop: heightPercentageToDP(1) },
   inputWrapper: {
     borderWidth: 1,
     borderColor: "#ccc",

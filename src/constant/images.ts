@@ -10,7 +10,9 @@ const Images = {
   langbg: require("../assets/Png/ChatGPT.png"),
   location: require("../assets/Png/location.png"),
   clock_3: require("../assets/Png/clock_3.png"),
+  clock: require("../assets/Png/clock.png"),
   officechair2: require("../assets/Png/office-chair2.png"),
+  plus1: require("../assets/Png/plus1.png"),
   // colored
 
   homeC: require("../assets/Png/colored/home-c.png"),
